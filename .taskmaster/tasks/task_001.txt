@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Setup Monorepo Infrastructure and Tooling
-# Status: in-progress
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Initialize the monorepo structure with Turbo, TypeScript configurations, shared tooling, and a demo Next.js application for the SaaS platform. Reference and implement the planned folder structure from PRD.md as a guide for all developers. The structure includes: apps/ (for Next.js applications like main-app and marketing-site), packages/ (for shared code such as supabase, billing, auth, email, ui, lib, types), supabase/ (for database migrations and functions), tools/ (for shared tooling like eslint-config, tsconfig, and vitest-config), and tests/ (for E2E tests). Ensure this structure is created during initialization and matches the detailed hierarchy in PRD.md so developers know exactly where to place files.
