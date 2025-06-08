@@ -3,7 +3,10 @@
 # ============================================================================
 # DEPENDENCIES & PACKAGE MANAGERS
 # ============================================================================
-/node_modules
+# Node modules (ensure all instances are ignored)
+node_modules/
+*/node_modules/
+**/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -17,8 +20,30 @@ yarn-error.log*
 .pnpm-debug.log*
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# Note: Keep pnpm-lock.yaml for lockfile consistency
+# pnpm-lock.yaml
 .npm
+
+# ============================================================================
+# MONOREPO & WORKSPACE SPECIFIC
+# ============================================================================
+# Turborepo
+.turbo/
+
+# Lerna
+lerna-debug.log*
+
+# Rush
+common/temp/
+common/deploy/
+
+# Build outputs in all packages
+packages/*/dist/
+packages/*/build/
+apps/*/dist/
+apps/*/.next/
+apps/*/out/
+tools/*/dist/
 
 # ============================================================================
 # NEXT.JS SPECIFIC
@@ -108,6 +133,10 @@ id_ed25519.pub
 # Redis dumps
 dump.rdb
 
+# Supabase local
+.supabase/
+supabase/.env
+
 # ============================================================================
 # LOGS & DEBUGGING
 # ============================================================================
@@ -138,10 +167,19 @@ test-results/
 junit.xml
 .jest/
 
+# Vitest
+coverage/
+.vitest/
+
 # Playwright
 test-results/
 playwright-report/
 playwright/.cache/
+
+# E2E test artifacts
+tests/e2e/screenshots/
+tests/e2e/videos/
+tests/e2e/downloads/
 
 # ============================================================================
 # DEVELOPMENT TOOLS & EDITORS
@@ -284,6 +322,9 @@ terraform.tfvars.json
 # Rollup cache
 .rollup.cache/
 
+# Tailwind CSS
+.tailwindcss-cache/
+
 # ============================================================================
 # BACKUP & ARCHIVE FILES
 # ============================================================================
@@ -346,24 +387,24 @@ terraform.tfvars.json
 api-docs/
 swagger-ui/
 
+# Storybook build outputs
+.out
+.storybook-out
+storybook-static/
+
 # ============================================================================
 # TASKMASTER & PROJECT SPECIFIC
 # ============================================================================
 # Task Master (Keep essential config)
-tasks.json
-tasks/
 .taskmaster/reports/
 .taskmaster/cache/
 .taskmaster/temp/
 !.taskmaster/config.json
 !.taskmaster/templates/
+!.taskmaster/docs/
+!.taskmaster/tasks/
 
-# Local development
-local/
-.local/
-dev/
-.dev/
-.taskmaster/
+# Cursor AI
 .cursor/
 
 # ============================================================================
@@ -400,11 +441,6 @@ bower_components
 # Local Netlify folder
 .netlify
 
-# Storybook build outputs
-.out
-.storybook-out
-storybook-static/
-
 # Temporary folders
 tmp/
 temp/
@@ -419,15 +455,46 @@ temp/
 # Bundle analyzer
 .analyzer/
 
-# Turborepo
-.turbo/
+# Local development overrides
+*.local.js
+*.local.ts
+*.local.json
+*.local.yml
+*.local.yaml
 
-# Lerna
-lerna-debug.log*
+# Auth0 local development
+.auth0/
 
-# Rush
-common/temp/
-common/deploy/
+# Stripe CLI
+.stripe/
+
+# ============================================================================
+# SAAS KIT SPECIFIC
+# ============================================================================
+# Package-specific builds and artifacts
+packages/*/coverage/
+packages/*/dist/
+packages/*/.turbo/
+apps/*/coverage/
+apps/*/.turbo/
+tools/*/coverage/
+tools/*/.turbo/
+
+# Local database files
+*.local.db
+local.db
+dev.db
+
+# Email template artifacts
+packages/email/temp/
+packages/email/.temp/
+
+# Billing webhook logs
+packages/billing/webhook-logs/
+
+# UI component playground
+packages/ui/playground/
+packages/ui/.storybook/static/
 
 # ============================================================================
 # CUSTOM PROJECT ADDITIONS

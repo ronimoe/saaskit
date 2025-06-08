@@ -11,6 +11,9 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
@@ -22,6 +25,7 @@
     "@repo/tsconfig": "workspace:*",
     "eslint": "^9",
     "tsup": "^8.0.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.0.0"
   }
 }

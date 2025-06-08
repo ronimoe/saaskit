@@ -1,0 +1,19 @@
+{
+  "name": "@repo/vitest-config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts",
+    "./setup": "./setup.ts",
+    "./setup-react": "./setup-react.ts"
+  },
+  "files": [
+    "*.js",
+    "*.ts"
+  ],
+  "devDependencies": {
+    "vitest": "^2.0.0"
+  }
+} 

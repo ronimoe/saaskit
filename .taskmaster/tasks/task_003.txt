@@ -1,0 +1,84 @@
+# Task ID: 3
+# Title: Implement Shared Authentication Package
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create the authentication package with Supabase Auth integration, JWT utilities, OAuth providers, and deliver a complete frontend demonstrating all authentication features.
+# Details:
+Build packages/auth with JWT utilities, password hashing, session management, OAuth providers (Google, GitHub), and authentication middleware. Implement server-side and client-side auth helpers, React hooks for authentication state, and proper TypeScript types. Follow the exact folder structure specified in the PRD. Additionally, create frontend pages to demonstrate the authentication package: /login and /signup pages with working forms, /profile page showing user information, OAuth login buttons for Google and GitHub, protected route examples, auth status indicators in the navigation, a /auth-demo page showcasing all authentication features, password reset functionality with frontend forms, and real-time auth state management. All components must include comprehensive testing with Vitest, targeting 85% code coverage minimum.
+
+# Test Strategy:
+Unit test JWT token generation/validation with comprehensive edge cases, test password hashing functions with various scenarios, mock OAuth flows with different providers and error conditions, verify session management works correctly across different states, and test authentication middleware with various authentication scenarios. Write comprehensive unit tests using Vitest for all authentication utilities, targeting 85% code coverage minimum. Mock Supabase Auth API calls during testing and validate security measures and error handling. Manually and automatically test all frontend authentication flows: registration, login, logout, OAuth login, password reset, protected route access, and real-time auth state updates through the web interface.
+
+# Subtasks:
+## 1. Set Up Supabase Auth Integration [pending]
+### Dependencies: None
+### Description: Integrate Supabase Auth into the authentication package, configuring client SDKs and API endpoints for user authentication and authorization.
+### Details:
+Initialize Supabase in the project, set up environment variables, and ensure the package can register, login, and manage users using Supabase Auth. Configure the necessary settings for JWT-based authentication and enable Row Level Security (RLS) as needed.
+
+## 2. Implement JWT Utilities and Password Hashing [pending]
+### Dependencies: 3.1
+### Description: Develop utilities for handling JWT creation, validation, and decoding, as well as secure password hashing and verification.
+### Details:
+Create TypeScript modules for JWT signing and verification using Supabase's JWT secret. Implement password hashing with a secure algorithm (e.g., bcrypt) and provide helper functions for password comparison.
+
+## 3. Integrate OAuth Providers (Google, GitHub) [pending]
+### Dependencies: 3.1
+### Description: Add support for OAuth authentication via Google and GitHub, leveraging Supabase Auth's social login capabilities.
+### Details:
+Configure OAuth apps in Supabase dashboard, update the authentication package to handle OAuth flows, and ensure tokens are managed correctly for social logins.
+
+## 4. Develop Authentication Middleware and Helpers [pending]
+### Dependencies: 3.2, 3.3
+### Description: Implement server-side and client-side authentication helpers, middleware for session management, and React hooks for authentication state.
+### Details:
+Create middleware for protecting API routes, session management utilities, and React hooks (e.g., useAuth) for accessing authentication state in components. Ensure helpers are type-safe and reusable.
+
+## 5. Apply Folder Structure and TypeScript Typings [pending]
+### Dependencies: 3.4
+### Description: Organize the authentication package according to the specified folder structure and implement comprehensive TypeScript types.
+### Details:
+Implement the following folder structure as specified in the PRD:
+- packages/auth/
+  - jwt.ts (JWT utilities)
+  - oauth.ts (OAuth configuration)
+  - middleware.ts (Auth middleware)
+  - hooks/ (React hooks for auth state)
+  - types.ts (TypeScript interfaces and types)
+- apps/web/app/(auth)/
+  - login/ (Login page)
+  - signup/ (Signup page)
+  - profile/ (User profile page)
+  - auth-demo/ (Authentication demo page)
+- apps/web/components/auth/
+  - LoginForm.tsx
+  - SignupForm.tsx
+  - AuthProvider.tsx
+- apps/web/lib/auth/
+  - client-helpers.ts
+  - protected-routes.ts
+
+Ensure all modules are properly typed and export necessary interfaces and types for external use.
+
+## 6. Create Authentication Frontend Pages and Demo [pending]
+### Dependencies: 3.5
+### Description: Develop frontend pages and components to demonstrate and test all authentication features provided by the auth package.
+### Details:
+Implement frontend pages following the specified folder structure:
+- apps/web/app/(auth)/login/ - Login page with working form
+- apps/web/app/(auth)/signup/ - Signup page with registration form
+- apps/web/app/(auth)/profile/ - Profile page displaying user information
+- apps/web/app/(auth)/auth-demo/ - Demo page showcasing all auth features
+
+Create reusable components in apps/web/components/auth/:
+- LoginForm.tsx - Form for user login
+- SignupForm.tsx - Form for user registration
+- AuthProvider.tsx - Context provider for auth state
+
+Implement client helpers in apps/web/lib/auth/:
+- client-helpers.ts - Client-side auth utilities
+- protected-routes.ts - Route protection logic
+
+Add OAuth login buttons for Google and GitHub, password reset functionality, protected route examples, auth status indicators in navigation, and ensure real-time auth state management with logout functionality.
+

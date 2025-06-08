@@ -1,0 +1,74 @@
+# Task ID: 10
+# Title: Setup Testing Infrastructure
+# Status: pending
+# Dependencies: 8
+# Priority: medium
+# Description: Implement comprehensive testing setup with unit, integration, and end-to-end tests, and deliver a frontend dashboard that visualizes and manages all testing infrastructure and results. Use pnpm as the package manager for all testing dependencies and scripts. Ensure all test types, configurations, and frontend pages are organized according to the prescribed folder structure for clarity and maintainability. Leverage pnpm workspace features for efficient dependency management and cross-package testing.
+# Details:
+Configure Vitest workspace for all packages using pnpm, setup Testing Library for React components, implement Playwright for E2E tests, create test fixtures and mock data. Install all testing dependencies (Vitest, Playwright, Jest, Testing Library, etc.) using 'pnpm add -D' in the appropriate packages. Configure test packages with pnpm workspace dependencies and ensure proper pnpm workspace linking for cross-package testing. Use 'pnpm run test' commands for running different test suites, and set up pnpm scripts for test coverage and CI/CD. Use 'pnpm -r test' to run all tests recursively across the monorepo. Write tests for auth flow, billing flow, dashboard functionality, and multi-tenant scenarios as specified in tests/e2e/. Additionally, build a testing dashboard frontend with the following deliverables: a /test-dashboard page showing real-time test results with pass/fail status, a /coverage-report page displaying test coverage with interactive file navigation, a /test-runner page to trigger tests and see live output, visual graphs and charts of test result trends, a /e2e-tests page with screenshots and videos of test runs, performance metrics and testing benchmarks, and a test status widget for the main navigation. The dashboard must provide comprehensive, real-time insights into all aspects of the testing infrastructure.
+
+📦 Package Manager Guidance:
+- Use 'pnpm add -D' to install all testing dependencies in the correct packages.
+- Configure pnpm workspace dependencies for shared test utilities and configs.
+- Use 'pnpm run test' and 'pnpm -r test' for running tests locally and in CI/CD.
+- Set up pnpm scripts for test coverage, E2E, and integration tests.
+- Ensure all packages are properly linked for cross-package testing.
+
+📁 Folder Structure Guidance:
+- tests/
+  - e2e/ (end-to-end tests)
+  - integration/ (integration tests)
+  - unit/ (unit tests)
+  - fixtures/ (shared test fixtures and mock data)
+- tools/vitest-config/ (Vitest configs and test utilities)
+- apps/web/__tests__/ (frontend component tests)
+- packages/*/src/__tests__/ (package-specific tests)
+- apps/web/app/test-dashboard/ (testing dashboard page implementation)
+- apps/web/app/coverage-report/ (coverage visualization page)
+- apps/web/app/test-runner/ (test execution interface)
+
+All developers must place tests, fixtures, configs, and dashboard pages in these locations to ensure consistency and discoverability. All test scripts and dependency management must use pnpm.
+
+# Test Strategy:
+Verify all test suites run successfully using pnpm scripts, achieve minimum 80% code coverage, validate E2E tests cover critical user journeys, ensure tests run in CI/CD pipeline via pnpm, and verify test isolation and cleanup. Confirm that the testing dashboard frontend accurately reflects real-time test execution, coverage, and results, and that all dashboard features function as specified. Additionally, validate that all test files, fixtures, configs, and dashboard pages are placed in the correct folders as outlined in the folder structure guidance. Ensure all test dependencies are managed with pnpm and that pnpm workspace linking is correctly configured for cross-package testing.
+
+# Subtasks:
+## 1. Configure Vitest Workspace [pending]
+### Dependencies: None
+### Description: Set up Vitest workspace configuration for all packages in the monorepo using pnpm for dependency management.
+### Details:
+Install Vitest and related dependencies using 'pnpm add -D vitest' in the relevant packages. Create vitest.workspace.ts in the root directory that automatically detects and includes all packages with test configurations. Use defineWorkspace to map package directories and extend their individual Vite configs with appropriate test settings. Place all shared Vitest configs and test utilities in tools/vitest-config/ as per the folder structure guidance. Ensure pnpm workspace dependencies are configured for shared utilities and that all packages are properly linked for cross-package testing.
+<info added on 2025-06-02T19:22:05.535Z>
+Configure advanced Vitest features for each package including coverage reporting with appropriate thresholds for different package types. Set up test environments tailored to specific needs - jsdom for React component packages, node for utility packages, and happy-dom for lightweight UI testing. Create package-specific test configurations that extend the workspace setup from task 1.9, including custom reporters, test timeouts, and environment-specific globals. Implement shared test utilities and mocks in tools/vitest-config/ for common testing patterns like component rendering helpers, API mocking utilities, and custom matchers. Configure coverage collection to exclude build artifacts and focus on source code, with different threshold requirements for UI components versus utility functions. Ensure each package's vitest.config.ts properly inherits from the workspace configuration while adding package-specific overrides for test patterns, setup files, and environment variables.
+</info added on 2025-06-02T19:22:05.535Z>
+
+## 2. Implement React Component Testing [pending]
+### Dependencies: 10.1
+### Description: Set up Testing Library for React components with appropriate configurations using pnpm.
+### Details:
+Install React Testing Library and related dependencies using 'pnpm add -D @testing-library/react @testing-library/jest-dom' in the appropriate packages. Configure custom renders that provide necessary context providers. Create helper utilities for component testing and configure happy-dom environment in the Vitest workspace for DOM testing. Place all frontend component tests in apps/web/__tests__/ and package-specific component tests in packages/*/src/__tests__/ as per the folder structure guidance. Ensure all test dependencies are managed with pnpm and workspace linking is set up for shared utilities.
+
+## 3. Configure E2E Testing with Playwright [pending]
+### Dependencies: None
+### Description: Set up Playwright for end-to-end testing across the application using pnpm.
+### Details:
+Install Playwright using 'pnpm add -D playwright' in the relevant package. Create configuration for multiple browsers, and set up the directory structure in tests/e2e/. Implement global setup and teardown scripts for test environment preparation. Ensure all E2E tests are placed in tests/e2e/ as per the folder structure guidance. Use pnpm scripts to run E2E tests and ensure Playwright dependencies are managed with pnpm.
+
+## 4. Create Test Fixtures and Mock Data [pending]
+### Dependencies: 10.1, 10.2, 10.3
+### Description: Develop reusable test fixtures and mock data for all test types.
+### Details:
+Create a shared fixtures directory at tests/fixtures/ with mock data generators for users, tenants, billing information, and other domain objects. Implement factory functions for test data creation and database seeding utilities. Ensure all fixtures and mock data are placed in tests/fixtures/ as per the folder structure guidance. Manage any shared fixture utilities as pnpm workspace dependencies if needed.
+
+## 5. Implement Core Flow Tests [pending]
+### Dependencies: 10.2, 10.3, 10.4
+### Description: Write tests for authentication, billing, dashboard, and multi-tenant scenarios.
+### Details:
+Develop comprehensive test suites for the core application flows as specified in tests/e2e/. Include unit tests for business logic in tests/unit/, integration tests for API endpoints in tests/integration/, and E2E tests for complete user journeys in tests/e2e/. Ensure all tests are placed in their respective folders according to the folder structure guidance. Use pnpm scripts to run all test types and ensure all test dependencies are managed with pnpm.
+
+## 6. Build Testing Dashboard Frontend [pending]
+### Dependencies: 10.1, 10.2, 10.3, 10.4, 10.5
+### Description: Develop a comprehensive frontend dashboard to visualize and manage all testing infrastructure and results.
+### Details:
+Create the following pages and widgets: /test-dashboard (real-time test results with pass/fail status, implemented in apps/web/app/test-dashboard/), /coverage-report (test coverage with interactive file navigation, implemented in apps/web/app/coverage-report/), /test-runner (trigger tests and see live output, implemented in apps/web/app/test-runner/), visual graphs and charts for test result trends, /e2e-tests (screenshots and videos of test runs), performance metrics and testing benchmarks, and a test status widget for the main navigation. Ensure the dashboard provides real-time updates and comprehensive insights into all aspects of the testing infrastructure. All dashboard pages must be implemented in their respective folders as per the folder structure guidance. Integrate dashboard functionality with pnpm scripts for triggering and monitoring tests.
+

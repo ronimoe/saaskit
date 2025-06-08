@@ -1,0 +1,71 @@
+# Task ID: 5
+# Title: Implement Billing and Stripe Integration Package
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create the billing package with Stripe integration, subscription management, webhook handling, and a complete billing and pricing frontend demonstrating Stripe integration end-to-end. Follow the prescribed folder structure to ensure maintainability and clarity for developers.
+# Details:
+Build packages/billing with Stripe client setup, subscription plans configuration, webhook handlers for payment events, usage tracking, and billing types. Implement checkout session creation, customer portal integration, and subscription lifecycle management. Use Stripe API version 2025-05-28.basil as specified. In addition, create a comprehensive billing and pricing frontend: implement a /pricing page displaying subscription plans and pricing tiers, a /checkout page with Stripe payment forms, a /billing-dashboard showing user subscription status and payment history, /upgrade and /downgrade flows with working Stripe checkout, a webhook status page showing real-time payment events, subscription management features (cancel, reactivate), and a /billing-demo page that demonstrates all payment features working together. 
+
+📁 Folder Structure Guidance:
+- packages/billing/
+  - stripe.ts (Stripe client setup and configuration)
+  - webhooks.ts (Webhook handlers for Stripe events)
+  - plans.ts (Subscription plans and pricing configuration)
+  - types.ts (Type definitions for billing and Stripe integration)
+- apps/web/app/(billing)/
+  - pricing/ (Pricing page implementation)
+  - checkout/ (Checkout page and flows)
+  - billing-dashboard/ (Subscription status and payment history)
+  - upgrade/ (Upgrade flow)
+  - downgrade/ (Downgrade flow)
+- apps/web/components/billing/
+  - PricingCard.tsx (Pricing card UI component)
+  - CheckoutForm.tsx (Stripe payment form component)
+  - SubscriptionStatus.tsx (Subscription status display component)
+- apps/web/lib/billing/
+  - stripe-helpers.ts (Stripe utility functions)
+  - pricing-utils.ts (Pricing calculation and comparison utilities)
+
+This structure ensures developers know exactly where to place Stripe configuration, webhook handlers, pricing components, and billing management pages according to the PRD structure.
+
+# Test Strategy:
+Mock Stripe API calls for backend testing, verify webhook signature validation, test subscription creation and cancellation flows, validate usage tracking accuracy, and ensure proper error handling for payment failures. For the frontend, perform end-to-end tests covering the entire payment flow: verify /pricing displays correct plans, /checkout processes payments via Stripe, /billing-dashboard accurately reflects subscription status and payment history, /upgrade and /downgrade flows work with Stripe checkout, webhook status page updates in real time, and subscription management actions (cancel, reactivate) function correctly. Test the /billing-demo page to ensure all payment features are demonstrated and working. All testing must achieve 85% code coverage minimum using Vitest, with comprehensive unit tests covering both happy path and edge cases, including payment error scenarios, retry logic, security measures, and validation.
+
+# Subtasks:
+## 1. Set up Stripe client and API configuration [pending]
+### Dependencies: None
+### Description: Initialize the Stripe client with API keys and configure it to use the specified API version 2025-05-28.basil
+### Details:
+Create a Stripe client setup module that handles authentication with API keys, environment configuration (test/production modes), and proper initialization with the required API version. Place this logic in packages/billing/stripe.ts. Include error handling for connection issues and implement a configuration validator.
+
+## 2. Implement subscription plans and product configuration [pending]
+### Dependencies: 5.1
+### Description: Define subscription plan structures, product configurations, and pricing tiers in the billing package
+### Details:
+Create interfaces and classes for subscription plans, products, and pricing models in packages/billing/plans.ts and types.ts. Implement methods to fetch and sync plan data from Stripe. Build a configuration system that allows easy definition of subscription tiers, features, and limits. Include utilities for price calculation and plan comparison in apps/web/lib/billing/pricing-utils.ts.
+
+## 3. Develop checkout and customer portal integration [pending]
+### Dependencies: 5.1, 5.2
+### Description: Create modules for generating checkout sessions and managing the customer portal for subscription management
+### Details:
+Implement functions to create and manage Stripe checkout sessions for new subscriptions in packages/billing/stripe.ts. Build integration with Stripe's customer portal for subscription management. Include session validation, success/cancel URL handling, and metadata management. Create helper functions for generating checkout links and customer portal URLs in apps/web/lib/billing/stripe-helpers.ts.
+
+## 4. Build webhook handlers for payment events [pending]
+### Dependencies: 5.1
+### Description: Implement webhook handlers to process Stripe events for payments, subscription updates, and other billing notifications
+### Details:
+Create a webhook handling system in packages/billing/webhooks.ts that processes incoming Stripe events. Implement handlers for key events including payment_intent.succeeded, invoice.paid, customer.subscription.updated, and other critical billing events. Include signature verification, event validation, and idempotency handling to prevent duplicate processing.
+
+## 5. Implement subscription lifecycle and usage tracking [pending]
+### Dependencies: 5.2, 5.4
+### Description: Create modules to manage the complete subscription lifecycle and track usage against subscription limits
+### Details:
+Build a subscription lifecycle manager that handles creation, updates, cancellations, and renewals. Implement usage tracking functionality to monitor consumption against plan limits. Create utilities for prorating, upgrades/downgrades, and handling subscription state transitions. Include reporting functions for billing analytics and usage statistics. Place relevant logic in packages/billing/ and supporting utilities in apps/web/lib/billing/.
+
+## 6. Develop billing and pricing frontend [pending]
+### Dependencies: 5.2, 5.3, 5.4, 5.5
+### Description: Create a complete frontend to demonstrate Stripe billing integration and enable end-to-end payment flow testing
+### Details:
+Implement a /pricing page in apps/web/app/(billing)/pricing/ that displays all subscription plans and pricing tiers using the PricingCard.tsx component from apps/web/components/billing/. Build a /checkout page in apps/web/app/(billing)/checkout/ with Stripe payment forms using CheckoutForm.tsx. Create a /billing-dashboard page in apps/web/app/(billing)/billing-dashboard/ showing the user's current subscription status, payment history, and management actions (cancel, reactivate) using SubscriptionStatus.tsx. Implement /upgrade and /downgrade flows in their respective folders using Stripe checkout. Add a webhook status page that displays real-time payment events as they are received. Provide subscription management features such as cancel and reactivate. Develop a /billing-demo page that showcases all payment features working together, allowing for full demonstration and testing of the payment flow from pricing to subscription management.
+
