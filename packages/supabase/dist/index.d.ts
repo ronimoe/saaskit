@@ -25,113 +25,146 @@ declare function createServerClient(cookieStore: {
  */
 declare function createAdminClient(): _supabase_supabase_js.SupabaseClient<any, "public", any>;
 
-/**
- * Database tables interface
- * This will be automatically generated from Supabase once schema is created
- */
-interface Database {
+type Json = string | number | boolean | null | {
+    [key: string]: Json | undefined;
+} | Json[];
+type Database = {
     public: {
         Tables: {
-            users: {
-                Row: {
-                    id: string;
-                    email: string;
-                    created_at: string;
-                    updated_at: string;
-                };
-                Insert: {
-                    id?: string;
-                    email: string;
-                    created_at?: string;
-                    updated_at?: string;
-                };
-                Update: {
-                    id?: string;
-                    email?: string;
-                    created_at?: string;
-                    updated_at?: string;
-                };
-            };
             products: {
                 Row: {
+                    created_at: string;
+                    description: string | null;
                     id: string;
                     name: string;
-                    description: string | null;
-                    created_at: string;
                     updated_at: string;
                 };
                 Insert: {
+                    created_at?: string;
+                    description?: string | null;
                     id?: string;
                     name: string;
-                    description?: string | null;
-                    created_at?: string;
                     updated_at?: string;
                 };
                 Update: {
+                    created_at?: string;
+                    description?: string | null;
                     id?: string;
                     name?: string;
-                    description?: string | null;
-                    created_at?: string;
                     updated_at?: string;
                 };
-            };
-            user_products: {
-                Row: {
-                    id: string;
-                    user_id: string;
-                    product_id: string;
-                    role: string;
-                    created_at: string;
-                    updated_at: string;
-                };
-                Insert: {
-                    id?: string;
-                    user_id: string;
-                    product_id: string;
-                    role: string;
-                    created_at?: string;
-                    updated_at?: string;
-                };
-                Update: {
-                    id?: string;
-                    user_id?: string;
-                    product_id?: string;
-                    role?: string;
-                    created_at?: string;
-                    updated_at?: string;
-                };
+                Relationships: [];
             };
             subscriptions: {
                 Row: {
-                    id: string;
-                    user_id: string;
-                    product_id: string;
-                    status: string;
-                    current_period_start: string;
-                    current_period_end: string;
                     created_at: string;
+                    current_period_end: string;
+                    current_period_start: string;
+                    id: string;
+                    product_id: string;
+                    status: Database["public"]["Enums"]["subscription_status"];
+                    updated_at: string;
+                    user_id: string;
+                };
+                Insert: {
+                    created_at?: string;
+                    current_period_end: string;
+                    current_period_start: string;
+                    id?: string;
+                    product_id: string;
+                    status?: Database["public"]["Enums"]["subscription_status"];
+                    updated_at?: string;
+                    user_id: string;
+                };
+                Update: {
+                    created_at?: string;
+                    current_period_end?: string;
+                    current_period_start?: string;
+                    id?: string;
+                    product_id?: string;
+                    status?: Database["public"]["Enums"]["subscription_status"];
+                    updated_at?: string;
+                    user_id?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "subscriptions_product_id_fkey";
+                        columns: ["product_id"];
+                        isOneToOne: false;
+                        referencedRelation: "products";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "subscriptions_user_id_fkey";
+                        columns: ["user_id"];
+                        isOneToOne: false;
+                        referencedRelation: "users";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            user_products: {
+                Row: {
+                    created_at: string;
+                    id: string;
+                    product_id: string;
+                    role: Database["public"]["Enums"]["user_role"];
+                    updated_at: string;
+                    user_id: string;
+                };
+                Insert: {
+                    created_at?: string;
+                    id?: string;
+                    product_id: string;
+                    role?: Database["public"]["Enums"]["user_role"];
+                    updated_at?: string;
+                    user_id: string;
+                };
+                Update: {
+                    created_at?: string;
+                    id?: string;
+                    product_id?: string;
+                    role?: Database["public"]["Enums"]["user_role"];
+                    updated_at?: string;
+                    user_id?: string;
+                };
+                Relationships: [
+                    {
+                        foreignKeyName: "user_products_product_id_fkey";
+                        columns: ["product_id"];
+                        isOneToOne: false;
+                        referencedRelation: "products";
+                        referencedColumns: ["id"];
+                    },
+                    {
+                        foreignKeyName: "user_products_user_id_fkey";
+                        columns: ["user_id"];
+                        isOneToOne: false;
+                        referencedRelation: "users";
+                        referencedColumns: ["id"];
+                    }
+                ];
+            };
+            users: {
+                Row: {
+                    created_at: string;
+                    email: string;
+                    id: string;
                     updated_at: string;
                 };
                 Insert: {
-                    id?: string;
-                    user_id: string;
-                    product_id: string;
-                    status: string;
-                    current_period_start: string;
-                    current_period_end: string;
                     created_at?: string;
+                    email: string;
+                    id: string;
                     updated_at?: string;
                 };
                 Update: {
-                    id?: string;
-                    user_id?: string;
-                    product_id?: string;
-                    status?: string;
-                    current_period_start?: string;
-                    current_period_end?: string;
                     created_at?: string;
+                    email?: string;
+                    id?: string;
                     updated_at?: string;
                 };
+                Relationships: [];
             };
         };
         Views: {
@@ -141,13 +174,62 @@ interface Database {
             [_ in never]: never;
         };
         Enums: {
-            [_ in never]: never;
+            subscription_status: "active" | "canceled" | "incomplete" | "incomplete_expired" | "past_due" | "trialing" | "unpaid";
+            user_role: "owner" | "admin" | "member" | "viewer";
         };
         CompositeTypes: {
             [_ in never]: never;
         };
     };
-}
+};
+type DefaultSchema = Database[Extract<keyof Database, "public">];
+type Tables<DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"]) | {
+    schema: keyof Database;
+}, TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database;
+} ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] & Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"]) : never = never> = DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database;
+} ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] & Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    Row: infer R;
+} ? R : never : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"]) ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+    Row: infer R;
+} ? R : never : never;
+type TablesInsert<DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"] | {
+    schema: keyof Database;
+}, TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database;
+} ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] : never = never> = DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database;
+} ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+    Insert: infer I;
+} ? I : never : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"] ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I;
+} ? I : never : never;
+type TablesUpdate<DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"] | {
+    schema: keyof Database;
+}, TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database;
+} ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] : never = never> = DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database;
+} ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+    Update: infer U;
+} ? U : never : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"] ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U;
+} ? U : never : never;
+type Enums<DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"] | {
+    schema: keyof Database;
+}, EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database;
+} ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"] : never = never> = DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database;
+} ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName] : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"] ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions] : never;
+type CompositeTypes<PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"] | {
+    schema: keyof Database;
+}, CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database;
+} ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"] : never = never> = PublicCompositeTypeNameOrOptions extends {
+    schema: keyof Database;
+} ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName] : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"] ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions] : never;
 /**
  * Supabase client type with Database types
  */
@@ -155,23 +237,34 @@ type TypedSupabaseClient = ReturnType<typeof createClient>;
 /**
  * Common user role types for multi-tenant architecture
  */
-type UserRole = 'owner' | 'admin' | 'member' | 'viewer';
+type UserRole = Database["public"]["Enums"]["user_role"];
 /**
  * Subscription status types
  */
-type SubscriptionStatus = 'active' | 'canceled' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'trialing' | 'unpaid';
+type SubscriptionStatus = Database["public"]["Enums"]["subscription_status"];
 /**
  * Utility type for table rows
  */
-type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+type TableRows<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
 /**
  * Utility type for table inserts
  */
-type Inserts<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
+type TableInserts<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
 /**
  * Utility type for table updates
  */
-type Updates<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+type TableUpdates<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+/**
+ * Type constants for enums (useful for forms, dropdowns, etc.)
+ */
+declare const Constants: {
+    readonly public: {
+        readonly Enums: {
+            readonly subscription_status: readonly ["active", "canceled", "incomplete", "incomplete_expired", "past_due", "trialing", "unpaid"];
+            readonly user_role: readonly ["owner", "admin", "member", "viewer"];
+        };
+    };
+};
 
 /**
  * Authentication helper functions for Supabase
@@ -451,4 +544,4 @@ declare function getRealtimeStatus(supabase: TypedSupabaseClient): string;
 
 declare const SUPABASE_VERSION = "0.1.0";
 
-export { type Database, type DatabaseChangeEvent, type DatabaseChangePayload, type Inserts, SUPABASE_VERSION, type SubscriptionStatus, type Tables, type TypedSupabaseClient, type Updates, type UserRole, copyFile, createAdminClient, createBucket, createChannel, createClient, createServerClient, createSignedUrl, createSignedUrls, deleteBucket, deleteFile, downloadFile, getCurrentSession, getCurrentUser, getFileInfo, getPublicUrl, getRealtimeStatus, getUserId, isAuthenticated, isRealtimeAvailable, listBuckets, listFiles, moveFile, resetPassword, signInWithOAuth, signInWithPassword, signOut, signUpWithPassword, subscribeToRow, subscribeToTable, subscribeToUserChanges, unsubscribeChannel, unsubscribeMultipleChannels, updatePassword, updateUserMetadata, uploadFile };
+export { type CompositeTypes, Constants, type Database, type DatabaseChangeEvent, type DatabaseChangePayload, type Enums, type Json, SUPABASE_VERSION, type SubscriptionStatus, type TableInserts, type TableRows, type TableUpdates, type Tables, type TablesInsert, type TablesUpdate, type TypedSupabaseClient, type UserRole, copyFile, createAdminClient, createBucket, createChannel, createClient, createServerClient, createSignedUrl, createSignedUrls, deleteBucket, deleteFile, downloadFile, getCurrentSession, getCurrentUser, getFileInfo, getPublicUrl, getRealtimeStatus, getUserId, isAuthenticated, isRealtimeAvailable, listBuckets, listFiles, moveFile, resetPassword, signInWithOAuth, signInWithPassword, signOut, signUpWithPassword, subscribeToRow, subscribeToTable, subscribeToUserChanges, unsubscribeChannel, unsubscribeMultipleChannels, updatePassword, updateUserMetadata, uploadFile };

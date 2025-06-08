@@ -20,6 +20,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
+  Constants: () => Constants,
   SUPABASE_VERSION: () => SUPABASE_VERSION,
   copyFile: () => copyFile,
   createAdminClient: () => createAdminClient,
@@ -97,6 +98,24 @@ function createAdminClient() {
     process.env.SUPABASE_SERVICE_ROLE_KEY
   );
 }
+
+// src/types.ts
+var Constants = {
+  public: {
+    Enums: {
+      subscription_status: [
+        "active",
+        "canceled",
+        "incomplete",
+        "incomplete_expired",
+        "past_due",
+        "trialing",
+        "unpaid"
+      ],
+      user_role: ["owner", "admin", "member", "viewer"]
+    }
+  }
+};
 
 // src/auth-helpers.ts
 async function getCurrentUser(supabase) {
@@ -313,6 +332,7 @@ function getRealtimeStatus(supabase) {
 var SUPABASE_VERSION = "0.1.0";
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
+  Constants,
   SUPABASE_VERSION,
   copyFile,
   createAdminClient,

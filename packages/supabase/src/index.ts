@@ -10,9 +10,18 @@ export type {
   UserRole,
   SubscriptionStatus,
   Tables,
-  Inserts,
-  Updates
+  TableInserts,
+  TableUpdates,
+  TableRows,
+  TablesInsert,
+  TablesUpdate,
+  Enums,
+  CompositeTypes,
+  Json
 } from './types'
+
+// Export type constants
+export { Constants } from './types'
 
 // Authentication utilities
 export * from './auth-helpers'

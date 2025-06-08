@@ -37,6 +37,24 @@ function createAdminClient() {
   );
 }
 
+// src/types.ts
+var Constants = {
+  public: {
+    Enums: {
+      subscription_status: [
+        "active",
+        "canceled",
+        "incomplete",
+        "incomplete_expired",
+        "past_due",
+        "trialing",
+        "unpaid"
+      ],
+      user_role: ["owner", "admin", "member", "viewer"]
+    }
+  }
+};
+
 // src/auth-helpers.ts
 async function getCurrentUser(supabase) {
   try {
@@ -251,6 +269,7 @@ function getRealtimeStatus(supabase) {
 // src/index.ts
 var SUPABASE_VERSION = "0.1.0";
 export {
+  Constants,
   SUPABASE_VERSION,
   copyFile,
   createAdminClient,
