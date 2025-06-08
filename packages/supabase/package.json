@@ -23,7 +23,8 @@
   "dependencies": {
     "@saas/auth": "workspace:*",
     "@saas/types": "workspace:*",
-    "@supabase/supabase-js": "^2.50.0"
+    "@supabase/supabase-js": "^2.50.0",
+    "@supabase/ssr": "^0.6.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
