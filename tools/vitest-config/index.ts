@@ -1,1 +1,1 @@
-export { createBaseConfig, createReactConfig } from './base.ts' 
+export { createBaseConfig, createReactConfig } from './base' 
