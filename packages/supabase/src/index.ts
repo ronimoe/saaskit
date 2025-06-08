@@ -32,5 +32,8 @@ export * from './storage'
 // Realtime utilities
 export * from './realtime'
 
+// Database operations
+export * from './database'
+
 // Version
 export const SUPABASE_VERSION = '0.1.0'

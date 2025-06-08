@@ -230,6 +230,7 @@ type CompositeTypes<PublicCompositeTypeNameOrOptions extends keyof DefaultSchema
 } ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"] : never = never> = PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database;
 } ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName] : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"] ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions] : never;
+
 /**
  * Supabase client type with Database types
  */
@@ -542,6 +543,194 @@ declare function isRealtimeAvailable(supabase: TypedSupabaseClient): boolean;
  */
 declare function getRealtimeStatus(supabase: TypedSupabaseClient): string;
 
+/**
+ * Database operation utilities for Supabase
+ */
+type UserRow = Tables<'users'>;
+type ProductRow = Tables<'products'>;
+type SubscriptionRow = Tables<'subscriptions'>;
+type UserProductRow = Tables<'user_products'>;
+type UserInsert = TablesInsert<'users'>;
+type ProductInsert = TablesInsert<'products'>;
+type SubscriptionInsert = TablesInsert<'subscriptions'>;
+type UserProductInsert = TablesInsert<'user_products'>;
+type UserUpdate = TablesUpdate<'users'>;
+type ProductUpdate = TablesUpdate<'products'>;
+type SubscriptionUpdate = TablesUpdate<'subscriptions'>;
+type UserProductUpdate = TablesUpdate<'user_products'>;
+/**
+ * Database operation result type
+ */
+interface DatabaseResult<T = any> {
+    data: T | null;
+    error: string | null;
+    success: boolean;
+}
+/**
+ * Database query options
+ */
+interface QueryOptions {
+    limit?: number;
+    offset?: number;
+    orderBy?: {
+        column: string;
+        ascending?: boolean;
+    };
+    filters?: Record<string, any>;
+}
+/**
+ * Users table operations
+ */
+declare const users: {
+    /**
+     * Get all users with optional filtering and pagination
+     */
+    getAll(supabase: TypedSupabaseClient, options?: QueryOptions): Promise<DatabaseResult<UserRow[]>>;
+    /**
+     * Get a user by ID
+     */
+    getById(supabase: TypedSupabaseClient, id: string): Promise<DatabaseResult<UserRow>>;
+    /**
+     * Get a user by email
+     */
+    getByEmail(supabase: TypedSupabaseClient, email: string): Promise<DatabaseResult<UserRow>>;
+    /**
+     * Create a new user
+     */
+    create(supabase: TypedSupabaseClient, userData: UserInsert): Promise<DatabaseResult<UserRow>>;
+    /**
+     * Update a user
+     */
+    update(supabase: TypedSupabaseClient, id: string, updates: UserUpdate): Promise<DatabaseResult<UserRow>>;
+    /**
+     * Delete a user
+     */
+    delete(supabase: TypedSupabaseClient, id: string): Promise<DatabaseResult<void>>;
+};
+/**
+ * Products table operations
+ */
+declare const products: {
+    /**
+     * Get all products with optional filtering and pagination
+     */
+    getAll(supabase: TypedSupabaseClient, options?: QueryOptions): Promise<DatabaseResult<ProductRow[]>>;
+    /**
+     * Get a product by ID
+     */
+    getById(supabase: TypedSupabaseClient, id: string): Promise<DatabaseResult<ProductRow>>;
+    /**
+     * Create a new product
+     */
+    create(supabase: TypedSupabaseClient, productData: ProductInsert): Promise<DatabaseResult<ProductRow>>;
+    /**
+     * Update a product
+     */
+    update(supabase: TypedSupabaseClient, id: string, updates: ProductUpdate): Promise<DatabaseResult<ProductRow>>;
+    /**
+     * Delete a product
+     */
+    delete(supabase: TypedSupabaseClient, id: string): Promise<DatabaseResult<void>>;
+};
+/**
+ * Subscriptions table operations
+ */
+declare const subscriptions: {
+    /**
+     * Get all subscriptions with optional filtering and pagination
+     */
+    getAll(supabase: TypedSupabaseClient, options?: QueryOptions): Promise<DatabaseResult<SubscriptionRow[]>>;
+    /**
+     * Get subscriptions by user ID
+     */
+    getByUserId(supabase: TypedSupabaseClient, userId: string, options?: QueryOptions): Promise<DatabaseResult<SubscriptionRow[]>>;
+    /**
+     * Get a subscription by ID
+     */
+    getById(supabase: TypedSupabaseClient, id: string): Promise<DatabaseResult<SubscriptionRow>>;
+    /**
+     * Create a new subscription
+     */
+    create(supabase: TypedSupabaseClient, subscriptionData: SubscriptionInsert): Promise<DatabaseResult<SubscriptionRow>>;
+    /**
+     * Update a subscription
+     */
+    update(supabase: TypedSupabaseClient, id: string, updates: SubscriptionUpdate): Promise<DatabaseResult<SubscriptionRow>>;
+    /**
+     * Delete a subscription
+     */
+    delete(supabase: TypedSupabaseClient, id: string): Promise<DatabaseResult<void>>;
+};
+/**
+ * User Products table operations (for multi-tenant functionality)
+ */
+declare const userProducts: {
+    /**
+     * Get all user-product relationships with optional filtering
+     */
+    getAll(supabase: TypedSupabaseClient, options?: QueryOptions): Promise<DatabaseResult<UserProductRow[]>>;
+    /**
+     * Get user-product relationships by user ID
+     */
+    getByUserId(supabase: TypedSupabaseClient, userId: string): Promise<DatabaseResult<UserProductRow[]>>;
+    /**
+     * Get user-product relationships by product ID
+     */
+    getByProductId(supabase: TypedSupabaseClient, productId: string): Promise<DatabaseResult<UserProductRow[]>>;
+    /**
+     * Get a specific user-product relationship
+     */
+    getByUserAndProduct(supabase: TypedSupabaseClient, userId: string, productId: string): Promise<DatabaseResult<UserProductRow>>;
+    /**
+     * Create a new user-product relationship
+     */
+    create(supabase: TypedSupabaseClient, userProductData: UserProductInsert): Promise<DatabaseResult<UserProductRow>>;
+    /**
+     * Update a user-product relationship
+     */
+    update(supabase: TypedSupabaseClient, id: string, updates: UserProductUpdate): Promise<DatabaseResult<UserProductRow>>;
+    /**
+     * Delete a user-product relationship
+     */
+    delete(supabase: TypedSupabaseClient, id: string): Promise<DatabaseResult<void>>;
+};
+/**
+ * Database health check and utility functions
+ */
+declare const database: {
+    /**
+     * Check database connection health
+     */
+    healthCheck(supabase: TypedSupabaseClient): Promise<DatabaseResult<{
+        status: string;
+    }>>;
+    /**
+     * Get table information
+     */
+    getTableInfo(supabase: TypedSupabaseClient, tableName: string): Promise<DatabaseResult<{
+        count: number;
+    }>>;
+};
+/**
+ * Utility function to validate required fields
+ */
+declare function validateRequired<T extends Record<string, any>>(data: T, requiredFields: (keyof T)[]): {
+    isValid: boolean;
+    missingFields: string[];
+};
+/**
+ * Utility function to sanitize email addresses
+ */
+declare function sanitizeEmail(email: string): string;
+/**
+ * Utility function to generate database error responses
+ */
+declare function createErrorResponse<T = any>(error: string, data?: T | null): DatabaseResult<T>;
+/**
+ * Utility function to generate successful database responses
+ */
+declare function createSuccessResponse<T = any>(data: T): DatabaseResult<T>;
+
 declare const SUPABASE_VERSION = "0.1.0";
 
-export { type CompositeTypes, Constants, type Database, type DatabaseChangeEvent, type DatabaseChangePayload, type Enums, type Json, SUPABASE_VERSION, type SubscriptionStatus, type TableInserts, type TableRows, type TableUpdates, type Tables, type TablesInsert, type TablesUpdate, type TypedSupabaseClient, type UserRole, copyFile, createAdminClient, createBucket, createChannel, createClient, createServerClient, createSignedUrl, createSignedUrls, deleteBucket, deleteFile, downloadFile, getCurrentSession, getCurrentUser, getFileInfo, getPublicUrl, getRealtimeStatus, getUserId, isAuthenticated, isRealtimeAvailable, listBuckets, listFiles, moveFile, resetPassword, signInWithOAuth, signInWithPassword, signOut, signUpWithPassword, subscribeToRow, subscribeToTable, subscribeToUserChanges, unsubscribeChannel, unsubscribeMultipleChannels, updatePassword, updateUserMetadata, uploadFile };
+export { type CompositeTypes, Constants, type Database, type DatabaseChangeEvent, type DatabaseChangePayload, type DatabaseResult, type Enums, type Json, type ProductInsert, type ProductRow, type ProductUpdate, type QueryOptions, SUPABASE_VERSION, type SubscriptionInsert, type SubscriptionRow, type SubscriptionStatus, type SubscriptionUpdate, type TableInserts, type TableRows, type TableUpdates, type Tables, type TablesInsert, type TablesUpdate, type TypedSupabaseClient, type UserInsert, type UserProductInsert, type UserProductRow, type UserProductUpdate, type UserRole, type UserRow, type UserUpdate, copyFile, createAdminClient, createBucket, createChannel, createClient, createErrorResponse, createServerClient, createSignedUrl, createSignedUrls, createSuccessResponse, database, deleteBucket, deleteFile, downloadFile, getCurrentSession, getCurrentUser, getFileInfo, getPublicUrl, getRealtimeStatus, getUserId, isAuthenticated, isRealtimeAvailable, listBuckets, listFiles, moveFile, products, resetPassword, sanitizeEmail, signInWithOAuth, signInWithPassword, signOut, signUpWithPassword, subscribeToRow, subscribeToTable, subscribeToUserChanges, subscriptions, unsubscribeChannel, unsubscribeMultipleChannels, updatePassword, updateUserMetadata, uploadFile, userProducts, users, validateRequired };

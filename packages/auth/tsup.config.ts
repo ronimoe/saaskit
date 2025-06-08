@@ -7,4 +7,11 @@ export default defineConfig({
   splitting: false,
   sourcemap: true,
   clean: true,
+  ignoreWatch: [
+    '**/*.test.*',
+    '**/*.spec.*',
+    '**/__tests__/**',
+    '**/test/**',
+    '**/tests/**'
+  ],
 });

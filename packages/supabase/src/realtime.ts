@@ -50,7 +50,6 @@ export function subscribeToTable(
 
     return channel
   } catch (error) {
-    console.error('Error subscribing to table changes:', error)
     return null
   }
 }
@@ -126,7 +125,6 @@ export async function unsubscribeChannel(
   try {
     return await supabase.removeChannel(channel)
   } catch (error) {
-    console.error('Error unsubscribing from channel:', error)
     return 'error'
   }
 }
@@ -157,7 +155,11 @@ export function isRealtimeAvailable(supabase: TypedSupabaseClient): boolean {
  */
 export function getRealtimeStatus(supabase: TypedSupabaseClient): string {
   try {
-    return (supabase as any).realtime?.connection?.state || 'unknown'
+    const realtime = (supabase as any).realtime
+    if (!realtime) {
+      return 'unavailable'
+    }
+    return realtime.connection?.state || 'unknown'
   } catch {
     return 'unavailable'
   }

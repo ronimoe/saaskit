@@ -5,7 +5,19 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*", "next.config.*", "tailwind.config.*", "postcss.config.*", "tsconfig.json"],
+      "inputs": [
+        "$TURBO_DEFAULT$", 
+        ".env*", 
+        "next.config.*", 
+        "tailwind.config.*", 
+        "postcss.config.*", 
+        "tsconfig.json",
+        "!**/*.test.*",
+        "!**/*.spec.*",
+        "!**/__tests__/**",
+        "!**/test/**",
+        "!**/tests/**"
+      ],
       "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
     },
     "dev": {

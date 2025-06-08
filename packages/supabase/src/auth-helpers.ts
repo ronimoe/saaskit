@@ -1,4 +1,5 @@
 import type { User, Session } from '@supabase/supabase-js'
+
 import type { TypedSupabaseClient } from './types'
 
 /**
@@ -13,13 +14,11 @@ export async function getCurrentUser(supabase: TypedSupabaseClient): Promise<Use
     const { data: { user }, error } = await supabase.auth.getUser()
     
     if (error) {
-      console.error('Error getting current user:', error)
       return null
     }
     
     return user
   } catch (error) {
-    console.error('Error getting current user:', error)
     return null
   }
 }
@@ -32,13 +31,11 @@ export async function getCurrentSession(supabase: TypedSupabaseClient): Promise<
     const { data: { session }, error } = await supabase.auth.getSession()
     
     if (error) {
-      console.error('Error getting current session:', error)
       return null
     }
     
     return session
   } catch (error) {
-    console.error('Error getting current session:', error)
     return null
   }
 }

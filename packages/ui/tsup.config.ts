@@ -8,4 +8,11 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   external: ['react', 'react-dom'],
+  ignoreWatch: [
+    '**/*.test.*',
+    '**/*.spec.*',
+    '**/__tests__/**',
+    '**/test/**',
+    '**/tests/**'
+  ],
 });

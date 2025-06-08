@@ -12,5 +12,14 @@
     "moduleResolution": "Bundler"
   },
   "include": ["src"],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": [
+    "dist", 
+    "build", 
+    "node_modules",
+    "**/*.test.*",
+    "**/*.spec.*",
+    "**/__tests__/**",
+    "**/test/**",
+    "**/tests/**"
+  ]
 }

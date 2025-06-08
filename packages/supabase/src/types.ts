@@ -273,10 +273,12 @@ export type CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
+import type { createClient } from './client'
+
 /**
  * Supabase client type with Database types
  */
-export type TypedSupabaseClient = ReturnType<typeof import('./client').createClient>
+export type TypedSupabaseClient = ReturnType<typeof createClient>
 
 /**
  * Common user role types for multi-tenant architecture

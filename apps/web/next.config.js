@@ -12,6 +12,17 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@saas/ui'],
   },
+  
+  // Exclude test files from production builds
+  webpack: (config, { isServer }) => {
+    // Exclude test files from the build
+    config.module.rules.push({
+      test: /\.(test|spec)\.(js|jsx|ts|tsx)$/,
+      loader: 'ignore-loader'
+    });
+    
+    return config;
+  },
 }
 
 module.exports = nextConfig 

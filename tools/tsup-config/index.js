@@ -8,6 +8,13 @@ const createConfig = (options = {}) => {
     splitting: false,
     sourcemap: true,
     clean: true,
+    ignoreWatch: [
+      '**/*.test.*',
+      '**/*.spec.*',
+      '**/__tests__/**',
+      '**/test/**',
+      '**/tests/**'
+    ],
     ...options,
   });
 };
