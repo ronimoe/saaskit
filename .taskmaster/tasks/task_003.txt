@@ -16,6 +16,9 @@ Unit test JWT token generation/validation with comprehensive edge cases, test pa
 ### Description: Integrate Supabase Auth into the authentication package, configuring client SDKs and API endpoints for user authentication and authorization.
 ### Details:
 Initialize Supabase in the project, set up environment variables, and ensure the package can register, login, and manage users using Supabase Auth. Configure the necessary settings for JWT-based authentication and enable Row Level Security (RLS) as needed.
+<info added on 2025-06-08T14:07:06.598Z>
+Initialize Supabase cloud instance in the project, set up environment variables for cloud connectivity, and ensure the package can register, login, and manage users using Supabase Auth cloud services. Configure the necessary settings for JWT-based authentication and enable Row Level Security (RLS) as needed. All development and testing will be conducted against the cloud Supabase instance, not local installations.
+</info added on 2025-06-08T14:07:06.598Z>
 
 ## 2. Implement JWT Utilities and Password Hashing [pending]
 ### Dependencies: 3.1

@@ -104,78 +104,78 @@
     {
       "id": 2,
       "title": "Setup Supabase Integration and Database Schema",
-      "description": "Configure Supabase project, implement database migrations, create the core database package, and deliver a frontend database status page to demonstrate Supabase integration and database health.",
+      "description": "Configure Supabase cloud project, implement database migrations through cloud interface, create the core database package, and deliver a frontend database status page to demonstrate Supabase integration and database health.",
       "status": "pending",
       "dependencies": [
         1
       ],
       "priority": "high",
-      "details": "Setup Supabase project and local development environment, create database migrations for User, Product, UserProduct, and Subscription tables with proper RLS policies. Implement packages/supabase with client configuration, database operations, and TypeScript type generation. Include auth utilities, storage operations, and realtime subscriptions as specified in the folder structure. Additionally, create a /database-status page in the Next.js app that displays Supabase connection status, all database tables and their schema, row counts for each table, a database health check with connection latency, a visual indicator for RLS policy status, and a demonstration of basic CRUD operations.\n\nFolder Structure:\n- supabase/\n  - migrations/\n  - functions/\n  - seed.sql\n  - config.toml\n- packages/supabase/\n  - client.ts\n  - types.ts\n  - auth-helpers.ts\n  - storage.ts\n  - realtime.ts\n- apps/web/app/database-status/\n  - page.tsx\n  - components/\n- apps/web/lib/supabase/ (client-side helpers)",
-      "testStrategy": "Test database migrations run successfully, verify RLS policies work correctly, validate TypeScript types are generated properly, and test basic CRUD operations through the database package. Visit /database-status in the Next.js app to confirm Supabase connection, schema visibility, row counts, health check, RLS status indicator, and CRUD demonstration are all functioning in real time. All components must achieve 85% code coverage minimum using Vitest with comprehensive unit and integration tests.",
+      "details": "Setup Supabase cloud project through web dashboard and configure cloud-based development environment, create database migrations for User, Product, UserProduct, and Subscription tables with proper RLS policies using Supabase cloud interface. Implement packages/supabase with client configuration, database operations, and TypeScript type generation. Include auth utilities, storage operations, and realtime subscriptions as specified in the folder structure. Additionally, create a /database-status page in the Next.js app that displays Supabase connection status, all database tables and their schema, row counts for each table, a database health check with connection latency, a visual indicator for RLS policy status, and a demonstration of basic CRUD operations.\n\nFolder Structure:\n- packages/supabase/\n  - client.ts\n  - types.ts\n  - auth-helpers.ts\n  - storage.ts\n  - realtime.ts\n- apps/web/app/database-status/\n  - page.tsx\n  - components/\n- apps/web/lib/supabase/ (client-side helpers)",
+      "testStrategy": "Test database migrations are applied successfully through cloud interface, verify RLS policies work correctly, validate TypeScript types are generated properly, and test basic CRUD operations through the database package. Visit /database-status in the Next.js app to confirm Supabase connection, schema visibility, row counts, health check, RLS status indicator, and CRUD demonstration are all functioning in real time. All components must achieve 85% code coverage minimum using Vitest with comprehensive unit and integration tests.",
       "subtasks": [
         {
           "id": 1,
-          "title": "Initialize Supabase Project and Local Development Environment",
-          "description": "Set up a new Supabase project using the Supabase CLI and Docker, ensuring local development capabilities are established.",
+          "title": "Initialize Supabase Cloud Project and Development Environment",
+          "description": "Set up a new Supabase project using the Supabase cloud dashboard and configure cloud-based development environment.",
           "dependencies": [],
-          "details": "Install Supabase CLI and Docker, initialize the project with 'npx supabase init', and start the local Supabase stack for development. Create the initial folder structure with supabase/ directory containing migrations/, functions/, seed.sql, and config.toml files.",
+          "details": "Create a new Supabase project through the web dashboard at supabase.com, obtain project URL and API keys, and configure environment variables for cloud-based development. Set up project configuration for direct cloud database access.",
           "status": "pending",
-          "testStrategy": "Verify that the local Supabase instance is running and accessible at the default local URL. Confirm the folder structure is correctly set up. Write unit tests using Vitest to validate configuration files, test connection establishment with mocked Supabase API calls, and verify error handling for failed connections. Test edge cases like invalid configuration and network timeouts. Achieve 85% code coverage minimum."
+          "testStrategy": "Verify that the cloud Supabase instance is accessible and properly configured with valid API keys. Confirm environment variables are correctly set up. Write unit tests using Vitest to validate configuration setup, test connection establishment with cloud Supabase API, and verify error handling for failed connections. Test edge cases like invalid API keys and network timeouts. Achieve 85% code coverage minimum."
         },
         {
           "id": 2,
-          "title": "Design and Implement Database Schema with Migrations",
-          "description": "Create database migrations for User, Product, UserProduct, and Subscription tables, including necessary fields and relationships.",
+          "title": "Design and Implement Database Schema with Cloud Migrations",
+          "description": "Create database migrations for User, Product, UserProduct, and Subscription tables using Supabase cloud dashboard SQL editor or migration tools.",
           "dependencies": [
             1
           ],
-          "details": "Define SQL migration files for each table in the supabase/migrations/ directory, ensuring correct data types, primary/foreign keys, and indexes as needed.",
+          "details": "Define and execute SQL migration scripts for each table using the Supabase cloud dashboard SQL editor, ensuring correct data types, primary/foreign keys, and indexes as needed. Apply migrations directly to the cloud database.",
           "status": "pending",
-          "testStrategy": "Apply migrations locally and confirm tables are created with the correct schema using a database client. Write comprehensive unit tests using Vitest to validate migration scripts, test both up and down migrations, verify constraint violations are properly handled, test foreign key relationships, and validate data type constraints. Mock database operations during testing and achieve 85% code coverage minimum."
+          "testStrategy": "Verify migrations are applied successfully in the cloud database and confirm tables are created with the correct schema using the Supabase dashboard. Write comprehensive unit tests using Vitest to validate migration scripts, test constraint violations are properly handled, test foreign key relationships, and validate data type constraints. Mock database operations during testing and achieve 85% code coverage minimum."
         },
         {
           "id": 3,
           "title": "Configure Row Level Security (RLS) Policies",
-          "description": "Implement RLS policies for all tables to enforce proper access control and data privacy.",
+          "description": "Implement RLS policies for all tables to enforce proper access control and data privacy using Supabase cloud dashboard.",
           "dependencies": [
             2
           ],
-          "details": "Write and apply RLS policies for User, Product, UserProduct, and Subscription tables according to application requirements. Include these policies in the appropriate migration files within supabase/migrations/.",
+          "details": "Write and apply RLS policies for User, Product, UserProduct, and Subscription tables according to application requirements using the Supabase cloud dashboard RLS policy editor or SQL editor.",
           "status": "pending",
-          "testStrategy": "Test access to tables with different user roles to ensure RLS policies are enforced as intended. Write comprehensive unit and integration tests using Vitest to test RLS policies with different user contexts, verify policy enforcement for CRUD operations, test unauthorized access scenarios, validate policy edge cases and boundary conditions. Mock user authentication states and achieve 85% code coverage minimum."
+          "testStrategy": "Test access to tables with different user roles to ensure RLS policies are enforced as intended using cloud database. Write comprehensive unit and integration tests using Vitest to test RLS policies with different user contexts, verify policy enforcement for CRUD operations, test unauthorized access scenarios, validate policy edge cases and boundary conditions. Mock user authentication states and achieve 85% code coverage minimum."
         },
         {
           "id": 4,
           "title": "Develop Core Supabase Client Package",
-          "description": "Implement the packages/supabase module with client configuration, database operations, and TypeScript type generation.",
+          "description": "Implement the packages/supabase module with cloud client configuration, database operations, and TypeScript type generation.",
           "dependencies": [
             3
           ],
-          "details": "Set up Supabase client configuration in packages/supabase/client.ts, generate TypeScript types from the database schema in packages/supabase/types.ts, and implement core database operation utilities.",
+          "details": "Set up Supabase cloud client configuration in packages/supabase/client.ts using cloud project URL and API keys, generate TypeScript types from the cloud database schema in packages/supabase/types.ts, and implement core database operation utilities.",
           "status": "pending",
-          "testStrategy": "Write unit tests for database operations and validate TypeScript types are correctly generated and used. Implement comprehensive testing using Vitest covering CRUD operations, connection handling, error scenarios, type safety validation, constraint violations, and boundary cases. Mock Supabase API calls, test error conditions and validation failures, verify proper error handling. Achieve 85% code coverage minimum."
+          "testStrategy": "Write unit tests for database operations and validate TypeScript types are correctly generated and used with cloud database. Implement comprehensive testing using Vitest covering CRUD operations, connection handling, error scenarios, type safety validation, constraint violations, and boundary cases. Mock Supabase cloud API calls, test error conditions and validation failures, verify proper error handling. Achieve 85% code coverage minimum."
         },
         {
           "id": 5,
           "title": "Integrate Auth Utilities, Storage Operations, and Realtime Subscriptions",
-          "description": "Add authentication utilities, storage handling, and realtime subscription features as specified in the folder structure.",
+          "description": "Add authentication utilities, storage handling, and realtime subscription features for cloud Supabase integration.",
           "dependencies": [
             4
           ],
-          "details": "Implement authentication helpers in packages/supabase/auth-helpers.ts, storage upload/download functions in packages/supabase/storage.ts, and realtime listeners for relevant tables in packages/supabase/realtime.ts.",
+          "details": "Implement authentication helpers in packages/supabase/auth-helpers.ts, storage upload/download functions in packages/supabase/storage.ts, and realtime listeners for relevant tables in packages/supabase/realtime.ts, all configured for cloud Supabase instance.",
           "status": "pending",
-          "testStrategy": "Test authentication flows, file storage operations, and realtime updates in a local development environment. Write comprehensive unit and integration tests using Vitest for auth utilities with different user roles and permissions, storage operations including upload/download failures, realtime subscription handling, connection drops, and reconnection scenarios. Mock external dependencies and test error conditions. Achieve 85% code coverage minimum."
+          "testStrategy": "Test authentication flows, file storage operations, and realtime updates with cloud Supabase instance. Write comprehensive unit and integration tests using Vitest for auth utilities with different user roles and permissions, storage operations including upload/download failures, realtime subscription handling, connection drops, and reconnection scenarios. Mock external dependencies and test error conditions. Achieve 85% code coverage minimum."
         },
         {
           "id": 6,
           "title": "Create Frontend Database Status Page in Next.js",
-          "description": "Develop a /database-status page in the Next.js app to visually demonstrate Supabase integration, schema, and health.",
+          "description": "Develop a /database-status page in the Next.js app to visually demonstrate cloud Supabase integration, schema, and health.",
           "dependencies": [
             5
           ],
-          "details": "Implement a Next.js page at apps/web/app/database-status/page.tsx with supporting components in apps/web/app/database-status/components/ that: shows Supabase connection status; lists all database tables and their schema; displays row counts for each table; performs and displays a database health check with connection latency; visually indicates if RLS policies are active; and demonstrates basic CRUD operations for at least one table. Create client-side helpers in apps/web/lib/supabase/ to support these operations.",
+          "details": "Implement a Next.js page at apps/web/app/database-status/page.tsx with supporting components in apps/web/app/database-status/components/ that: shows cloud Supabase connection status; lists all database tables and their schema; displays row counts for each table; performs and displays a database health check with connection latency; visually indicates if RLS policies are active; and demonstrates basic CRUD operations for at least one table. Create client-side helpers in apps/web/lib/supabase/ to support these operations with cloud database.",
           "status": "pending",
-          "testStrategy": "Visit /database-status and verify: Supabase connection is live, all tables and their schema are listed, row counts are accurate, health check and latency are displayed, RLS status is visually indicated, and CRUD operations can be performed and reflected in real time. Write comprehensive unit and integration tests using Vitest for all React components, test error states and loading conditions, mock API responses, test user interactions and CRUD demonstrations, validate real-time updates. Achieve 85% code coverage minimum."
+          "testStrategy": "Visit /database-status and verify: cloud Supabase connection is live, all tables and their schema are listed, row counts are accurate, health check and latency are displayed, RLS status is visually indicated, and CRUD operations can be performed and reflected in real time. Write comprehensive unit and integration tests using Vitest for all React components, test error states and loading conditions, mock API responses, test user interactions and CRUD demonstrations, validate real-time updates. Achieve 85% code coverage minimum."
         }
       ]
     },
@@ -196,7 +196,7 @@
           "title": "Set Up Supabase Auth Integration",
           "description": "Integrate Supabase Auth into the authentication package, configuring client SDKs and API endpoints for user authentication and authorization.",
           "dependencies": [],
-          "details": "Initialize Supabase in the project, set up environment variables, and ensure the package can register, login, and manage users using Supabase Auth. Configure the necessary settings for JWT-based authentication and enable Row Level Security (RLS) as needed.",
+          "details": "Initialize Supabase in the project, set up environment variables, and ensure the package can register, login, and manage users using Supabase Auth. Configure the necessary settings for JWT-based authentication and enable Row Level Security (RLS) as needed.\n<info added on 2025-06-08T14:07:06.598Z>\nInitialize Supabase cloud instance in the project, set up environment variables for cloud connectivity, and ensure the package can register, login, and manage users using Supabase Auth cloud services. Configure the necessary settings for JWT-based authentication and enable Row Level Security (RLS) as needed. All development and testing will be conducted against the cloud Supabase instance, not local installations.\n</info added on 2025-06-08T14:07:06.598Z>",
           "status": "pending",
           "testStrategy": "Verify user registration, login, and token issuance using Supabase Auth endpoints. Test RLS enforcement and token validation. Write comprehensive unit tests using Vitest covering both happy path and edge cases, targeting 85% code coverage minimum. Mock Supabase Auth API calls during testing to test various scenarios including network failures, invalid responses, and authentication errors. Test different authentication states and validate security measures and error handling."
         },
@@ -777,7 +777,7 @@
             3,
             4
           ],
-          "details": "Develop comprehensive test suites for the core application flows as specified in tests/e2e/. Include unit tests for business logic in tests/unit/, integration tests for API endpoints in tests/integration/, and E2E tests for complete user journeys in tests/e2e/. Ensure all tests are placed in their respective folders according to the folder structure guidance. Use pnpm scripts to run all test types and ensure all test dependencies are managed with pnpm.",
+          "details": "Develop comprehensive test suites for the core application flows as specified in tests/e2e/. Include unit tests for business logic in tests/unit/, integration tests for API endpoints in tests/integration/, and E2E tests for complete user journeys in tests/e2e/. Ensure all tests are placed in their respective folders according to the folder structure guidance. Use pnpm scripts to run all test types and ensure all test dependencies are managed with pnpm.\n<info added on 2025-06-08T14:09:24.633Z>\nAll authentication, billing, dashboard, and multi-tenant tests must target the cloud Supabase instance rather than the local development environment. Database-related tests should connect to the cloud Supabase to ensure realistic testing scenarios that mirror production conditions. Configure test environment variables to point to the cloud Supabase URL and use appropriate test database credentials for cloud connectivity.\n</info added on 2025-06-08T14:09:24.633Z>",
           "status": "pending",
           "testStrategy": "Use a pyramid approach with more unit tests than integration tests, and fewer E2E tests focusing on critical user journeys. Confirm all tests are located in the correct folders and that all test suites can be run with pnpm scripts."
         },

@@ -3,16 +3,11 @@
 # Status: pending
 # Dependencies: 1
 # Priority: high
-# Description: Configure Supabase project, implement database migrations, create the core database package, and deliver a frontend database status page to demonstrate Supabase integration and database health.
+# Description: Configure Supabase cloud project, implement database migrations through cloud interface, create the core database package, and deliver a frontend database status page to demonstrate Supabase integration and database health.
 # Details:
-Setup Supabase project and local development environment, create database migrations for User, Product, UserProduct, and Subscription tables with proper RLS policies. Implement packages/supabase with client configuration, database operations, and TypeScript type generation. Include auth utilities, storage operations, and realtime subscriptions as specified in the folder structure. Additionally, create a /database-status page in the Next.js app that displays Supabase connection status, all database tables and their schema, row counts for each table, a database health check with connection latency, a visual indicator for RLS policy status, and a demonstration of basic CRUD operations.
+Setup Supabase cloud project through web dashboard and configure cloud-based development environment, create database migrations for User, Product, UserProduct, and Subscription tables with proper RLS policies using Supabase cloud interface. Implement packages/supabase with client configuration, database operations, and TypeScript type generation. Include auth utilities, storage operations, and realtime subscriptions as specified in the folder structure. Additionally, create a /database-status page in the Next.js app that displays Supabase connection status, all database tables and their schema, row counts for each table, a database health check with connection latency, a visual indicator for RLS policy status, and a demonstration of basic CRUD operations.
 
 Folder Structure:
-- supabase/
-  - migrations/
-  - functions/
-  - seed.sql
-  - config.toml
 - packages/supabase/
   - client.ts
   - types.ts
@@ -25,42 +20,42 @@ Folder Structure:
 - apps/web/lib/supabase/ (client-side helpers)
 
 # Test Strategy:
-Test database migrations run successfully, verify RLS policies work correctly, validate TypeScript types are generated properly, and test basic CRUD operations through the database package. Visit /database-status in the Next.js app to confirm Supabase connection, schema visibility, row counts, health check, RLS status indicator, and CRUD demonstration are all functioning in real time. All components must achieve 85% code coverage minimum using Vitest with comprehensive unit and integration tests.
+Test database migrations are applied successfully through cloud interface, verify RLS policies work correctly, validate TypeScript types are generated properly, and test basic CRUD operations through the database package. Visit /database-status in the Next.js app to confirm Supabase connection, schema visibility, row counts, health check, RLS status indicator, and CRUD demonstration are all functioning in real time. All components must achieve 85% code coverage minimum using Vitest with comprehensive unit and integration tests.
 
 # Subtasks:
-## 1. Initialize Supabase Project and Local Development Environment [pending]
+## 1. Initialize Supabase Cloud Project and Development Environment [pending]
 ### Dependencies: None
-### Description: Set up a new Supabase project using the Supabase CLI and Docker, ensuring local development capabilities are established.
+### Description: Set up a new Supabase project using the Supabase cloud dashboard and configure cloud-based development environment.
 ### Details:
-Install Supabase CLI and Docker, initialize the project with 'npx supabase init', and start the local Supabase stack for development. Create the initial folder structure with supabase/ directory containing migrations/, functions/, seed.sql, and config.toml files.
+Create a new Supabase project through the web dashboard at supabase.com, obtain project URL and API keys, and configure environment variables for cloud-based development. Set up project configuration for direct cloud database access.
 
-## 2. Design and Implement Database Schema with Migrations [pending]
+## 2. Design and Implement Database Schema with Cloud Migrations [pending]
 ### Dependencies: 2.1
-### Description: Create database migrations for User, Product, UserProduct, and Subscription tables, including necessary fields and relationships.
+### Description: Create database migrations for User, Product, UserProduct, and Subscription tables using Supabase cloud dashboard SQL editor or migration tools.
 ### Details:
-Define SQL migration files for each table in the supabase/migrations/ directory, ensuring correct data types, primary/foreign keys, and indexes as needed.
+Define and execute SQL migration scripts for each table using the Supabase cloud dashboard SQL editor, ensuring correct data types, primary/foreign keys, and indexes as needed. Apply migrations directly to the cloud database.
 
 ## 3. Configure Row Level Security (RLS) Policies [pending]
 ### Dependencies: 2.2
-### Description: Implement RLS policies for all tables to enforce proper access control and data privacy.
+### Description: Implement RLS policies for all tables to enforce proper access control and data privacy using Supabase cloud dashboard.
 ### Details:
-Write and apply RLS policies for User, Product, UserProduct, and Subscription tables according to application requirements. Include these policies in the appropriate migration files within supabase/migrations/.
+Write and apply RLS policies for User, Product, UserProduct, and Subscription tables according to application requirements using the Supabase cloud dashboard RLS policy editor or SQL editor.
 
 ## 4. Develop Core Supabase Client Package [pending]
 ### Dependencies: 2.3
-### Description: Implement the packages/supabase module with client configuration, database operations, and TypeScript type generation.
+### Description: Implement the packages/supabase module with cloud client configuration, database operations, and TypeScript type generation.
 ### Details:
-Set up Supabase client configuration in packages/supabase/client.ts, generate TypeScript types from the database schema in packages/supabase/types.ts, and implement core database operation utilities.
+Set up Supabase cloud client configuration in packages/supabase/client.ts using cloud project URL and API keys, generate TypeScript types from the cloud database schema in packages/supabase/types.ts, and implement core database operation utilities.
 
 ## 5. Integrate Auth Utilities, Storage Operations, and Realtime Subscriptions [pending]
 ### Dependencies: 2.4
-### Description: Add authentication utilities, storage handling, and realtime subscription features as specified in the folder structure.
+### Description: Add authentication utilities, storage handling, and realtime subscription features for cloud Supabase integration.
 ### Details:
-Implement authentication helpers in packages/supabase/auth-helpers.ts, storage upload/download functions in packages/supabase/storage.ts, and realtime listeners for relevant tables in packages/supabase/realtime.ts.
+Implement authentication helpers in packages/supabase/auth-helpers.ts, storage upload/download functions in packages/supabase/storage.ts, and realtime listeners for relevant tables in packages/supabase/realtime.ts, all configured for cloud Supabase instance.
 
 ## 6. Create Frontend Database Status Page in Next.js [pending]
 ### Dependencies: 2.5
-### Description: Develop a /database-status page in the Next.js app to visually demonstrate Supabase integration, schema, and health.
+### Description: Develop a /database-status page in the Next.js app to visually demonstrate cloud Supabase integration, schema, and health.
 ### Details:
-Implement a Next.js page at apps/web/app/database-status/page.tsx with supporting components in apps/web/app/database-status/components/ that: shows Supabase connection status; lists all database tables and their schema; displays row counts for each table; performs and displays a database health check with connection latency; visually indicates if RLS policies are active; and demonstrates basic CRUD operations for at least one table. Create client-side helpers in apps/web/lib/supabase/ to support these operations.
+Implement a Next.js page at apps/web/app/database-status/page.tsx with supporting components in apps/web/app/database-status/components/ that: shows cloud Supabase connection status; lists all database tables and their schema; displays row counts for each table; performs and displays a database health check with connection latency; visually indicates if RLS policies are active; and demonstrates basic CRUD operations for at least one table. Create client-side helpers in apps/web/lib/supabase/ to support these operations with cloud database.
 

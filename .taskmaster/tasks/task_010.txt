@@ -65,6 +65,9 @@ Create a shared fixtures directory at tests/fixtures/ with mock data generators 
 ### Description: Write tests for authentication, billing, dashboard, and multi-tenant scenarios.
 ### Details:
 Develop comprehensive test suites for the core application flows as specified in tests/e2e/. Include unit tests for business logic in tests/unit/, integration tests for API endpoints in tests/integration/, and E2E tests for complete user journeys in tests/e2e/. Ensure all tests are placed in their respective folders according to the folder structure guidance. Use pnpm scripts to run all test types and ensure all test dependencies are managed with pnpm.
+<info added on 2025-06-08T14:09:24.633Z>
+All authentication, billing, dashboard, and multi-tenant tests must target the cloud Supabase instance rather than the local development environment. Database-related tests should connect to the cloud Supabase to ensure realistic testing scenarios that mirror production conditions. Configure test environment variables to point to the cloud Supabase URL and use appropriate test database credentials for cloud connectivity.
+</info added on 2025-06-08T14:09:24.633Z>
 
 ## 6. Build Testing Dashboard Frontend [pending]
 ### Dependencies: 10.1, 10.2, 10.3, 10.4, 10.5
