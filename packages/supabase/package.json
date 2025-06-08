@@ -12,16 +12,20 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
+    "@saas/auth": "workspace:*",
     "@saas/types": "workspace:*",
-    "@saas/auth": "workspace:*"
+    "@supabase/supabase-js": "^2.45.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
+    "eslint": "^9",
     "tsup": "^8.0.0",
     "typescript": "^5"
   }
