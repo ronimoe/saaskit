@@ -1,26 +1,98 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
+  "globalDependencies": [
+    "**/.env.*local",
+    ".env",
+    ".env.local",
+    ".env.production",
+    ".env.development"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "next.config.*",
+        "tailwind.config.*",
+        "postcss.config.*",
+        "tsconfig.json"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "dist/**",
+        "build/**"
+      ]
     },
     "dev": {
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*",
+        "next.config.*",
+        "tailwind.config.*",
+        "postcss.config.*"
+      ]
     },
     "lint": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".eslintrc*",
+        "eslint.config.*",
+        ".eslintignore"
+      ],
+      "outputs": []
     },
     "type-check": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "tsconfig.json",
+        "**/*.ts",
+        "**/*.tsx"
+      ],
+      "outputs": []
     },
     "test": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "vitest.config.*",
+        "vitest.workspace.*",
+        "**/*.test.*",
+        "**/*.spec.*"
+      ],
+      "outputs": [
+        "coverage/**"
+      ]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true,
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "vitest.config.*",
+        "**/*.test.*",
+        "**/*.spec.*"
+      ]
     },
     "clean": {
-      "cache": false
+      "cache": false,
+      "inputs": [],
+      "outputs": []
+    },
+    "format": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".prettierrc*",
+        "prettier.config.*",
+        ".prettierignore"
+      ],
+      "outputs": []
     }
   }
 } 

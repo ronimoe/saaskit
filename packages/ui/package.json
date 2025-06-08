@@ -25,6 +25,7 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
+    "@repo/tsup-config": "workspace:*",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tsup": "^8.0.0",

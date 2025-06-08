@@ -8,7 +8,9 @@
   ],
   "dependencies": {
     "eslint": "^9",
+    "@eslint/js": "^9",
     "@eslint/eslintrc": "^3",
-    "eslint-config-next": "15.3.3"
+    "eslint-config-next": "15.3.3",
+    "typescript-eslint": "^8.0.0"
   }
 } 

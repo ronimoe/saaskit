@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export default function Home() {
   const packages = [
     { name: '@saas/ui', description: 'Shared UI components and design system' },

@@ -1,0 +1,1 @@
+{"version":3,"sources":["../src/index.ts"],"sourcesContent":["// Email utilities for the SaaS platform\n\n// Placeholder for now - will be implemented in later tasks\nexport const EMAIL_VERSION = '0.1.0'; "],"mappings":";;;;;;;;;;;;;;;;;;;;AAAA;AAAA;AAAA;AAAA;AAAA;AAGO,IAAM,gBAAgB;","names":[]}
