@@ -20,12 +20,15 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 // src/index.ts
 var index_exports = {};
 __export(index_exports, {
-  AUTH_VERSION: () => AUTH_VERSION
+  AUTH_VERSION: () => AUTH_VERSION,
+  sleep: () => import_lib.sleep
 });
 module.exports = __toCommonJS(index_exports);
+var import_lib = require("@saas/lib");
 var AUTH_VERSION = "0.1.0";
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  AUTH_VERSION
+  AUTH_VERSION,
+  sleep
 });
 //# sourceMappingURL=index.js.map
