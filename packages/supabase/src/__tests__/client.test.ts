@@ -58,6 +58,21 @@ describe('Supabase Client', () => {
       const client = createServerClient(null as any)
       expect(client).toBeDefined()
     })
+
+    it('handles cookie setting errors gracefully', () => {
+      const mockCookieStore = {
+        getAll: vi.fn().mockReturnValue([]),
+        set: vi.fn().mockImplementation(() => {
+          throw new Error('Cookie setting failed')
+        }),
+      }
+
+      // This test verifies that the createServerClient function doesn't throw
+      // when cookie.set throws an error (which is handled in the catch block)
+      expect(() => {
+        createServerClient(mockCookieStore)
+      }).not.toThrow()
+    })
   })
 
   describe('createAdminClient', () => {

@@ -28,6 +28,7 @@ export const createMockSupabaseClient = () => {
   const mockList = vi.fn()
   const mockGetPublicUrl = vi.fn()
   const mockCreateSignedUrl = vi.fn()
+  const mockCreateSignedUrls = vi.fn()
   const mockCopy = vi.fn()
   const mockMove = vi.fn()
   const mockRemove = vi.fn()
@@ -89,6 +90,7 @@ export const createMockSupabaseClient = () => {
         list: mockList,
         getPublicUrl: mockGetPublicUrl,
         createSignedUrl: mockCreateSignedUrl,
+        createSignedUrls: mockCreateSignedUrls,
         copy: mockCopy,
         move: mockMove,
         remove: mockRemove,
@@ -117,6 +119,7 @@ export const createMockSupabaseClient = () => {
       list: mockList,
       getPublicUrl: mockGetPublicUrl,
       createSignedUrl: mockCreateSignedUrl,
+      createSignedUrls: mockCreateSignedUrls,
       copy: mockCopy,
       move: mockMove,
       remove: mockRemove,

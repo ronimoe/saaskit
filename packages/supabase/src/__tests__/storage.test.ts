@@ -6,9 +6,13 @@ import {
   listFiles,
   getPublicUrl,
   createSignedUrl,
+  createSignedUrls,
   copyFile,
   moveFile,
+  getFileInfo,
   createBucket,
+  listBuckets,
+  deleteBucket,
 } from '../storage'
 import { createMockSupabaseClient, createMockStorageResponse } from '../test/mocks'
 
@@ -283,6 +287,83 @@ describe('Storage Operations', () => {
     })
   })
 
+  describe('createSignedUrls', () => {
+    it('creates multiple signed URLs successfully', async () => {
+      const mockUrls = [
+        { path: 'file1.txt', signedUrl: 'https://example.com/signed/file1.txt' },
+        { path: 'file2.txt', signedUrl: 'https://example.com/signed/file2.txt' }
+      ]
+      const mockResponse = createMockStorageResponse(mockUrls)
+      mockStorageBucket.createSignedUrls.mockResolvedValue(mockResponse)
+
+      const result = await createSignedUrls(mockSupabase, 'test-bucket', ['file1.txt', 'file2.txt'], 3600)
+
+      expect(result.data).toEqual(mockUrls)
+      expect(result.error).toBeNull()
+      expect(mockStorageBucket.createSignedUrls).toHaveBeenCalledWith(['file1.txt', 'file2.txt'], 3600, undefined)
+    })
+
+    it('creates signed URLs with options', async () => {
+      const mockUrls = [{ path: 'file1.txt', signedUrl: 'https://example.com/signed/file1.txt' }]
+      const mockResponse = createMockStorageResponse(mockUrls)
+      const options = { download: true }
+      mockStorageBucket.createSignedUrls.mockResolvedValue(mockResponse)
+
+      const result = await createSignedUrls(mockSupabase, 'test-bucket', ['file1.txt'], 3600, options)
+
+      expect(result.data).toEqual(mockUrls)
+      expect(mockStorageBucket.createSignedUrls).toHaveBeenCalledWith(['file1.txt'], 3600, options)
+    })
+
+    it('handles signed URLs errors', async () => {
+      const mockError = { message: 'Some files not found' }
+      const mockResponse = { data: null, error: mockError }
+      mockStorageBucket.createSignedUrls.mockResolvedValue(mockResponse)
+
+      const result = await createSignedUrls(mockSupabase, 'test-bucket', ['nonexistent.txt'], 3600)
+
+      expect(result.data).toBeNull()
+      expect(result.error).toEqual(mockError)
+    })
+  })
+
+  describe('getFileInfo', () => {
+    it('gets file info successfully', async () => {
+      const mockFiles = [
+        { name: 'test.txt', id: '1', size: 1024, updated_at: '2023-01-01', created_at: '2023-01-01' }
+      ]
+      const mockResponse = createMockStorageResponse(mockFiles)
+      mockStorageBucket.list.mockResolvedValue(mockResponse)
+
+      const result = await getFileInfo(mockSupabase, 'test-bucket', 'folder/test.txt')
+
+      expect(result.data).toEqual(mockFiles[0])
+      expect(result.error).toBeNull()
+      expect(mockStorageBucket.list).toHaveBeenCalledWith(undefined, { search: 'test.txt' })
+    })
+
+    it('handles file not found', async () => {
+      const mockResponse = createMockStorageResponse([])
+      mockStorageBucket.list.mockResolvedValue(mockResponse)
+
+      const result = await getFileInfo(mockSupabase, 'test-bucket', 'folder/nonexistent.txt')
+
+      expect(result.data).toBeNull()
+      expect(result.error).toEqual(new Error('File not found'))
+    })
+
+    it('handles list errors', async () => {
+      const mockError = { message: 'Access denied' }
+      const mockResponse = { data: null, error: mockError }
+      mockStorageBucket.list.mockResolvedValue(mockResponse)
+
+      const result = await getFileInfo(mockSupabase, 'test-bucket', 'folder/test.txt')
+
+      expect(result.data).toBeNull()
+      expect(result.error).toEqual(mockError)
+    })
+  })
+
   describe('createBucket', () => {
     it('creates bucket successfully', async () => {
       const mockResponse = createMockStorageResponse({ name: 'new-bucket' })
@@ -312,6 +393,58 @@ describe('Storage Operations', () => {
       mockSupabase.storage.createBucket.mockResolvedValue(mockResponse)
 
       const result = await createBucket(mockSupabase, 'existing-bucket', { public: true })
+
+      expect(result.data).toBeNull()
+      expect(result.error).toEqual(mockError)
+    })
+  })
+
+  describe('listBuckets', () => {
+    it('lists buckets successfully', async () => {
+      const mockBuckets = [
+        { id: 'bucket1', name: 'bucket1', public: true },
+        { id: 'bucket2', name: 'bucket2', public: false }
+      ]
+      const mockResponse = createMockStorageResponse(mockBuckets)
+      mockSupabase.storage.listBuckets.mockResolvedValue(mockResponse)
+
+      const result = await listBuckets(mockSupabase)
+
+      expect(result.data).toEqual(mockBuckets)
+      expect(result.error).toBeNull()
+      expect(mockSupabase.storage.listBuckets).toHaveBeenCalled()
+    })
+
+    it('handles list buckets errors', async () => {
+      const mockError = { message: 'Access denied' }
+      const mockResponse = { data: null, error: mockError }
+      mockSupabase.storage.listBuckets.mockResolvedValue(mockResponse)
+
+      const result = await listBuckets(mockSupabase)
+
+      expect(result.data).toBeNull()
+      expect(result.error).toEqual(mockError)
+    })
+  })
+
+  describe('deleteBucket', () => {
+    it('deletes bucket successfully', async () => {
+      const mockResponse = createMockStorageResponse({ message: 'Successfully deleted' })
+      mockSupabase.storage.deleteBucket.mockResolvedValue(mockResponse)
+
+      const result = await deleteBucket(mockSupabase, 'test-bucket')
+
+      expect(result.data?.message).toBe('Successfully deleted')
+      expect(result.error).toBeNull()
+      expect(mockSupabase.storage.deleteBucket).toHaveBeenCalledWith('test-bucket')
+    })
+
+    it('handles delete bucket errors', async () => {
+      const mockError = { message: 'Bucket not empty' }
+      const mockResponse = { data: null, error: mockError }
+      mockSupabase.storage.deleteBucket.mockResolvedValue(mockResponse)
+
+      const result = await deleteBucket(mockSupabase, 'test-bucket')
 
       expect(result.data).toBeNull()
       expect(result.error).toEqual(mockError)
