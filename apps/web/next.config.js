@@ -1,3 +1,8 @@
+const path = require('path')
+
+// Load environment variables from project root
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') })
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: [

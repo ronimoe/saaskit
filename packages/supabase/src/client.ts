@@ -6,10 +6,18 @@ import type { CookieOptions } from '@supabase/ssr'
  * This client is used in Client Components and browser-side operations
  */
 export function createClient() {
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      '@supabase/ssr: Your project\'s URL and API key are required to create a Supabase client!\n\n' +
+      'Check your Supabase project\'s API settings to find these values\n\n' +
+      'https://supabase.com/dashboard/project/_/settings/api'
+    )
+  }
+
+  return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
 
 /**
@@ -23,9 +31,20 @@ export function createServerClient(
     set: (name: string, value: string, options?: CookieOptions) => void
   }
 ) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      '@supabase/ssr: Your project\'s URL and API key are required to create a Supabase client!\n\n' +
+      'Check your Supabase project\'s API settings to find these values\n\n' +
+      'https://supabase.com/dashboard/project/_/settings/api'
+    )
+  }
+
   return createSupabaseServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -52,12 +71,16 @@ export function createServerClient(
  * Use with caution - only for server-side admin operations
  */
 export function createAdminClient() {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL environment variable is not set')
+  }
+
+  if (!serviceRoleKey) {
     throw new Error('SUPABASE_SERVICE_ROLE_KEY environment variable is not set')
   }
 
-  return createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  return createBrowserClient(supabaseUrl, serviceRoleKey)
 } 

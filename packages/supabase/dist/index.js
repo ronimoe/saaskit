@@ -72,15 +72,26 @@ module.exports = __toCommonJS(index_exports);
 // src/client.ts
 var import_ssr = require("@supabase/ssr");
 function createClient() {
-  return (0, import_ssr.createBrowserClient)(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  );
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api"
+    );
+  }
+  return (0, import_ssr.createBrowserClient)(supabaseUrl, supabaseAnonKey);
 }
 function createServerClient(cookieStore) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "@supabase/ssr: Your project's URL and API key are required to create a Supabase client!\n\nCheck your Supabase project's API settings to find these values\n\nhttps://supabase.com/dashboard/project/_/settings/api"
+    );
+  }
   return (0, import_ssr.createServerClient)(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -99,13 +110,15 @@ function createServerClient(cookieStore) {
   );
 }
 function createAdminClient() {
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl) {
+    throw new Error("NEXT_PUBLIC_SUPABASE_URL environment variable is not set");
+  }
+  if (!serviceRoleKey) {
     throw new Error("SUPABASE_SERVICE_ROLE_KEY environment variable is not set");
   }
-  return (0, import_ssr.createBrowserClient)(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY
-  );
+  return (0, import_ssr.createBrowserClient)(supabaseUrl, serviceRoleKey);
 }
 
 // src/types.ts

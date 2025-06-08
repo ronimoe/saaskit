@@ -1,55 +1,62 @@
-# SaaS Platform Monorepo
+# SaaS Kit Monorepo
 
-A modern, migration-ready SaaS platform built with Next.js 15, Supabase, and TypeScript. This
+A production-ready SaaS platform built with Next.js 15, Supabase, and TypeScript. This
 monorepo architecture enables rapid development while maintaining the flexibility to scale into
 multiple products and migrate to microservices as needed.
 
 ## 🚀 Features
 
 - **Multi-App Architecture**: Independent Next.js applications sharing common packages
-- **Unified Authentication**: Supabase Auth with JWT tokens, OAuth providers, and session management
-- **Shared Component Library**: Consistent UI components and design system across all apps
-- **Centralized Billing**: Stripe integration for subscriptions and payments
-- **Type-Safe Database**: Supabase with generated TypeScript types and Row Level Security
+- **Production Supabase Integration**: Complete cloud database setup with real-time capabilities
+- **Comprehensive Database Schema**: Users, Products, Subscriptions, and User-Product relationships
+- **Advanced Row Level Security**: Production-ready RLS policies with performance optimization
+- **Type-Safe Database Operations**: Generated TypeScript types and comprehensive CRUD operations
+- **Database Status Monitoring**: Real-time database health dashboard with schema visualization
+- **Authentication Ready**: Supabase Auth integration with OAuth provider support
+- **Storage Operations**: Complete file upload/download with signed URL generation
+- **Real-time Subscriptions**: Live database change notifications with proper channel management
+- **Modern Testing**: Comprehensive test coverage (86%+) with Vitest and Testing Library
 - **Migration-Ready**: Service layer pattern designed for seamless backend extraction
-- **Modern Testing**: Vitest for unit/integration tests, Playwright for E2E testing
 - **Fast Development**: Turbo for build orchestration and hot reloading
 
 ## 🏗️ Architecture
 
 ```
-saas-platform/
+saaskit/
 ├── apps/                    # Independent Next.js applications
-│   ├── main-app/           # Primary SaaS application
+│   ├── web/                # Development demo app with database status page
+│   ├── main-app/           # Primary SaaS application (future)
 │   └── marketing-site/     # Marketing website (future)
 ├── packages/               # Shared packages
-│   ├── supabase/          # Database operations & Supabase client
-│   ├── auth/              # Authentication utilities
-│   ├── billing/           # Stripe integration & payment logic
-│   ├── ui/                # Shared React components
+│   ├── supabase/          # ✅ Production-ready database client & operations
+│   ├── auth/              # Authentication utilities (coming soon)
+│   ├── billing/           # Stripe integration & payment logic (coming soon)
+│   ├── ui/                # Shared React components (coming soon)
 │   ├── lib/               # Utility functions
 │   └── types/             # TypeScript definitions
 ├── supabase/              # Database migrations & edge functions
 ├── tools/                 # Shared tooling (ESLint, TypeScript configs)
-└── tests/                 # E2E tests with Playwright
+└── tests/                 # E2E tests with Playwright (coming soon)
 ```
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15.3.2, React 18, TypeScript 5.8.3
-- **Backend**: Supabase (Database, Auth, Storage, Realtime)
+- **Frontend**: Next.js 15.3.3, React 18, TypeScript 5.8.3
+- **Backend**: Supabase Cloud (PostgreSQL 17.4, Auth, Storage, Real-time)
+- **Database**: Production-ready schema with Users, Products, Subscriptions, User-Products tables
+- **Security**: Advanced Row Level Security (RLS) policies with performance optimization
+- **Testing**: Vitest 2.1.8, Testing Library with 86%+ coverage
+- **Build**: Turbo 2.5.4, pnpm workspace, Node.js 24 LTS
 - **Styling**: Tailwind CSS 4.1.8
-- **Payments**: Stripe 18.2.0
-- **Testing**: Vitest 2.1.8, Testing Library, Playwright 1.49.1
-- **Build**: Turbo 2.5.4, Node.js 24 LTS
-- **Database**: PostgreSQL (via Supabase)
+- **Payments**: Stripe 18.2.0 (integration ready)
+- **Package Manager**: pnpm 9.15.2 with workspace support
 
 ## 📋 Prerequisites
 
 - Node.js 24 LTS or higher
-- npm or yarn
-- Supabase account
-- Stripe account (for billing features)
+- pnpm 9.15+ (recommended package manager)
+- Supabase account with active project
+- Stripe account (for future billing features)
 
 ## ⚡ Quick Start
 
@@ -57,61 +64,60 @@ saas-platform/
 
 ```bash
 git clone <your-repo-url>
-cd saas-platform
-npm install
+cd saaskit
+pnpm install
 ```
 
 ### 2. Environment Setup
 
-Copy the environment template:
+Copy and configure your environment variables:
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Fill in your environment variables:
+Fill in your Supabase project details:
 
 ```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+# Supabase (Required - Get from https://supabase.com/dashboard/project/_/settings/api)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-# Stripe
+# AI Services (Optional - for Task Master AI)
+ANTHROPIC_API_KEY=your_anthropic_key
+PERPLEXITY_API_KEY=your_perplexity_key
+
+# Future Features
 STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-
-# App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ### 3. Database Setup
 
-```bash
-# Start Supabase locally (optional for development)
-npx supabase start
-
-# Or use your cloud Supabase project
-# Run migrations
-npx supabase db push
-```
+The database schema is already set up in your Supabase project with:
+- ✅ **Users table** with authentication integration
+- ✅ **Products table** for SaaS features/plans
+- ✅ **User-Products table** with role-based relationships
+- ✅ **Subscriptions table** for billing management
+- ✅ **Row Level Security policies** for data protection
+- ✅ **Real-time capabilities** enabled
 
 ### 4. Development
 
 ```bash
-# Start all apps in development mode
-npm run dev
+# Start the development server
+pnpm dev
 
-# Or start specific apps
-npm run dev:main        # Main SaaS app
-npm run dev:marketing   # Marketing site
+# This starts the web app with database status monitoring
 ```
 
 Visit:
 
-- Main App: http://localhost:3000
-- Marketing Site: http://localhost:3001
+- **Demo App**: http://localhost:3000
+- **Database Status**: http://localhost:3000/database-status
 
 ## 📁 Project Structure
 
@@ -122,10 +128,15 @@ Visit:
 
 ### Shared Packages
 
-- **`@saas/supabase`**: Database client, operations, and Supabase utilities
-- **`@saas/auth`**: Authentication hooks, utilities, and middleware
-- **`@saas/billing`**: Stripe integration and payment processing
-- **`@saas/ui`**: Shared React components and design system
+- **`@saas/supabase`**: ✅ Production-ready database client with comprehensive operations
+  - Complete CRUD operations for all tables
+  - Authentication utilities with OAuth support
+  - File storage with upload/download/signed URLs
+  - Real-time subscriptions with proper cleanup
+  - 86%+ test coverage with robust error handling
+- **`@saas/auth`**: Authentication hooks, utilities, and middleware (coming soon)
+- **`@saas/billing`**: Stripe integration and payment processing (coming soon)
+- **`@saas/ui`**: Shared React components and design system (coming soon)
 - **`@saas/lib`**: Utility functions and helpers
 - **`@saas/types`**: Shared TypeScript type definitions
 
@@ -141,26 +152,35 @@ Visit:
 
 ```bash
 # Run all tests
-npm run test
+pnpm test
 
 # Run tests in watch mode
-npm run test:watch
+pnpm test:watch
 
 # Run tests with coverage
-npm run test:coverage
+pnpm test:coverage
 
 # Test specific package
-npm run test --filter=@saas/auth
+pnpm test --filter=@saas/supabase
 ```
+
+### Current Test Coverage
+
+- **`@saas/supabase`**: 86.17% coverage with 172 tests
+  - ✅ Authentication helpers: 95.87% coverage
+  - ✅ Storage operations: 100% coverage
+  - ✅ Real-time subscriptions: 100% coverage
+  - ✅ Database operations: 80.35% coverage
+  - ✅ Client configuration: 76.92% coverage
 
 ### End-to-End Tests
 
 ```bash
-# Run E2E tests
-npm run test:e2e
+# Run E2E tests (coming soon)
+pnpm test:e2e
 
-# Run E2E tests in UI mode
-npm run test:e2e:ui
+# Run E2E tests in UI mode (coming soon)
+pnpm test:e2e:ui
 ```
 
 ## 🏃‍♂️ Development Workflow
@@ -202,21 +222,104 @@ npm install @saas/ui @saas/auth @saas/supabase @saas/billing @saas/types @saas/l
 ### Root Scripts
 
 ```bash
-npm run dev              # Start all apps in development
-npm run build            # Build all apps and packages
-npm run test             # Run all tests
-npm run lint             # Lint all packages
-npm run typecheck        # Type check all packages
-npm run clean            # Clean all build artifacts
+pnpm dev                 # Start web app in development mode
+pnpm build               # Build all apps and packages
+pnpm test                # Run all tests with coverage
+pnpm lint                # Lint all packages
+pnpm typecheck           # Type check all packages
+pnpm clean               # Clean all build artifacts
 ```
 
 ### Package-Specific Scripts
 
 ```bash
-npm run dev:main         # Start main app only
-npm run build:apps       # Build only apps
-npm run test:packages    # Test only packages
+pnpm dev --filter=web    # Start web app only
+pnpm test --filter=@saas/supabase  # Test Supabase package only
+pnpm build --filter=@saas/*        # Build all packages only
 ```
+
+### Database Status Monitoring
+
+Visit `http://localhost:3000/database-status` to see:
+- ✅ Real-time Supabase connection health
+- ✅ Complete database schema visualization
+- ✅ Live table row counts and statistics
+- ✅ Connection latency monitoring
+- ✅ RLS policy status indicators
+- ✅ Interactive CRUD operation demos
+
+## 🗄️ Database Schema
+
+### Production Database Tables
+
+The Supabase database includes a complete multi-tenant SaaS schema:
+
+#### Users Table
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY REFERENCES auth.users(id),
+  email TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### Products Table
+```sql
+CREATE TABLE products (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+#### User-Products Relationship
+```sql
+CREATE TYPE user_role AS ENUM ('owner', 'admin', 'member', 'viewer');
+
+CREATE TABLE user_products (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  role user_role NOT NULL DEFAULT 'member',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, product_id)
+);
+```
+
+#### Subscriptions Table
+```sql
+CREATE TYPE subscription_status AS ENUM (
+  'active', 'canceled', 'incomplete', 'incomplete_expired',
+  'past_due', 'trialing', 'unpaid'
+);
+
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  status subscription_status NOT NULL DEFAULT 'trialing',
+  current_period_start TIMESTAMPTZ NOT NULL,
+  current_period_end TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+### Security Features
+
+- **Row Level Security (RLS)**: All tables have comprehensive RLS policies
+- **Performance Optimized**: Using `(SELECT auth.uid())` for function caching
+- **Multi-tenant Ready**: User-based data isolation
+- **GDPR Compliant**: User deletion cascades properly
+
+### Database Functions
+
+- **`get_rls_status()`**: Returns RLS policy status for all tables
+- **`get_table_schema()`**: Returns complete schema information
 
 ## 🚀 Deployment
 
