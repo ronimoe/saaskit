@@ -325,7 +325,11 @@ function isRealtimeAvailable(supabase) {
 }
 function getRealtimeStatus(supabase) {
   try {
-    return supabase.realtime?.connection?.state || "unknown";
+    const realtime = supabase.realtime;
+    if (!realtime) {
+      return "unavailable";
+    }
+    return realtime.connection?.state || "unknown";
   } catch {
     return "unavailable";
   }
