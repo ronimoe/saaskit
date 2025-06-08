@@ -1,6 +1,8 @@
 # SaaS Platform Monorepo
 
-A modern, migration-ready SaaS platform built with Next.js 15, Supabase, and TypeScript. This monorepo architecture enables rapid development while maintaining the flexibility to scale into multiple products and migrate to microservices as needed.
+A modern, migration-ready SaaS platform built with Next.js 15, Supabase, and TypeScript. This
+monorepo architecture enables rapid development while maintaining the flexibility to scale into
+multiple products and migrate to microservices as needed.
 
 ## 🚀 Features
 
@@ -107,6 +109,7 @@ npm run dev:marketing   # Marketing site
 ```
 
 Visit:
+
 - Main App: http://localhost:3000
 - Marketing Site: http://localhost:3001
 
@@ -120,7 +123,7 @@ Visit:
 ### Shared Packages
 
 - **`@saas/supabase`**: Database client, operations, and Supabase utilities
-- **`@saas/auth`**: Authentication hooks, utilities, and middleware  
+- **`@saas/auth`**: Authentication hooks, utilities, and middleware
 - **`@saas/billing`**: Stripe integration and payment processing
 - **`@saas/ui`**: Shared React components and design system
 - **`@saas/lib`**: Utility functions and helpers
@@ -223,7 +226,7 @@ npm run test:packages    # Test only packages
 # Deploy main app
 vercel --prod apps/main-app
 
-# Deploy marketing site  
+# Deploy marketing site
 vercel --prod apps/marketing-site
 ```
 
@@ -262,11 +265,13 @@ NEXT_PUBLIC_APP_URL=https://yourapp.com
 This architecture is designed to evolve:
 
 ### Current: Next.js Full-Stack
+
 - All apps use Next.js API routes
 - Shared packages for business logic
 - Single Supabase database
 
 ### Future: Microservices
+
 - Extract API logic to Node.js backends
 - Same shared packages work identically
 - Independent scaling and deployment
@@ -306,6 +311,7 @@ test(ui): add Button component tests
 ### Common Issues
 
 **Build Errors**:
+
 ```bash
 # Clear cache and reinstall
 npm run clean
@@ -314,6 +320,7 @@ npm install
 ```
 
 **Database Connection**:
+
 ```bash
 # Check Supabase status
 npx supabase status
@@ -323,6 +330,7 @@ npx supabase db reset
 ```
 
 **Type Errors**:
+
 ```bash
 # Regenerate Supabase types
 npx supabase gen types typescript --local > packages/supabase/src/types/database.ts

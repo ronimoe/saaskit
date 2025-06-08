@@ -15,6 +15,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,md}\"",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -35,4 +38,4 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   }
-} 
+}

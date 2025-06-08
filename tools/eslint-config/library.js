@@ -1,37 +1,22 @@
 const js = require('@eslint/js');
 const tseslint = require('typescript-eslint');
-const react = require('eslint-plugin-react');
-const reactHooks = require('eslint-plugin-react-hooks');
-const jsxA11y = require('eslint-plugin-jsx-a11y');
 const importPlugin = require('eslint-plugin-import');
 const prettier = require('eslint-config-prettier');
 
 module.exports = [
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  react.configs.flat.recommended,
-  react.configs.flat['jsx-runtime'],
-  jsxA11y.flatConfigs.recommended,
   prettier, // Must be last to override other configs
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    files: ['**/*.{js,ts}'],
     plugins: {
-      'react-hooks': reactHooks,
       import: importPlugin,
     },
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
-      parserOptions: {
-        ecmaFeatures: {
-          jsx: true,
-        },
-      },
     },
     settings: {
-      react: {
-        version: 'detect',
-      },
       'import/resolver': {
         typescript: true,
         node: true,
@@ -45,14 +30,6 @@ module.exports = [
       ],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/consistent-type-imports': 'error',
-
-      // React rules
-      'react/prop-types': 'off', // Using TypeScript for prop validation
-      'react/react-in-jsx-scope': 'off', // Not needed with new JSX transform
-      'react/display-name': 'warn',
-
-      // React Hooks rules
-      ...reactHooks.configs.recommended.rules,
 
       // Import rules
       'import/order': [
@@ -90,7 +67,7 @@ module.exports = [
     },
   },
   {
-    files: ['**/*.test.{js,jsx,ts,tsx}', '**/*.spec.{js,jsx,ts,tsx}'],
+    files: ['**/*.test.{js,ts}', '**/*.spec.{js,ts}'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       'no-console': 'off',

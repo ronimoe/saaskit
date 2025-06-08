@@ -2,62 +2,81 @@
 
 ## Overview
 
-This document outlines the development of a migration-ready SaaS platform using a monorepo architecture. The platform is designed to start as a simple, unified application while maintaining the flexibility to scale into multiple independent products and migrate to microservices architecture as needed.
+This document outlines the development of a migration-ready SaaS platform using a monorepo
+architecture. The platform is designed to start as a simple, unified application while maintaining
+the flexibility to scale into multiple independent products and migrate to microservices
+architecture as needed.
 
-**Problem**: Most SaaS applications start simple but face architectural challenges when scaling - either over-engineering from the start or painting themselves into a corner with tight coupling.
+**Problem**: Most SaaS applications start simple but face architectural challenges when scaling -
+either over-engineering from the start or painting themselves into a corner with tight coupling.
 
-**Solution**: A monorepo architecture that uses shared packages for common functionality (auth, billing, database, UI) while keeping product-specific logic in separate applications. This allows rapid development initially with seamless scaling paths.
+**Solution**: A monorepo architecture that uses shared packages for common functionality (auth,
+billing, database, UI) while keeping product-specific logic in separate applications. This allows
+rapid development initially with seamless scaling paths.
 
-**Target Users**: 
+**Target Users**:
+
 - Solo developers and small teams building SaaS products
 - Companies wanting to launch multiple related products
 - Teams that need to iterate quickly but plan for scale
 
-**Value Proposition**: Build fast, scale smart - get to market quickly with a simple architecture that naturally evolves into a sophisticated platform without rewrites.
+**Value Proposition**: Build fast, scale smart - get to market quickly with a simple architecture
+that naturally evolves into a sophisticated platform without rewrites.
 
 ## Core Features
 
 ### 1. Unified Authentication System
-**What it does**: Single sign-on across all applications in the platform using Supabase Auth
-**Why it's important**: Users can access multiple products with one account, reducing friction and improving retention
-**How it works**: Shared authentication package that handles JWT tokens, OAuth providers, and session management across all apps
+
+**What it does**: Single sign-on across all applications in the platform using Supabase Auth **Why
+it's important**: Users can access multiple products with one account, reducing friction and
+improving retention **How it works**: Shared authentication package that handles JWT tokens, OAuth
+providers, and session management across all apps
 
 ### 2. Shared Component Library
-**What it does**: Reusable UI components and design system used across all applications
-**Why it's important**: Consistent user experience and faster development of new products
-**How it works**: Centralized UI package with TypeScript components, shared styles, and design tokens
+
+**What it does**: Reusable UI components and design system used across all applications **Why it's
+important**: Consistent user experience and faster development of new products **How it works**:
+Centralized UI package with TypeScript components, shared styles, and design tokens
 
 ### 3. Centralized Database Management
-**What it does**: Single Supabase database with Row Level Security handling multi-tenant, multi-product data
-**Why it's important**: Unified user data, cross-product analytics, and simplified data management
-**How it works**: Shared database operations package with repository pattern and type-safe queries
+
+**What it does**: Single Supabase database with Row Level Security handling multi-tenant,
+multi-product data **Why it's important**: Unified user data, cross-product analytics, and
+simplified data management **How it works**: Shared database operations package with repository
+pattern and type-safe queries
 
 ### 4. Unified Billing System
-**What it does**: Stripe integration handling subscriptions, payments, and billing across all products
-**Why it's important**: Simplified pricing strategies, cross-product upselling, and unified customer management
-**How it works**: Shared billing package that manages Stripe customers, subscriptions, and webhook processing
+
+**What it does**: Stripe integration handling subscriptions, payments, and billing across all
+products **Why it's important**: Simplified pricing strategies, cross-product upselling, and unified
+customer management **How it works**: Shared billing package that manages Stripe customers,
+subscriptions, and webhook processing
 
 ### 5. Multi-App Architecture
-**What it does**: Independent Next.js applications that can be developed, deployed, and scaled separately
-**Why it's important**: Product isolation, team autonomy, and independent scaling
-**How it works**: Each app in `apps/` folder with shared packages imported as dependencies
+
+**What it does**: Independent Next.js applications that can be developed, deployed, and scaled
+separately **Why it's important**: Product isolation, team autonomy, and independent scaling **How
+it works**: Each app in `apps/` folder with shared packages imported as dependencies
 
 ### 6. Migration-Ready Structure
-**What it does**: Architecture designed to seamlessly migrate from Next.js full-stack to separate frontend/backend
-**Why it's important**: Allows growth from simple monolith to microservices without rewrites
-**How it works**: Service layer pattern with business logic separated from HTTP handling
+
+**What it does**: Architecture designed to seamlessly migrate from Next.js full-stack to separate
+frontend/backend **Why it's important**: Allows growth from simple monolith to microservices without
+rewrites **How it works**: Service layer pattern with business logic separated from HTTP handling
 
 ## User Experience
 
 ### User Personas
 
 **Primary: Sarah - Solo SaaS Founder**
+
 - Needs to build and launch quickly with limited resources
 - Wants to focus on product features, not infrastructure
 - Plans to scale and potentially hire team members
 - Values code quality and maintainability
 
 **Secondary: Mike - Development Team Lead**
+
 - Managing 3-5 developers building multiple products
 - Needs clear separation of concerns for team productivity
 - Requires scalable architecture for growing user base
@@ -66,18 +85,21 @@ This document outlines the development of a migration-ready SaaS platform using 
 ### Key User Flows
 
 **Developer Onboarding**:
+
 1. Clone monorepo → `npm install` → `npm run dev`
 2. All apps running locally with shared authentication
 3. Make changes to shared components, see updates across all apps
 4. Deploy individual apps independently
 
 **New Product Development**:
+
 1. Create new app in `apps/` folder
 2. Import shared packages (`@saas/auth`, `@saas/ui`, etc.)
 3. Focus on product-specific features
 4. Reuse authentication, billing, and UI components
 
 **Scaling and Migration**:
+
 1. Extract API logic from Next.js to Node.js backend
 2. Shared packages work identically in new environment
 3. Update API endpoints, business logic remains unchanged
@@ -95,6 +117,7 @@ This document outlines the development of a migration-ready SaaS platform using 
 ### System Components
 
 **Monorepo Structure**:
+
 ```
 saas-platform/
 ├── apps/
@@ -371,18 +394,21 @@ saas-platform/
 ```
 
 **Frontend Applications** (Next.js 15):
+
 - Individual Next.js apps using App Router
 - TypeScript for type safety
 - Tailwind CSS for styling
 - React 18 with concurrent features
 
 **Backend Services**:
+
 - Supabase as primary backend (Database, Auth, Storage, Realtime)
 - Next.js API routes for custom business logic
 - Stripe for payment processing
 - Optional Node.js backend for complex operations
 
 **Shared Packages**:
+
 - `@saas/supabase`: Database client and operations
 - `@saas/auth`: Authentication utilities and hooks
 - `@saas/billing`: Stripe integration and payment logic
@@ -393,6 +419,7 @@ saas-platform/
 ### Data Models
 
 **Core Entities**:
+
 ```typescript
 interface User {
   id: string;
@@ -437,18 +464,21 @@ interface Subscription {
 ### APIs and Integrations
 
 **Supabase Integration**:
+
 - Authentication API for login/logout/OAuth
 - Database API with Row Level Security
 - Storage API for file uploads
 - Realtime API for live updates
 
 **Stripe Integration**:
+
 - Checkout Sessions for subscription creation
 - Customer Portal for subscription management
 - Webhooks for payment status updates
 - Usage-based billing for product features
 
 **Internal APIs**:
+
 - RESTful endpoints for CRUD operations
 - Type-safe API clients with shared TypeScript types
 - Consistent error handling and response formats
@@ -456,18 +486,21 @@ interface Subscription {
 ### Infrastructure Requirements
 
 **Development Environment**:
+
 - Node.js 24.x LTS
 - npm/yarn workspaces for monorepo management
 - Turbo for build orchestration
 - Local Supabase instance for development
 
 **Production Environment**:
+
 - Vercel for Next.js app hosting
 - Supabase cloud for backend services
 - Custom domains with subdomain routing
 - CDN for static assets and shared components
 
 **Technology Stack**:
+
 - **Frontend**: Next.js 15, React 18, TypeScript 5.x, Tailwind CSS 3.x
 - **Backend**: Supabase JS v2, Node.js 24.x LTS
 - **Database**: PostgreSQL (via Supabase)
@@ -476,55 +509,56 @@ interface Subscription {
 - **Build Tools**: Turbo 2.x, TypeScript 5.x
 - **Deployment**: Vercel, Supabase Cloud
 
-
 ## Risks and Mitigations
 
 ### Technical Challenges
 
-**Risk**: Monorepo complexity overwhelming small teams
-**Mitigation**: Start with minimal workspace setup, add complexity gradually. Document setup process thoroughly.
+**Risk**: Monorepo complexity overwhelming small teams **Mitigation**: Start with minimal workspace
+setup, add complexity gradually. Document setup process thoroughly.
 
-**Risk**: Shared package versioning conflicts
-**Mitigation**: Use exact versions, implement automated testing, establish clear breaking change policies.
+**Risk**: Shared package versioning conflicts **Mitigation**: Use exact versions, implement
+automated testing, establish clear breaking change policies.
 
-**Risk**: Supabase vendor lock-in
-**Mitigation**: Abstract database operations behind repository pattern, making migration to other databases possible.
+**Risk**: Supabase vendor lock-in **Mitigation**: Abstract database operations behind repository
+pattern, making migration to other databases possible.
 
-**Risk**: Next.js API route limitations at scale
-**Mitigation**: Design service layer pattern from start, making extraction to Node.js backend straightforward.
+**Risk**: Next.js API route limitations at scale **Mitigation**: Design service layer pattern from
+start, making extraction to Node.js backend straightforward.
 
 ### MVP Definition and Scope
 
-**Risk**: Over-engineering the initial version
-**Mitigation**: Focus on single-app functionality first. Prove core value proposition before adding multi-app complexity.
+**Risk**: Over-engineering the initial version **Mitigation**: Focus on single-app functionality
+first. Prove core value proposition before adding multi-app complexity.
 
-**Risk**: Under-estimating authentication complexity
-**Mitigation**: Use Supabase Auth to handle complexity. Implement OAuth early to validate integration patterns.
+**Risk**: Under-estimating authentication complexity **Mitigation**: Use Supabase Auth to handle
+complexity. Implement OAuth early to validate integration patterns.
 
-**Risk**: Billing integration blocking other development
-**Mitigation**: Implement billing as separate phase. Use feature flags to enable/disable billing features.
+**Risk**: Billing integration blocking other development **Mitigation**: Implement billing as
+separate phase. Use feature flags to enable/disable billing features.
 
 ### Resource Constraints
 
-**Risk**: Documentation and testing falling behind
-**Mitigation**: Include documentation and testing in each phase deliverables. Use automated tools where possible.
+**Risk**: Documentation and testing falling behind **Mitigation**: Include documentation and testing
+in each phase deliverables. Use automated tools where possible.
 
-**Risk**: Deployment complexity increasing rapidly
-**Mitigation**: Use platform-as-a-service solutions (Vercel, Supabase Cloud) to minimize DevOps overhead.
+**Risk**: Deployment complexity increasing rapidly **Mitigation**: Use platform-as-a-service
+solutions (Vercel, Supabase Cloud) to minimize DevOps overhead.
 
-**Risk**: Team knowledge gaps in monorepo patterns
-**Mitigation**: Invest in team education early. Create clear contribution guidelines and architectural decision records.
+**Risk**: Team knowledge gaps in monorepo patterns **Mitigation**: Invest in team education early.
+Create clear contribution guidelines and architectural decision records.
 
 ## Appendix
 
 ### Research Findings
 
 **Monorepo Benefits Validation**:
+
 - Reduced code duplication by 60-80% in similar projects
 - Faster feature development across multiple products
 - Improved code consistency and shared tooling adoption
 
 **Technology Stack Validation**:
+
 - Next.js 15 provides stable App Router with improved performance
 - Supabase offers complete backend-as-a-service with strong TypeScript support
 - Stripe's latest API version provides enhanced subscription management features
@@ -532,6 +566,7 @@ interface Subscription {
 ### Technical Specifications
 
 **Package Dependencies**:
+
 ```json
 {
   "next": "^15.3.2",
@@ -550,6 +585,7 @@ interface Subscription {
 ```
 
 **Development Tools**:
+
 - ESLint 9.x with shared configuration
 - Prettier for consistent code formatting
 - Vitest 2.x for unit and integration testing
@@ -559,11 +595,13 @@ interface Subscription {
 - GitHub Actions for CI/CD
 
 **Browser Support**:
+
 - Modern browsers with ES2024 support
 - Mobile-first responsive design
 - Progressive Web App capabilities
 
 **Performance Targets**:
+
 - Initial page load: < 2 seconds
 - Time to Interactive: < 3 seconds
 - Bundle size per app: < 500KB gzipped
@@ -572,18 +610,21 @@ interface Subscription {
 ### Security Considerations
 
 **Authentication Security**:
+
 - JWT tokens with proper expiration
 - OAuth 2.0 implementation following best practices
 - Rate limiting on authentication endpoints
 - Secure session management
 
 **Data Protection**:
+
 - Row Level Security enforced at database level
 - Input validation and sanitization
 - HTTPS enforced in production
 - Sensitive data encryption at rest
 
 **API Security**:
+
 - CORS properly configured
 - API rate limiting implemented
 - Request validation middleware

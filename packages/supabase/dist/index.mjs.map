@@ -1,1 +1,1 @@
-{"version":3,"sources":["../src/index.ts"],"sourcesContent":["// Supabase integration for the SaaS platform\n\n// Placeholder for now - will be implemented in later tasks\nexport const SUPABASE_VERSION = '0.1.0'; "],"mappings":";AAGO,IAAM,mBAAmB;","names":[]}
+{"version":3,"sources":["../src/index.ts"],"sourcesContent":["// Supabase integration for the SaaS platform\n\n// Placeholder for now - will be implemented in later tasks\nexport const SUPABASE_VERSION = '0.1.0';\n"],"mappings":";AAGO,IAAM,mBAAmB;","names":[]}

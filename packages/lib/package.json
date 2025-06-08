@@ -12,6 +12,9 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "format": "prettier --check \"src/**/*.{ts,js,json,md}\"",
+    "format:fix": "prettier --write \"src/**/*.{ts,js,json,md}\"",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -23,4 +26,4 @@
     "tsup": "^8.0.0",
     "typescript": "^5"
   }
-} 
+}

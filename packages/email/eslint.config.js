@@ -1,3 +1,3 @@
-const baseConfig = require('@repo/eslint-config');
+const libraryConfig = require('@repo/eslint-config/library');
 
-module.exports = baseConfig; 
+module.exports = libraryConfig;

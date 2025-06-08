@@ -22,4 +22,4 @@ const createReactConfig = (options = {}) => {
 module.exports = {
   createConfig,
   createReactConfig,
-}; 
+};

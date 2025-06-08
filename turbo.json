@@ -1,84 +1,37 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalDependencies": [
-    "**/.env.*local",
-    ".env",
-    ".env.local",
-    ".env.production",
-    ".env.development"
-  ],
+  "globalDependencies": ["**/.env.*local", ".env", ".env.local", ".env.production", ".env.development"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".env*",
-        "next.config.*",
-        "tailwind.config.*",
-        "postcss.config.*",
-        "tsconfig.json"
-      ],
-      "outputs": [
-        ".next/**",
-        "!.next/cache/**",
-        "dist/**",
-        "build/**"
-      ]
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "next.config.*", "tailwind.config.*", "postcss.config.*", "tsconfig.json"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "build/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".env*",
-        "next.config.*",
-        "tailwind.config.*",
-        "postcss.config.*"
-      ]
+      "inputs": ["$TURBO_DEFAULT$", ".env*", "next.config.*", "tailwind.config.*", "postcss.config.*"]
     },
     "lint": {
       "dependsOn": ["^build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".eslintrc*",
-        "eslint.config.*",
-        ".eslintignore"
-      ],
+      "inputs": ["$TURBO_DEFAULT$", ".eslintrc*", "eslint.config.*", ".eslintignore"],
       "outputs": []
     },
     "type-check": {
       "dependsOn": ["^build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "tsconfig.json",
-        "**/*.ts",
-        "**/*.tsx"
-      ],
+      "inputs": ["$TURBO_DEFAULT$", "tsconfig.json", "**/*.ts", "**/*.tsx"],
       "outputs": []
     },
     "test": {
       "dependsOn": ["^build"],
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "vitest.config.*",
-        "vitest.workspace.*",
-        "**/*.test.*",
-        "**/*.spec.*"
-      ],
-      "outputs": [
-        "coverage/**"
-      ]
+      "inputs": ["$TURBO_DEFAULT$", "vitest.config.*", "vitest.workspace.*", "**/*.test.*", "**/*.spec.*"],
+      "outputs": ["coverage/**"]
     },
     "test:watch": {
       "cache": false,
       "persistent": true,
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "vitest.config.*",
-        "**/*.test.*",
-        "**/*.spec.*"
-      ]
+      "inputs": ["$TURBO_DEFAULT$", "vitest.config.*", "**/*.test.*", "**/*.spec.*"]
     },
     "clean": {
       "cache": false,
@@ -86,13 +39,8 @@
       "outputs": []
     },
     "format": {
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        ".prettierrc*",
-        "prettier.config.*",
-        ".prettierignore"
-      ],
+      "inputs": ["$TURBO_DEFAULT$", ".prettierrc*", "prettier.config.*", ".prettierignore"],
       "outputs": []
     }
   }
-} 
+}

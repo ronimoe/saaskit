@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+.turbo/
+.output/
+out/
+
+# Generated files
+*.generated.*
+**/*.generated.*
+
+# Package manager files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Git
+.git/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Logs
+*.log
+logs/
+
+# Environment files
+.env*
+!.env.example
+
+# Coverage reports
+coverage/
+
+# Supabase
+supabase/functions/**/*.js
+supabase/functions/**/*.js.map
+
+# Cache directories
+.cache/
+.parcel-cache/
+.prettiercache 

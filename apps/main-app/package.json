@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "format": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -33,4 +36,4 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*"
   }
-} 
+}

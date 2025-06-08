@@ -4,13 +4,20 @@
   "private": true,
   "main": "index.js",
   "files": [
-    "index.js"
+    "index.js",
+    "next.js",
+    "library.js"
   ],
   "dependencies": {
     "eslint": "^9",
     "@eslint/js": "^9",
     "@eslint/eslintrc": "^3",
     "eslint-config-next": "15.3.3",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-react": "^7.33.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-import": "^2.29.0",
     "typescript-eslint": "^8.0.0"
   }
-} 
+}

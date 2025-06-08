@@ -11,8 +11,9 @@
     "test:watch": "turbo test:watch",
     "type-check": "turbo type-check",
     "clean": "turbo clean && rm -rf node_modules",
-    "format": "turbo format",
-    "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
+    "lint:fix": "turbo lint:fix",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish"
