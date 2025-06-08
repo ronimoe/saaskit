@@ -395,14 +395,8 @@ storybook-static/
 # ============================================================================
 # TASKMASTER & PROJECT SPECIFIC
 # ============================================================================
-# Task Master (Keep essential config)
-.taskmaster/reports/
-.taskmaster/cache/
-.taskmaster/temp/
-!.taskmaster/config.json
-!.taskmaster/templates/
-!.taskmaster/docs/
-!.taskmaster/tasks/
+# Task Master (Complete ignore - important for development but not for Git)
+.taskmaster/
 
 # Cursor AI
 .cursor/
@@ -499,5 +493,4 @@ packages/ui/.storybook/static/
 # ============================================================================
 # CUSTOM PROJECT ADDITIONS
 # ============================================================================
-# Add any project-specific ignores below this line 
-.taskmaster/
+# Add any project-specific ignores below this line
