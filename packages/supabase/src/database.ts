@@ -885,7 +885,7 @@ export const database = {
   async healthCheck(supabase: TypedSupabaseClient): Promise<DatabaseResult<{ status: string }>> {
     try {
       // Simple query to test connection
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from('users')
         .select('count')
         .limit(1)

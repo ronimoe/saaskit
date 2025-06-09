@@ -18,8 +18,8 @@ export function HealthCheck() {
       if (result.connection_status === 'connected') {
         setHistory(prev => [...prev.slice(-9), result.latency_ms])
       }
-    } catch (error) {
-      console.error('Failed to check health:', error)
+    } catch (_error) {
+      // Health check failed - metrics will remain null
     } finally {
       setLoading(false)
     }

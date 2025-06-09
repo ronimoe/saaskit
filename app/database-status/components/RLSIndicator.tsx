@@ -14,8 +14,8 @@ export function RLSIndicator() {
       const result = await getRLSStatus()
       setRlsStatus(result)
       setLastUpdated(new Date().toISOString())
-    } catch (error) {
-      console.error('Failed to fetch RLS status:', error)
+    } catch (_error) {
+      // RLS status fetch failed - status will remain null
     } finally {
       setLoading(false)
     }

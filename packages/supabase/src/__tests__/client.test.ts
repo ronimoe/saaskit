@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+
 import { createClient, createServerClient, createAdminClient } from '../client'
 
 // Mock @supabase/ssr

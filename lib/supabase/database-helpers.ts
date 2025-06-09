@@ -73,7 +73,6 @@ export async function getTableSchema(): Promise<TableInfo[]> {
   const { data, error } = await getSupabase().rpc('get_table_schema')
   
   if (error) {
-    console.error('Error fetching table schema:', error)
     return []
   }
   
@@ -100,8 +99,7 @@ export async function getTableStats(): Promise<TableStats[]> {
           size_bytes: 0 // Would need custom function for actual size
         })
       }
-    } catch (error) {
-      console.error(`Error getting stats for table ${table}:`, error)
+    } catch (_error) {
       stats.push({
         table_name: table,
         row_count: 0,
@@ -120,7 +118,6 @@ export async function getRLSStatus(): Promise<RLSStatus[]> {
   const { data, error } = await getSupabase().rpc('get_rls_status')
   
   if (error) {
-    console.error('Error fetching RLS status:', error)
     // Return default status for known tables
     return [
       { table_name: 'users', rls_enabled: true, policies_count: 4 },

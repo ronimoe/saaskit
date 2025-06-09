@@ -12,8 +12,7 @@ export function ConnectionStatus() {
     try {
       const result = await getHealthMetrics()
       setMetrics(result)
-    } catch (error) {
-      console.error('Failed to check connection:', error)
+    } catch (_error) {
       setMetrics({
         connection_status: 'error',
         latency_ms: 0,

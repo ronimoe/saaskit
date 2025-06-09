@@ -1,4 +1,5 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
+
 import {
   subscribeToTable,
   subscribeToRow,
@@ -11,7 +12,7 @@ import {
   type DatabaseChangeEvent,
 } from '../realtime'
 import { createMockSupabaseClient } from '../test/mocks'
-import type { TypedSupabaseClient } from '../types'
+
 
 describe('Realtime Utilities', () => {
   let mockSupabase: any

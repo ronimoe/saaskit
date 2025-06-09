@@ -1,7 +1,7 @@
 /// <reference types="@testing-library/jest-dom" />
-import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import React from 'react'
+import type React from 'react'
+import { describe, it, expect } from 'vitest'
 
 // Simple Button component for testing
 const Button = ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (

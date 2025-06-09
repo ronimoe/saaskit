@@ -14,8 +14,8 @@ export function TableStats() {
       const result = await getTableStats()
       setStats(result)
       setLastUpdated(new Date().toISOString())
-    } catch (error) {
-      console.error('Failed to fetch table stats:', error)
+    } catch (_error) {
+      // Table stats fetch failed - stats will remain null
     } finally {
       setLoading(false)
     }

@@ -14,8 +14,7 @@ export function SchemaViewer() {
       try {
         const result = await getTableSchema()
         setSchema(result)
-      } catch (error) {
-        console.error('Failed to fetch schema:', error)
+      } catch (_error) {
         // Fallback to hardcoded schema
         setSchema(getHardcodedSchema())
       } finally {

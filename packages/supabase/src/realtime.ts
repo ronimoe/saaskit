@@ -49,7 +49,7 @@ export function subscribeToTable(
       .subscribe()
 
     return channel
-  } catch (error) {
+  } catch (_error) {
     return null
   }
 }
@@ -124,7 +124,7 @@ export async function unsubscribeChannel(
 ) {
   try {
     return await supabase.removeChannel(channel)
-  } catch (error) {
+  } catch (_error) {
     return 'error'
   }
 }

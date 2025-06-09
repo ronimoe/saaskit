@@ -1,7 +1,13 @@
-const path = require('path')
+import path from 'path'
+import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Load environment variables from project root
-require('dotenv').config({ path: path.resolve(__dirname, '.env') })
+dotenv.config({ path: path.resolve(__dirname, '.env') })
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -30,4 +36,4 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig 
+export default nextConfig 

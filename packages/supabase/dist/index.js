@@ -142,8 +142,8 @@ var Constants = {
 // src/auth-helpers.ts
 async function getCurrentUser(supabase) {
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error) {
+    const { data: { user }, error: _error } = await supabase.auth.getUser();
+    if (_error) {
       return null;
     }
     return user;
@@ -153,8 +153,8 @@ async function getCurrentUser(supabase) {
 }
 async function getCurrentSession(supabase) {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    if (error) {
+    const { data: { session }, error: _error } = await supabase.auth.getSession();
+    if (_error) {
       return null;
     }
     return session;
@@ -288,7 +288,7 @@ function subscribeToTable(supabase, table, event = "*", callback, options) {
       callback
     ).subscribe();
     return channel;
-  } catch (error) {
+  } catch (_error) {
     return null;
   }
 }
@@ -324,7 +324,7 @@ function createChannel(supabase, channelName) {
 async function unsubscribeChannel(supabase, channel) {
   try {
     return await supabase.removeChannel(channel);
-  } catch (error) {
+  } catch (_error) {
     return "error";
   }
 }
@@ -936,7 +936,7 @@ var database = {
    */
   async healthCheck(supabase) {
     try {
-      const { data, error } = await supabase.from("users").select("count").limit(1);
+      const { data: _data, error } = await supabase.from("users").select("count").limit(1);
       if (error) {
         return {
           data: null,
