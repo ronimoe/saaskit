@@ -57,6 +57,18 @@ const nextConfig: NextConfig = {
 
   // Webpack configuration for additional optimizations
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Exclude test files from build
+    config.module.rules.push({
+      test: /\.(test|spec)\.(ts|tsx|js|jsx)$/,
+      loader: 'ignore-loader',
+    });
+
+    // Exclude test directories from build
+    config.module.rules.push({
+      test: /[\\/](__tests__|__mocks__)[\\/]/,
+      loader: 'ignore-loader',
+    });
+
     // Optimize bundle size by analyzing what's included
     if (!dev && !isServer) {
       // Add bundle analyzer in development if needed
