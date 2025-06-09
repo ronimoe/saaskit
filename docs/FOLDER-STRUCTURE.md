@@ -18,116 +18,143 @@ saaskit/
 ├── vitest.workspace.ts             # Vitest workspace test configuration  
 ├── .gitignore                      # Git ignore patterns for entire monorepo
 ├── .env.example                    # Environment variables template
+├── .env.local                      # Local environment variables (git-ignored)
 ├── pnpm-lock.yaml                  # Lock file - auto-generated, don't edit
+├── next.config.js                  # Next.js configuration
+├── tailwind.config.js              # Tailwind CSS configuration
+├── middleware.ts                   # Next.js middleware for route protection
+├── vitest.config.ts                # Vitest configuration for root app
+├── vercel.json                     # Vercel deployment configuration
 └── README.md                       # Project overview and getting started
 ```
 
 **When to add files here:**
 - ✅ Configuration that affects the entire monorepo
 - ✅ Scripts that coordinate multiple packages
+- ✅ Root-level Next.js application files
 - ❌ Package-specific configurations (put in package directories)
 
-## 📁 Apps Directory (`apps/`)
+## 📁 Root-Level Next.js Application
 
-Contains independent Next.js applications that can be deployed separately.
+The main SaaS application is now located at the root level for simplified deployment and development.
 
-### Main Application (`apps/main-app/`)
+### App Directory (`app/`)
 ```
-apps/main-app/
-├── app/                            # Next.js 15 App Router
-│   ├── (auth)/                     # Route group for authentication pages
-│   │   ├── login/
-│   │   │   └── page.tsx            # Login page component
-│   │   ├── register/
-│   │   │   └── page.tsx            # Registration page
-│   │   ├── forgot-password/
-│   │   │   └── page.tsx            # Password reset page
-│   │   └── auth/
-│   │       └── callback/
-│   │           └── page.tsx        # OAuth callback handler
-│   ├── (dashboard)/                # Route group for protected pages
-│   │   ├── layout.tsx              # Dashboard layout with navigation
-│   │   ├── page.tsx                # Dashboard home/overview
-│   │   ├── projects/               # Projects management
-│   │   │   ├── page.tsx            # Projects list
-│   │   │   ├── [id]/
-│   │   │   │   └── page.tsx        # Individual project page
-│   │   │   └── new/
-│   │   │       └── page.tsx        # Create new project
-│   │   ├── team/                   # Team management
-│   │   │   ├── page.tsx            # Team overview
-│   │   │   ├── members/
-│   │   │   │   └── page.tsx        # Team members management
-│   │   │   └── invites/
-│   │   │       └── page.tsx        # Invite management
-│   │   ├── settings/               # User and account settings
-│   │   │   ├── page.tsx            # Settings overview
-│   │   │   ├── profile/
-│   │   │   │   └── page.tsx        # Profile settings
-│   │   │   ├── billing/
-│   │   │   │   └── page.tsx        # Billing and subscription
-│   │   │   ├── integrations/
-│   │   │   │   └── page.tsx        # Third-party integrations
-│   │   │   └── security/
-│   │   │       └── page.tsx        # Security settings
-│   │   └── analytics/
-│   │       └── page.tsx            # Analytics dashboard
-│   ├── api/                        # API routes for backend functionality
-│   │   ├── auth/
-│   │   │   └── callback/route.ts   # Authentication callback
+app/                                # Next.js 15 App Router
+├── (auth)/                         # Route group for authentication pages
+│   ├── login/
+│   │   └── page.tsx                # Login page component
+│   ├── register/
+│   │   └── page.tsx                # Registration page
+│   ├── forgot-password/
+│   │   └── page.tsx                # Password reset page
+│   └── auth/
+│       └── callback/
+│           └── page.tsx            # OAuth callback handler
+├── (dashboard)/                    # Route group for protected pages
+│   ├── layout.tsx                  # Dashboard layout with navigation
+│   ├── page.tsx                    # Dashboard home/overview
+│   ├── projects/                   # Projects management
+│   │   ├── page.tsx                # Projects list
+│   │   ├── [id]/
+│   │   │   └── page.tsx            # Individual project page
+│   │   └── new/
+│   │       └── page.tsx            # Create new project
+│   ├── team/                       # Team management
+│   │   ├── page.tsx                # Team overview
+│   │   ├── members/
+│   │   │   └── page.tsx            # Team members management
+│   │   └── invites/
+│   │       └── page.tsx            # Invite management
+│   ├── settings/                   # User and account settings
+│   │   ├── page.tsx                # Settings overview
+│   │   ├── profile/
+│   │   │   └── page.tsx            # Profile settings
 │   │   ├── billing/
-│   │   │   ├── checkout/route.ts   # Stripe checkout
-│   │   │   ├── portal/route.ts     # Customer portal
-│   │   │   └── webhooks/route.ts   # Payment webhooks
-│   │   ├── team/
-│   │   │   ├── invite/route.ts     # Team invitations
-│   │   │   └── members/route.ts    # Team member operations
-│   │   ├── projects/
-│   │   │   └── route.ts            # Project CRUD operations
-│   │   └── health/route.ts         # Health check endpoint
-│   ├── globals.css                 # Global styles and Tailwind imports
-│   ├── layout.tsx                  # Root layout component
-│   └── page.tsx                    # Root page (usually redirects)
-├── components/                     # App-specific React components
-│   ├── auth/                       # Authentication-related components
-│   │   ├── AuthForm.tsx            # Reusable auth form component
-│   │   ├── OAuthButtons.tsx        # Social login buttons
-│   │   └── ProtectedRoute.tsx      # Route protection wrapper
-│   ├── dashboard/                  # Dashboard-specific components
-│   │   ├── DashboardNav.tsx        # Dashboard navigation
-│   │   ├── Sidebar.tsx             # Dashboard sidebar
-│   │   ├── UserMenu.tsx            # User dropdown menu
-│   │   └── TeamSwitcher.tsx        # Multi-tenant team switcher
-│   ├── ui/                         # Local UI components (specific to this app)
-│   │   ├── Button.tsx              # App-specific button variants
-│   │   ├── Modal.tsx               # App-specific modal component
-│   │   └── DataTable.tsx           # App-specific data table
-│   └── providers/                  # React context providers
-│       ├── AuthProvider.tsx        # Authentication state provider
-│       ├── ThemeProvider.tsx       # Theme/dark mode provider
-│       └── ToastProvider.tsx       # Toast notification provider
-├── lib/                            # App-specific utilities
-│   ├── auth-helpers.ts             # Authentication helper functions
-│   ├── utils.ts                    # General utilities for this app
-│   └── constants.ts                # App-specific constants
-├── __tests__/                      # App-specific tests
-│   ├── components/                 # Component tests
-│   ├── pages/                      # Page tests
-│   └── api/                        # API route tests
-├── middleware.ts                   # Next.js middleware for route protection
-├── next.config.js                  # Next.js configuration
-├── tailwind.config.js              # Tailwind CSS configuration
-├── vitest.config.ts                # Vitest configuration for this app
-└── package.json                    # App dependencies and scripts
+│   │   │   └── page.tsx            # Billing and subscription
+│   │   ├── integrations/
+│   │   │   └── page.tsx            # Third-party integrations
+│   │   └── security/
+│   │       └── page.tsx            # Security settings
+│   └── analytics/
+│       └── page.tsx                # Analytics dashboard
+├── api/                            # API routes for backend functionality
+│   ├── auth/
+│   │   └── callback/route.ts       # Authentication callback
+│   ├── billing/
+│   │   ├── checkout/route.ts       # Stripe checkout
+│   │   ├── portal/route.ts         # Customer portal
+│   │   └── webhooks/route.ts       # Payment webhooks
+│   ├── team/
+│   │   ├── invite/route.ts         # Team invitations
+│   │   └── members/route.ts        # Team member operations
+│   ├── projects/
+│   │   └── route.ts                # Project CRUD operations
+│   └── health/route.ts             # Health check endpoint
+├── database-status/
+│   └── page.tsx                    # Database monitoring page
+├── packages/
+│   └── page.tsx                    # Package showcase page
+├── structure/
+│   └── page.tsx                    # Monorepo structure visualization
+├── globals.css                     # Global styles and Tailwind imports
+├── layout.tsx                      # Root layout component
+└── page.tsx                        # Root page (usually redirects)
 ```
 
-**When to add files in apps/main-app/:**
+### Components Directory (`components/`)
+```
+components/                         # Application-specific React components
+├── auth/                           # Authentication-related components
+│   ├── AuthForm.tsx                # Reusable auth form component
+│   ├── OAuthButtons.tsx            # Social login buttons
+│   └── ProtectedRoute.tsx          # Route protection wrapper
+├── dashboard/                      # Dashboard-specific components
+│   ├── DashboardNav.tsx            # Dashboard navigation
+│   ├── Sidebar.tsx                 # Dashboard sidebar
+│   ├── UserMenu.tsx                # User dropdown menu
+│   └── TeamSwitcher.tsx            # Multi-tenant team switcher
+├── ui/                             # Local UI components (specific to this app)
+│   ├── Button.tsx                  # App-specific button variants
+│   ├── Modal.tsx                   # App-specific modal component
+│   └── DataTable.tsx               # App-specific data table
+└── providers/                      # React context providers
+    ├── AuthProvider.tsx            # Authentication state provider
+    ├── ThemeProvider.tsx           # Theme/dark mode provider
+    └── ToastProvider.tsx           # Toast notification provider
+```
+
+### Lib Directory (`lib/`)
+```
+lib/                                # Application-specific utilities
+├── auth-helpers.ts                 # Authentication helper functions
+├── utils.ts                        # General utilities for this app
+├── constants.ts                    # App-specific constants
+└── supabase/                       # Supabase integration
+    ├── client.ts                   # Supabase client setup
+    ├── database-helpers.ts         # Database utility functions
+    └── types.ts                    # Supabase type definitions
+```
+
+### Tests Directory (`__tests__/`)
+```
+__tests__/                          # Application-specific tests
+├── components/                     # Component tests
+├── pages/                          # Page tests
+└── api/                            # API route tests
+```
+
+**When to add files in the root application:**
 - ✅ Pages specific to the main application
 - ✅ Components used only in this app
 - ✅ App-specific utilities and helpers
 - ✅ API routes for business logic
 - ❌ Reusable components (put in packages/ui/)
 - ❌ Shared utilities (put in packages/lib/)
+
+## 📁 Apps Directory (`apps/`)
+
+Contains additional independent Next.js applications that can be deployed separately.
 
 ### Marketing Site (`apps/marketing-site/`)
 ```
@@ -144,6 +171,12 @@ apps/marketing-site/
 │   └── layout/                     # Layout components
 └── package.json                    # Marketing site dependencies
 ```
+
+**When to add files in apps/:**
+- ✅ Additional applications beyond the main SaaS app
+- ✅ Marketing sites, documentation sites, etc.
+- ✅ Applications that need separate deployment
+- ❌ Main application logic (put in root-level directories)
 
 ## 📁 Packages Directory (`packages/`)
 
@@ -301,11 +334,11 @@ packages/types/
 ```
 
 **When to add files in packages/:**
-- ✅ Code used by multiple apps
+- ✅ Code used by multiple apps or the root application
 - ✅ Reusable React components
 - ✅ Shared utilities and helpers
 - ✅ Common TypeScript types
-- ❌ App-specific logic (put in respective app directories)
+- ❌ App-specific logic (put in root-level directories)
 
 ## 📁 Tools Directory (`tools/`)
 
@@ -404,10 +437,19 @@ pnpm add -w -D typescript @types/node
 pnpm add -w turbo
 ```
 
+**To the root application:**
+```bash
+# Add to the root Next.js app
+pnpm add next react @saas/ui @saas/auth
+
+# Add dev dependencies to root app
+pnpm add -D @types/react vitest
+```
+
 **To a specific package:**
 ```bash
-# Add to a specific app
-pnpm add --filter main-app next react
+# Add to a specific app (like marketing site)
+pnpm add --filter marketing-site next react
 
 # Add to a specific package
 pnpm add --filter @saas/ui react lucide-react
@@ -416,10 +458,10 @@ pnpm add --filter @saas/ui react lucide-react
 pnpm add --filter @saas/auth -D @types/jsonwebtoken
 ```
 
-**To use workspace packages:**
+**To use workspace packages in root app:**
 ```bash
-# Add workspace package as dependency
-pnpm add --filter main-app @saas/ui @saas/auth
+# Add workspace package as dependency to root
+pnpm add @saas/ui @saas/auth @saas/lib
 ```
 
 ### Common pnpm Commands
@@ -434,15 +476,18 @@ pnpm run test         # Runs tests in all packages
 pnpm run dev          # Runs dev servers
 
 # Run script in specific package
-pnpm --filter main-app dev
+pnpm --filter marketing-site dev
 pnpm --filter @saas/ui build
 pnpm --filter @saas/auth test
 
-# Add workspace dependency
-pnpm add --filter main-app @saas/ui
+# Run dev server for root app (default)
+pnpm dev
 
-# Remove dependency
-pnpm remove --filter main-app lodash
+# Add workspace dependency to root
+pnpm add @saas/ui
+
+# Remove dependency from root
+pnpm remove lodash
 ```
 
 ## 🧪 Vitest Workspace Configuration
@@ -455,7 +500,9 @@ pnpm test
 
 # Run tests for specific package
 pnpm --filter @saas/ui test
-pnpm --filter main-app test
+
+# Run tests for root app
+pnpm test
 
 # Watch mode for development
 pnpm test --watch
@@ -496,7 +543,7 @@ pnpm test --coverage
 → `packages/lib/src/utils.ts` or create specific utility file
 
 **A new API endpoint for the main app?**
-→ `apps/main-app/app/api/` with appropriate route structure
+→ `app/api/` with appropriate route structure
 
 **A database migration?**
 → `supabase/migrations/` with sequential numbering
@@ -505,7 +552,7 @@ pnpm test --coverage
 → `packages/auth/src/` or `packages/supabase/src/auth/`
 
 **App-specific styles?**
-→ `apps/[app-name]/app/globals.css` or component-specific CSS
+→ `app/globals.css` for the main app or `apps/[app-name]/app/globals.css` for additional apps
 
 **Shared TypeScript types?**
 → `packages/types/src/` with appropriate category file
@@ -533,6 +580,12 @@ pnpm test --coverage
 
 ### Creating a New App
 
+**For the main application (root level):**
+- Files go directly in `app/`, `components/`, `lib/` directories
+- Configuration files at root level (`next.config.js`, `tailwind.config.js`, etc.)
+- No need for separate package.json (uses root workspace)
+
+**For additional applications:**
 1. Create directory in `apps/[app-name]/`
 2. Initialize Next.js project structure
 3. Configure `package.json` with workspace dependencies
@@ -545,6 +598,42 @@ pnpm test --coverage
 - **[README.md](../README.md)**: Getting started and development setup
 - **Root package.json**: Available scripts and workspace configuration
 - **turbo.json**: Build pipeline and caching configuration
+
+---
+
+## 🔄 Architecture Migration (January 2025)
+
+The monorepo was restructured from an apps-based architecture to a simplified root-level Next.js application:
+
+**Before (apps-based):**
+```
+saaskit/
+├── apps/
+│   ├── main-app/        # Primary SaaS application
+│   ├── web/             # Alternative main app location
+│   └── marketing-site/  # Marketing website
+└── packages/            # Shared packages
+```
+
+**After (root-level):**
+```
+saaskit/
+├── app/                 # Next.js 15 App Router (main app)
+├── components/          # Application components
+├── lib/                 # Application utilities
+├── apps/
+│   └── marketing-site/  # Additional apps only
+└── packages/            # Shared packages
+```
+
+**Benefits of the new structure:**
+- ✅ Simplified development workflow
+- ✅ Zero-configuration Vercel deployment
+- ✅ Reduced complexity in routing and imports
+- ✅ Better performance with optimized build pipeline
+- ✅ Easier new developer onboarding
+
+**Migration completed:** January 2025 with full test coverage and production readiness.
 
 ---
 

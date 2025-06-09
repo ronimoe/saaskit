@@ -4,29 +4,65 @@
   "private": true,
   "packageManager": "pnpm@10.11.1",
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "lint": "turbo lint",
-    "test": "turbo test",
-    "test:watch": "turbo test:watch",
-    "type-check": "turbo type-check",
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "build:packages": "turbo build",
+    "dev:packages": "turbo dev",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "lint:packages": "turbo lint",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "test:ui": "vitest --ui",
+    "test:packages": "turbo test",
+    "type-check": "tsc --noEmit",
+    "type-check:packages": "turbo type-check",
     "clean": "turbo clean && rm -rf node_modules",
     "format": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
     "format:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yaml,yml}\"",
-    "lint:fix": "turbo lint:fix",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build:packages && changeset publish"
+  },
+  "dependencies": {
+    "@saas/auth": "workspace:*",
+    "@saas/billing": "workspace:*",
+    "@saas/email": "workspace:*",
+    "@saas/lib": "workspace:*",
+    "@saas/supabase": "workspace:*",
+    "@saas/types": "workspace:*",
+    "@saas/ui": "workspace:*",
+    "dotenv": "16.5.0",
+    "next": "15.3.3",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.4",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.28.0",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/tsconfig": "workspace:*",
+    "@tailwindcss/postcss": "^4.1.8",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
+    "@types/node": "^22.15.30",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
     "@vitest/ui": "^3.2.2",
+    "eslint": "^9.28.0",
+    "eslint-config-next": "15.3.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "ignore-loader": "0.1.2",
     "jsdom": "^26.1.0",
     "prettier": "^3.5.3",
+    "tailwindcss": "^4.1.8",
     "turbo": "^2.5.4",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1",
     "vitest": "^3.2.2"
   },
   "engines": {
@@ -34,11 +70,7 @@
     "pnpm": ">=10.0.0"
   },
   "workspaces": [
-    "apps/*",
     "packages/*",
     "tools/*"
-  ],
-  "dependencies": {
-    "dotenv": "16.5.0"
-  }
+  ]
 }

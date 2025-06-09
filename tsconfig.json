@@ -1,17 +1,18 @@
 {
+  "extends": "./tools/tsconfig/nextjs.json",
   "compilerOptions": {
-    "strict": true,
-    "skipLibCheck": true,
-    "target": "ES2022",
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
       "@saas/*": ["./packages/*/src"],
       "@repo/*": ["./tools/*/src"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts", 
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
   "exclude": [
     "node_modules", 
     "dist", 

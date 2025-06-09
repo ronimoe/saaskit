@@ -83,12 +83,12 @@ export default function PackagesPage() {
           💡 Usage Example
         </h2>
         <div className="bg-gray-800 text-white p-4 rounded font-mono text-sm overflow-x-auto">
-          <div className="text-green-400">// Import packages in your application</div>
-          <div className="mt-1">import {"{ Button }"} from &#39;@saas/ui&#39;</div>
-          <div>import {"{ useAuth }"} from &#39;@saas/auth&#39;</div>
-          <div>import {"{ formatCurrency }"} from &#39;@saas/lib&#39;</div>
-          <div className="mt-2 text-green-400">// Use in your components</div>
-          <div className="mt-1">const {"{ user }"} = useAuth()</div>
+          <div className="text-green-400">{"// Import packages in your application"}</div>
+          <div className="mt-1">import {`{ Button }`} from &#39;@saas/ui&#39;</div>
+          <div>import {`{ useAuth }`} from &#39;@saas/auth&#39;</div>
+          <div>import {`{ formatCurrency }`} from &#39;@saas/lib&#39;</div>
+          <div className="mt-2 text-green-400">{"// Use in your components"}</div>
+          <div className="mt-1">const {`{ user }`} = useAuth()</div>
           <div>const price = formatCurrency(2999)</div>
         </div>
       </div>

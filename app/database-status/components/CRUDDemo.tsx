@@ -3,9 +3,20 @@
 import { useState } from 'react'
 import { testCRUDOperations } from '../../../lib/supabase/database-helpers'
 
+interface CRUDResults {
+  success: boolean
+  operations?: {
+    create: unknown
+    read: unknown
+    update: unknown
+    delete: unknown
+  }
+  error?: string
+}
+
 export function CRUDDemo() {
   const [isRunning, setIsRunning] = useState(false)
-  const [results, setResults] = useState<any>(null)
+  const [results, setResults] = useState<CRUDResults | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const runCRUDTest = async () => {
@@ -23,7 +34,7 @@ export function CRUDDemo() {
     }
   }
 
-  const formatJSON = (obj: any) => {
+  const formatJSON = (obj: unknown) => {
     return JSON.stringify(obj, null, 2)
   }
 
@@ -78,37 +89,41 @@ export function CRUDDemo() {
               </div>
               
               <div className="space-y-4">
-                {/* CREATE Operation */}
-                <div className="bg-white rounded-md p-3 border">
-                  <h4 className="font-medium text-gray-900 mb-2">1. CREATE Operation</h4>
-                  <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
-                    <pre>{formatJSON(results.operations.create)}</pre>
-                  </div>
-                </div>
+                {results.operations && (
+                  <>
+                    {/* CREATE Operation */}
+                    <div className="bg-white rounded-md p-3 border">
+                      <h4 className="font-medium text-gray-900 mb-2">1. CREATE Operation</h4>
+                      <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
+                        <pre>{formatJSON(results.operations.create)}</pre>
+                      </div>
+                    </div>
 
-                {/* READ Operation */}
-                <div className="bg-white rounded-md p-3 border">
-                  <h4 className="font-medium text-gray-900 mb-2">2. READ Operation</h4>
-                  <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
-                    <pre>{formatJSON(results.operations.read)}</pre>
-                  </div>
-                </div>
+                    {/* READ Operation */}
+                    <div className="bg-white rounded-md p-3 border">
+                      <h4 className="font-medium text-gray-900 mb-2">2. READ Operation</h4>
+                      <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
+                        <pre>{formatJSON(results.operations.read)}</pre>
+                      </div>
+                    </div>
 
-                {/* UPDATE Operation */}
-                <div className="bg-white rounded-md p-3 border">
-                  <h4 className="font-medium text-gray-900 mb-2">3. UPDATE Operation</h4>
-                  <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
-                    <pre>{formatJSON(results.operations.update)}</pre>
-                  </div>
-                </div>
+                    {/* UPDATE Operation */}
+                    <div className="bg-white rounded-md p-3 border">
+                      <h4 className="font-medium text-gray-900 mb-2">3. UPDATE Operation</h4>
+                      <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
+                        <pre>{formatJSON(results.operations.update)}</pre>
+                      </div>
+                    </div>
 
-                {/* DELETE Operation */}
-                <div className="bg-white rounded-md p-3 border">
-                  <h4 className="font-medium text-gray-900 mb-2">4. DELETE Operation</h4>
-                  <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
-                    <pre>{formatJSON(results.operations.delete)}</pre>
-                  </div>
-                </div>
+                    {/* DELETE Operation */}
+                    <div className="bg-white rounded-md p-3 border">
+                      <h4 className="font-medium text-gray-900 mb-2">4. DELETE Operation</h4>
+                      <div className="bg-gray-50 rounded p-2 text-xs font-mono overflow-x-auto">
+                        <pre>{formatJSON(results.operations.delete)}</pre>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="mt-4 text-sm text-green-700">
@@ -133,7 +148,7 @@ export function CRUDDemo() {
       {!results && !isRunning && !error && (
         <div className="text-center py-8 text-gray-500">
           <div className="text-4xl mb-2">🧪</div>
-          <p>Click "Run CRUD Test" to demonstrate database operations</p>
+          <p>Click &quot;Run CRUD Test&quot; to demonstrate database operations</p>
           <p className="text-sm mt-2">
             This will create a temporary product, read it, update it, and then delete it
           </p>

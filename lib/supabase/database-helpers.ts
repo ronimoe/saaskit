@@ -36,7 +36,7 @@ export async function getHealthMetrics(): Promise<HealthMetrics> {
   
   try {
     // Simple query to test connection
-    const { data, error } = await getSupabase()
+    const { error } = await getSupabase()
       .from('users')
       .select('count', { count: 'exact', head: true })
     

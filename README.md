@@ -6,7 +6,7 @@ multiple products and migrate to microservices as needed.
 
 ## 🚀 Features
 
-- **Multi-App Architecture**: Independent Next.js applications sharing common packages
+- **Root-Level Next.js Application**: Production-ready SaaS app with optimized Vercel deployment
 - **Production Supabase Integration**: Complete cloud database setup with real-time capabilities
 - **Comprehensive Database Schema**: Users, Products, Subscriptions, and User-Product relationships
 - **Advanced Row Level Security**: Production-ready RLS policies with performance optimization
@@ -23,38 +23,40 @@ multiple products and migrate to microservices as needed.
 
 ```
 saaskit/
-├── apps/                    # Independent Next.js applications
-│   ├── web/                # Development demo app with database status page
-│   ├── main-app/           # Primary SaaS application (future)
-│   └── marketing-site/     # Marketing website (future)
-├── packages/               # Shared packages
-│   ├── supabase/          # ✅ Production-ready database client & operations
-│   ├── auth/              # Authentication utilities (coming soon)
-│   ├── billing/           # Stripe integration & payment logic (coming soon)
-│   ├── ui/                # Shared React components (coming soon)
-│   ├── lib/               # Utility functions
-│   └── types/             # TypeScript definitions
-├── supabase/              # Database migrations & edge functions
-├── tools/                 # Shared tooling (ESLint, TypeScript configs)
-└── tests/                 # E2E tests with Playwright (coming soon)
+├── app/                    # Next.js 15 App Router (root-level application)
+│   ├── database-status/   # Database monitoring dashboard
+│   ├── packages/          # Package showcase page
+│   └── structure/         # Monorepo structure visualization
+├── lib/                   # Application-specific utilities
+│   └── supabase/         # Client-side Supabase helpers
+├── packages/              # Shared packages
+│   ├── supabase/         # ✅ Production-ready database client & operations
+│   ├── auth/             # Authentication utilities (coming soon)
+│   ├── billing/          # Stripe integration & payment logic (coming soon)
+│   ├── ui/               # Shared React components (coming soon)
+│   ├── lib/              # Utility functions
+│   └── types/            # TypeScript definitions
+├── supabase/             # Database migrations & edge functions
+├── tools/                # Shared tooling (ESLint, TypeScript configs)
+└── tests/                # E2E tests with Playwright (coming soon)
 ```
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 15.3.3, React 18, TypeScript 5.8.3
+- **Frontend**: Next.js 15.3.3, React 19, TypeScript 5.8.3
 - **Backend**: Supabase Cloud (PostgreSQL 17.4, Auth, Storage, Real-time)
 - **Database**: Production-ready schema with Users, Products, Subscriptions, User-Products tables
 - **Security**: Advanced Row Level Security (RLS) policies with performance optimization
-- **Testing**: Vitest 2.1.8, Testing Library with 86%+ coverage
-- **Build**: Turbo 2.5.4, pnpm workspace, Node.js 24 LTS
+- **Testing**: Vitest 3.2.2, Testing Library with 86%+ coverage
+- **Build**: Turbo 2.5.4, pnpm workspace, Node.js 18+ LTS
 - **Styling**: Tailwind CSS 4.1.8
 - **Payments**: Stripe 18.2.0 (integration ready)
-- **Package Manager**: pnpm 9.15.2 with workspace support
+- **Package Manager**: pnpm 10.11.1 with workspace support
 
 ## 📋 Prerequisites
 
-- Node.js 24 LTS or higher
-- pnpm 9.15+ (recommended package manager)
+- Node.js 18 LTS or higher
+- pnpm 10.0+ (recommended package manager)
 - Supabase account with active project
 - Stripe account (for future billing features)
 
@@ -111,20 +113,25 @@ The database schema is already set up in your Supabase project with:
 # Start the development server
 pnpm dev
 
-# This starts the web app with database status monitoring
+# This starts the main application with database monitoring
 ```
 
 Visit:
 
-- **Demo App**: http://localhost:3000
+- **Main Application**: http://localhost:3000
 - **Database Status**: http://localhost:3000/database-status
+- **Package Overview**: http://localhost:3000/packages
+- **Monorepo Structure**: http://localhost:3000/structure
 
 ## 📁 Project Structure
 
-### Apps
+### Root Application
 
-- **`apps/main-app/`**: Primary SaaS application with dashboard and core features
-- **`apps/marketing-site/`**: Marketing website with landing pages (future)
+The main SaaS application is located at the root level for optimal Vercel deployment:
+
+- **`app/`**: Next.js 15 App Router with production-ready pages
+- **`lib/`**: Application-specific utilities and Supabase helpers
+- **Configuration files**: All Next.js configs are at the root level
 
 ### Shared Packages
 
@@ -144,6 +151,7 @@ Visit:
 
 - **`turbo.json`**: Build orchestration and caching configuration
 - **`vitest.workspace.ts`**: Testing workspace configuration
+- **`vercel.json`**: Optimized Vercel deployment configuration
 - **`supabase/config.toml`**: Supabase project configuration
 
 ## 🧪 Testing
@@ -206,16 +214,17 @@ touch vitest.config.ts
 mkdir -p src/__tests__
 ```
 
-### Adding a New App
+### Migration Notes
 
-```bash
-# Create new Next.js app
-npx create-next-app@latest apps/new-app --typescript --tailwind --eslint --app --no-src-dir
+✅ **Root-Level Migration Completed** (January 2025)
 
-# Install shared packages
-cd apps/new-app
-npm install @saas/ui @saas/auth @saas/supabase @saas/billing @saas/types @saas/lib
-```
+The monorepo has been successfully migrated from a multi-app structure (`apps/`) to a root-level Next.js application for:
+- Optimal Vercel deployment with zero configuration
+- Simplified development workflow
+- Better alignment with Next.js best practices
+- Maintained all existing functionality including database monitoring
+
+Previous `apps/web`, `apps/main-app`, and `apps/marketing-site` directories have been consolidated into the root-level application.
 
 ## 📦 Package Scripts
 
@@ -233,9 +242,10 @@ pnpm clean               # Clean all build artifacts
 ### Package-Specific Scripts
 
 ```bash
-pnpm dev --filter=web    # Start web app only
-pnpm test --filter=@saas/supabase  # Test Supabase package only
-pnpm build --filter=@saas/*        # Build all packages only
+pnpm dev                            # Start root application
+pnpm test --filter=@saas/supabase   # Test Supabase package only
+pnpm build --filter=@saas/*         # Build all packages only
+pnpm build:packages                 # Build packages only (via Turbo)
 ```
 
 ### Database Status Monitoring
@@ -325,13 +335,18 @@ CREATE TABLE subscriptions (
 
 ### Vercel (Recommended)
 
-```bash
-# Deploy main app
-vercel --prod apps/main-app
+The application is optimized for zero-configuration Vercel deployment:
 
-# Deploy marketing site
-vercel --prod apps/marketing-site
+```bash
+# Deploy from root directory
+vercel --prod
+
+# Or link and deploy
+vercel link
+vercel --prod
 ```
+
+The root-level Next.js application will be automatically detected and deployed by Vercel.
 
 ### Environment Variables
 

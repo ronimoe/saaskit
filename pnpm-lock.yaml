@@ -8,13 +8,58 @@ importers:
 
   .:
     dependencies:
+      '@saas/auth':
+        specifier: workspace:*
+        version: link:packages/auth
+      '@saas/billing':
+        specifier: workspace:*
+        version: link:packages/billing
+      '@saas/email':
+        specifier: workspace:*
+        version: link:packages/email
+      '@saas/lib':
+        specifier: workspace:*
+        version: link:packages/lib
+      '@saas/supabase':
+        specifier: workspace:*
+        version: link:packages/supabase
+      '@saas/types':
+        specifier: workspace:*
+        version: link:packages/types
+      '@saas/ui':
+        specifier: workspace:*
+        version: link:packages/ui
       dotenv:
         specifier: 16.5.0
         version: 16.5.0
+      next:
+        specifier: 15.3.3
+        version: 15.3.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react:
+        specifier: ^19.1.0
+        version: 19.1.0
+      react-dom:
+        specifier: ^19.1.0
+        version: 19.1.0(react@19.1.0)
     devDependencies:
       '@changesets/cli':
         specifier: ^2.29.4
         version: 2.29.4
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.1
+      '@eslint/js':
+        specifier: ^9.28.0
+        version: 9.28.0
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:tools/eslint-config
+      '@repo/tsconfig':
+        specifier: workspace:*
+        version: link:tools/tsconfig
+      '@tailwindcss/postcss':
+        specifier: ^4.1.8
+        version: 4.1.8
       '@testing-library/jest-dom':
         specifier: ^6.6.3
         version: 6.6.3
@@ -24,18 +69,51 @@ importers:
       '@testing-library/user-event':
         specifier: ^14.6.1
         version: 14.6.1(@testing-library/dom@10.4.0)
+      '@types/node':
+        specifier: ^22.15.30
+        version: 22.15.30
+      '@types/react':
+        specifier: ^19.1.6
+        version: 19.1.6
+      '@types/react-dom':
+        specifier: ^19.1.6
+        version: 19.1.6(@types/react@19.1.6)
       '@vitest/ui':
         specifier: ^3.2.2
         version: 3.2.2(vitest@3.2.2)
+      eslint:
+        specifier: ^9.28.0
+        version: 9.28.0(jiti@2.4.2)
+      eslint-config-next:
+        specifier: 15.3.3
+        version: 15.3.3(eslint@9.28.0(jiti@2.4.2))(typescript@5.8.3)
+      eslint-plugin-react:
+        specifier: ^7.37.5
+        version: 7.37.5(eslint@9.28.0(jiti@2.4.2))
+      eslint-plugin-react-hooks:
+        specifier: ^5.2.0
+        version: 5.2.0(eslint@9.28.0(jiti@2.4.2))
+      ignore-loader:
+        specifier: 0.1.2
+        version: 0.1.2
       jsdom:
         specifier: ^26.1.0
         version: 26.1.0
       prettier:
         specifier: ^3.5.3
         version: 3.5.3
+      tailwindcss:
+        specifier: ^4.1.8
+        version: 4.1.8
       turbo:
         specifier: ^2.5.4
         version: 2.5.4
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      typescript-eslint:
+        specifier: ^8.33.1
+        version: 8.33.1(eslint@9.28.0(jiti@2.4.2))(typescript@5.8.3)
       vitest:
         specifier: ^3.2.2
         version: 3.2.2(@types/node@22.15.30)(@vitest/ui@3.2.2)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1)
