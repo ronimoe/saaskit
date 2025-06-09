@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.11.1",
   "scripts": {
     "dev": "next dev -p 3000",
+    "dev:clean": "rm -rf .next && next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
     "build:packages": "turbo build",
@@ -33,9 +34,7 @@
     "@saas/lib": "workspace:*",
     "@saas/supabase": "workspace:*",
     "@saas/types": "workspace:*",
-    "@saas/ui": "workspace:*",
     "dotenv": "16.5.0",
-    "lucide-react": "^0.469.0",
     "next": "15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
@@ -46,7 +45,6 @@
     "@eslint/js": "^9.28.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/tsconfig": "workspace:*",
-    "@tailwindcss/postcss": "^4.1.8",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
@@ -61,7 +59,6 @@
     "ignore-loader": "0.1.2",
     "jsdom": "^26.1.0",
     "prettier": "^3.5.3",
-    "tailwindcss": "^4.1.8",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.1",

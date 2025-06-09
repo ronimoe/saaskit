@@ -145,7 +145,7 @@ The main SaaS application is located at the root level for optimal Vercel deploy
   - 86%+ test coverage with robust error handling
 - **`@saas/auth`**: Authentication hooks, utilities, and middleware (coming soon)
 - **`@saas/billing`**: Stripe integration and payment processing (coming soon)
-- **`@saas/ui`**: ✅ Beautiful shadcn/ui components with Tailwind CSS design system
+- **`@saas/ui`**: (Removed - UI components now live at app level for better maintainability)
 - **`@saas/lib`**: Utility functions and helpers
 - **`@saas/types`**: Shared TypeScript type definitions
 
@@ -183,10 +183,7 @@ pnpm test --filter=@saas/supabase
   - ✅ Real-time subscriptions: 100% coverage
   - ✅ Database operations: 80.35% coverage
   - ✅ Client configuration: 76.92% coverage
-- **`@saas/ui`**: Component tests with React Testing Library
-  - ✅ Button component variants and interactions
-  - ✅ Card component rendering and structure
-  - ✅ Form components accessibility testing
+- **App-level Components**: Component tests now at app level (UI package removed)
 
 ### End-to-End Tests
 
@@ -273,16 +270,15 @@ The application features a beautiful, modern design system built with shadcn/ui:
 - **🌙 Dark Mode**: Automatic theme switching with system preference detection
 - **♿ Accessibility**: WCAG compliant components with proper ARIA labels
 - **📱 Responsive**: Mobile-first design that works on all screen sizes
-- **🎯 Component Library**: Reusable components in `@saas/ui` package:
-  - Button variants (default, destructive, outline, secondary, ghost, link)
-  - Card system (Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter)
-  - Form components (Input, Label, Dialog)
-  - Navigation with backdrop blur effects
-  - Loading skeletons and animations
+- **🎯 Component Library**: Modern UI components (to be implemented with shadcn/ui at app level):
+  - Will include Button variants, Card system, Form components
+  - Navigation, Loading states, and modern animations
+  - Better maintainability and faster development
 
-**Available Components:**
+**Components will be available at:**
 ```typescript
-import { Button, Card, Input, Label, Dialog } from '@saas/ui'
+// Coming soon - app-level components
+import { Button, Card, Input, Label, Dialog } from './components/ui'
 ```
 
 **Design Tokens:** CSS variables for consistent theming across light/dark modes

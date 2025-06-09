@@ -18,11 +18,7 @@ const nextConfig = {
     '@saas/lib',
     '@saas/supabase',
     '@saas/types',
-    '@saas/ui',
   ],
-  experimental: {
-    optimizePackageImports: ['@saas/ui'],
-  },
   
   // Exclude test files from production builds
   webpack: (config, { isServer }) => {

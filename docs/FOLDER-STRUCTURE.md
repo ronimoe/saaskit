@@ -439,7 +439,7 @@ pnpm add -w turbo
 **To the root application:**
 ```bash
 # Add to the root Next.js app
-pnpm add next react @saas/ui @saas/auth
+pnpm add next react @saas/auth
 
 # Add dev dependencies to root app
 pnpm add -D @types/react vitest
@@ -451,7 +451,7 @@ pnpm add -D @types/react vitest
 pnpm add --filter marketing-site next react
 
 # Add to a specific package
-pnpm add --filter @saas/ui react lucide-react
+# pnpm add --filter @saas/ui react lucide-react (UI package removed)
 
 # Add dev dependencies to a package
 pnpm add --filter @saas/auth -D @types/jsonwebtoken
@@ -460,7 +460,7 @@ pnpm add --filter @saas/auth -D @types/jsonwebtoken
 **To use workspace packages in root app:**
 ```bash
 # Add workspace package as dependency to root
-pnpm add @saas/ui @saas/auth @saas/lib
+pnpm add @saas/auth @saas/lib
 ```
 
 ### Common pnpm Commands
@@ -476,14 +476,14 @@ pnpm run dev          # Runs dev servers
 
 # Run script in specific package
 pnpm --filter marketing-site dev
-pnpm --filter @saas/ui build
+# pnpm --filter @saas/ui build (UI package removed)
 pnpm --filter @saas/auth test
 
 # Run dev server for root app (default)
 pnpm dev
 
 # Add workspace dependency to root
-pnpm add @saas/ui
+# pnpm add @saas/ui (UI package removed)
 
 # Remove dependency from root
 pnpm remove lodash
@@ -498,7 +498,7 @@ pnpm remove lodash
 pnpm test
 
 # Run tests for specific package
-pnpm --filter @saas/ui test
+# pnpm --filter @saas/ui test (UI package removed)
 
 # Run tests for root app
 pnpm test

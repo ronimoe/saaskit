@@ -28,7 +28,7 @@ saaskit/
 │   ├── lib/              # @saas/lib - Shared utilities
 │   ├── supabase/         # @saas/supabase - Supabase client
 │   ├── types/            # @saas/types - TypeScript type definitions
-│   └── ui/               # @saas/ui - React UI components
+│   └── ui/               # (Removed - UI components now at app level)
 └── tools/
     ├── eslint-config/    # @repo/eslint-config - ESLint configuration
     ├── tsconfig/         # @repo/tsconfig - TypeScript configurations
@@ -68,7 +68,7 @@ pnpm --filter @saas/auth add lodash
 pnpm add -D -w prettier
 
 # Remove a dependency from a specific package
-pnpm --filter @saas/ui remove react-icons
+# pnpm --filter @saas/ui remove react-icons (UI package removed)
 
 # Update all dependencies
 pnpm update --recursive
@@ -152,7 +152,7 @@ pnpm --filter @saas/auth add axios
 pnpm --filter @saas/auth add @saas/types@workspace:*
 
 # Add peer dependency
-pnpm --filter @saas/ui add react@^19.0.0 --save-peer
+# pnpm --filter @saas/ui add react@^19.0.0 --save-peer (UI package removed)
 
 # Add dev dependency to multiple packages
 pnpm --filter "@saas/*" add -D vitest

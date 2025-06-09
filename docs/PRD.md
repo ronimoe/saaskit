@@ -94,7 +94,7 @@ rewrites **How it works**: Service layer pattern with business logic separated f
 **New Product Development**:
 
 1. Create new app in `apps/` folder
-2. Import shared packages (`@saas/auth`, `@saas/ui`, etc.)
+2. Import shared packages (`@saas/auth`, etc.) - UI components at app level
 3. Focus on product-specific features
 4. Reuse authentication, billing, and UI components
 
@@ -412,7 +412,7 @@ saas-platform/
 - `@saas/supabase`: Database client and operations
 - `@saas/auth`: Authentication utilities and hooks
 - `@saas/billing`: Stripe integration and payment logic
-- `@saas/ui`: React component library
+- `@saas/ui`: (Removed - components now at app level for better maintainability)
 - `@saas/types`: Shared TypeScript definitions
 - `@saas/lib`: Utility functions and helpers
 
