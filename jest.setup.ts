@@ -1,5 +1,26 @@
 import '@testing-library/jest-dom';
 
+// Mock Supabase modules completely to avoid ES module issues
+jest.mock('@supabase/supabase-js', () => ({
+  createClient: jest.fn(),
+}));
+
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: jest.fn(),
+}));
+
+// Mock Next.js server imports
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(),
+}));
+
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    next: jest.fn(),
+  },
+}));
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -12,40 +33,6 @@ jest.mock('next/navigation', () => ({
   }),
   usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(),
-}));
-
-// Mock Supabase client
-jest.mock('@/lib/supabase', () => ({
-  createClientComponentClient: jest.fn(() => ({
-    auth: {
-      getUser: jest.fn(),
-      signOut: jest.fn(),
-      signInWithPassword: jest.fn(),
-      getSession: jest.fn(),
-    },
-    from: jest.fn(() => ({
-      select: jest.fn(),
-      insert: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    })),
-  })),
-  createServerComponentClient: jest.fn(() => ({
-    auth: {
-      getUser: jest.fn(),
-      signOut: jest.fn(),
-      signInWithPassword: jest.fn(),
-      getSession: jest.fn(),
-    },
-    from: jest.fn(() => ({
-      select: jest.fn(),
-      insert: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    })),
-  })),
-  getCurrentUser: jest.fn(),
-  getCurrentSession: jest.fn(),
 }));
 
 // Global test setup
