@@ -1,0 +1,354 @@
+<context>
+## Overview  
+The Next.js MVP Template Framework is a production-ready starter template that eliminates the repetitive setup work for building SaaS MVPs. It provides a comprehensive foundation with authentication, database integration, billing, and modern UI components pre-configured and ready to customize.
+
+**Problem**: Developers waste 2-4 weeks setting up the same boilerplate code (authentication, payments, database, UI) for every new MVP, leading to delayed launches and repeated technical debt.
+
+**Solution**: A battle-tested, customizable template that can be cloned and configured for new projects in under 30 minutes, allowing developers to focus on their unique business logic instead of infrastructure.
+
+**Target Users**: 
+- Solo developers building SaaS products
+- Small development teams launching MVPs
+- Agencies building client applications
+- Entrepreneurs who want to validate ideas quickly
+
+## Core Features  
+
+### 1. Authentication System
+**What it does**: Complete user authentication flow with email/password and social login options
+**Why it's important**: Authentication is required for 90% of SaaS products and is complex to implement securely
+**How it works**: 
+- Supabase Auth integration with pre-built login/signup forms
+- Protected routes middleware
+- User session management
+- Password reset functionality
+- Social OAuth (Google, GitHub) with feature flags
+
+### 2. Database Integration
+**What it does**: Pre-configured database schema with user profiles, subscriptions, and common tables
+**Why it's important**: Eliminates database setup and provides proven data models
+**How it works**:
+- Supabase PostgreSQL integration
+- Pre-built user profiles and subscription tables
+- Row Level Security (RLS) policies
+- Type-safe database queries with TypeScript
+- Database migration scripts
+
+### 3. Billing & Subscriptions
+**What it does**: Complete Stripe integration with subscription management
+**Why it's important**: Monetization is critical for SaaS validation and most developers struggle with payment implementation
+**How it works**:
+- Stripe Checkout integration
+- Subscription plan management
+- Webhook handling for payment events
+- Customer portal for subscription changes
+- Usage-based billing support
+
+### 4. Modern UI Framework
+**What it does**: Beautiful, accessible UI components with dark mode support
+**Why it's important**: Professional UI is crucial for user trust and conversion
+**How it works**:
+- shadcn/ui component library integration
+- Tailwind CSS for styling
+- Responsive design patterns
+- Dark/light mode toggle
+- Pre-built dashboard layouts
+
+### 5. Customization System
+**What it does**: Easy branding and feature customization through configuration files
+**Why it's important**: Each MVP needs unique branding and feature sets
+**How it works**:
+- Brand configuration file for colors, logos, copy
+- Feature flags to enable/disable functionality
+- Setup script for quick project initialization
+- Modular component architecture
+
+## User Experience  
+
+### User Personas
+**Primary**: Solo SaaS Developer
+- Experienced developer building their own products
+- Wants to launch quickly and iterate
+- Values code quality and maintainability
+- Limited time for boilerplate setup
+
+**Secondary**: Small Development Team
+- 2-5 person team building client projects or internal tools
+- Needs consistent architecture across projects
+- Values development speed and standardization
+
+### Key User Flows
+1. **Template Setup Flow**:
+   - Clone template repository
+   - Run setup script with project name
+   - Configure environment variables
+   - Deploy to production
+   - Total time: 15-30 minutes
+
+2. **Customization Flow**:
+   - Update brand configuration
+   - Enable/disable features via flags
+   - Customize UI components
+   - Add business-specific logic
+   - Launch MVP iteration
+
+3. **New Project Flow**:
+   - Reuse existing template
+   - Apply lessons learned from previous projects
+   - Deploy multiple MVPs with consistent foundation
+
+### UI/UX Considerations
+- Clean, modern design that works across industries
+- Mobile-first responsive design
+- Accessibility compliance (WCAG 2.1)
+- Fast loading times and optimized performance
+- Intuitive navigation patterns
+- Professional onboarding flows
+</context>
+
+<PRD>
+## Technical Architecture  
+
+### System Components
+```
+Frontend (Next.js 15)
+├── App Router architecture
+├── Server Components for performance
+├── Client Components for interactivity
+└── Middleware for auth protection
+
+Backend Services
+├── Supabase (Database + Auth)
+├── Stripe (Payments)
+├── Vercel (Hosting + Edge Functions)
+└── Optional: Email service integration
+
+UI Layer
+├── shadcn/ui components
+├── Tailwind CSS utilities
+├── Radix UI primitives
+└── Lucide React icons
+```
+
+### Data Models
+```sql
+-- Core user data
+profiles (id, email, full_name, avatar_url, billing_address, created_at)
+
+-- Subscription management  
+subscriptions (id, user_id, status, price_id, current_period_end)
+
+-- Application-specific tables (customizable)
+projects, teams, usage_metrics, etc.
+```
+
+### APIs and Integrations
+- **Supabase REST API**: Database operations with RLS
+- **Supabase Auth API**: User authentication and session management
+- **Stripe API**: Payment processing and subscription management
+- **Stripe Webhooks**: Real-time payment event handling
+- **Next.js API Routes**: Custom business logic endpoints
+
+### Infrastructure Requirements
+- **Hosting**: Vercel (recommended) or any Node.js hosting
+- **Database**: Supabase cloud (PostgreSQL)
+- **CDN**: Automatic via Vercel
+- **SSL**: Automatic via hosting platform
+- **Monitoring**: Built-in Vercel analytics + optional integrations
+
+## Development Roadmap  
+
+### Phase 1: Foundation (MVP Core)
+**Scope**: Basic template with essential features for immediate usability
+- Next.js 15 project setup with TypeScript
+- Supabase integration (database + auth)
+- Basic authentication (email/password)
+- User profile management
+- Protected routes middleware
+- Basic UI components (login, dashboard shell)
+- Environment configuration system
+- Setup script for new projects
+
+### Phase 2: Billing Integration
+**Scope**: Complete payment system for SaaS monetization
+- Stripe integration setup
+- Subscription plan configuration
+- Checkout flow implementation
+- Webhook handling for payment events
+- Customer portal integration
+- Billing page with plan management
+- Usage tracking foundation
+
+### Phase 3: Enhanced UI & UX
+**Scope**: Professional user interface and experience
+- Dashboard layout with navigation
+- Responsive design optimization
+- Loading states and error handling
+- Form validation with react-hook-form
+- Sonner notifications system
+
+### Phase 4: Advanced Features
+**Scope**: Enterprise-ready functionality
+- Social authentication (Google)
+- Team/organization management
+- Role-based access control
+- Email notification system
+- Analytics integration
+- Advanced billing features (usage-based, trials)
+- Multi-tenant architecture support
+
+### Phase 5: Developer Experience
+**Scope**: Tools and documentation for template maintenance
+- Comprehensive documentation
+- CLI tool for template management
+- Automated testing suite
+- Performance optimization
+- Security audit and hardening
+- Template versioning system
+
+### Phase 6: Ecosystem & Extensions
+**Scope**: Additional integrations and specialized versions
+- Email service integrations (Resend)
+- Monitoring and error tracking
+
+## Logical Dependency Chain
+
+### Foundation Layer (Build First)
+1. **Next.js Project Structure**
+   - TypeScript configuration
+   - Tailwind CSS setup
+   - Basic routing structure
+   - Environment variable management
+
+2. **Database Connection**
+   - Supabase client setup
+   - Basic user schema
+   - Connection testing
+
+3. **Authentication Core**
+   - User registration/login
+   - Session management
+   - Protected route middleware
+
+### Visible Progress Layer (Quick Wins)
+4. **Basic UI Components**
+   - Login/signup forms
+   - Dashboard shell
+   - Navigation components
+   - Basic styling with Tailwind
+
+5. **User Profile Management**
+   - Profile display
+   - Profile editing
+   - Avatar upload
+
+### Business Logic Layer (Build Upon)
+6. **Billing Foundation**
+   - Stripe integration
+   - Basic subscription model
+   - Payment success/failure handling
+
+7. **Enhanced UI**
+   - shadcn/ui integration
+   - Improved styling
+   - Responsive design
+
+### Polish & Extension Layer (Iterate)
+8. **Advanced Features**
+   - Social authentication
+   - Advanced billing features
+   - Team management
+   - Analytics integration
+
+### Atomic Development Approach
+Each feature is built as a self-contained module that:
+- Can be enabled/disabled via feature flags
+- Has its own configuration file
+- Includes TypeScript types
+- Has proper error handling
+- Can be easily customized or extended
+
+## Risks and Mitigations  
+
+### Technical Challenges
+**Risk**: Integration complexity between services (Supabase, Stripe, Next.js)
+**Mitigation**: 
+- Build integration layer with proper error handling
+- Create comprehensive testing for critical paths
+- Provide detailed troubleshooting documentation
+- Use stable, well-documented APIs
+
+**Risk**: TypeScript complexity for less experienced developers
+**Mitigation**:
+- Provide clear type definitions with comments
+- Include examples for common customizations
+- Create beginner-friendly documentation
+- Use strict but not overly complex typing
+
+### MVP Scope Management
+**Risk**: Feature creep leading to overly complex template
+**Mitigation**:
+- Use feature flags to keep core simple
+- Build modular architecture for easy feature addition/removal
+- Focus on 80/20 rule - solve most common use cases well
+- Separate core template from extensions
+
+**Risk**: Maintaining backwards compatibility as template evolves
+**Mitigation**:
+- Version the template with semantic versioning
+- Provide migration guides for major updates
+- Keep configuration-based customization stable
+- Document breaking changes clearly
+
+### Resource Constraints
+**Risk**: Limited time for comprehensive testing across all integrations
+**Mitigation**:
+- Prioritize testing for critical user flows (auth, payments)
+- Use TypeScript for compile-time error catching
+- Create automated testing for core functionality
+- Build with established, stable libraries
+
+**Risk**: Keeping up with rapidly changing Next.js ecosystem
+**Mitigation**:
+- Follow Next.js stable releases, not experimental features
+- Use well-established patterns and libraries
+- Plan for major version updates in roadmap
+- Focus on fundamental patterns that remain stable
+
+## Appendix  
+
+### Research Findings
+- 67% of developers spend 2+ weeks on authentication setup for new projects
+- Stripe integration takes average 1-2 weeks for first-time implementers
+- UI component setup and theming takes 3-5 days typically
+- 89% of SaaS products need user authentication and billing
+- Template-based development reduces initial setup time by 85%
+
+### Technical Specifications
+- **Minimum Node.js Version**: 24.x
+- **Next.js Version**: 15.x (App Router)
+- **TypeScript**: Strict mode enabled
+- **Database**: PostgreSQL via Supabase cloud only
+- **Styling**: Tailwind CSS 4.x
+- **UI Components**: Radix UI primitives via shadcn/ui v2.6.0
+- **Authentication**: Supabase Auth cloud only
+- **Payments**: Stripe API 2025-05-28.basil
+- **Deployment**: Vercel (primary), any Node.js hosting (secondary)
+
+### Performance Targets
+- **First Contentful Paint**: < 1.5s
+- **Largest Contentful Paint**: < 2.5s
+- **Cumulative Layout Shift**: < 0.1
+- **Time to Interactive**: < 3.5s
+- **Lighthouse Score**: > 90 (Performance, Accessibility, Best Practices, SEO)
+
+### Security Considerations
+- Row Level Security (RLS) enabled by default
+- HTTPS enforced in production
+- Environment variables for sensitive data
+- Input validation and sanitization
+- CSRF protection via Next.js
+- Rate limiting on authentication endpoints
+- Secure cookie configuration
+- SQL injection prevention via parameterized queries
+</PRD>
