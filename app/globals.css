@@ -214,6 +214,32 @@
   [data-focus-visible]:focus {
     @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
+
+  /* Button click feedback styles */
+  button, 
+  [role="button"], 
+  .btn,
+  input[type="button"], 
+  input[type="submit"], 
+  input[type="reset"] {
+    @apply transition-all duration-75;
+    
+    /* Active state for click feedback */
+    &:active {
+      @apply scale-95 brightness-90;
+      transform-origin: center;
+    }
+    
+    /* Add subtle shadow on hover */
+    &:hover:not(:disabled) {
+      @apply shadow-sm;
+    }
+    
+    /* Click animation */
+    &:active:not(:disabled) {
+      animation: buttonClick 0.1s ease-out;
+    }
+  }
 }
 
 @layer components {
@@ -316,5 +342,18 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Button click animation */
+@keyframes buttonClick {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
   }
 }
