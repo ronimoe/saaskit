@@ -6,16 +6,8 @@ import type { CookieOptions } from '@supabase/ssr'
  * This client is used in Client Components and browser-side operations
  */
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      '@supabase/ssr: Your project\'s URL and API key are required to create a Supabase client!\n\n' +
-      'Check your Supabase project\'s API settings to find these values\n\n' +
-      'https://supabase.com/dashboard/project/_/settings/api'
-    )
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key'
 
   return createBrowserClient(supabaseUrl, supabaseAnonKey)
 }
@@ -26,21 +18,13 @@ export function createClient() {
  * Requires Next.js cookies() function to be passed in
  */
 export function createServerClient(
-  cookieStore: {
+  cookieStore?: {
     getAll: () => { name: string; value: string }[]
     set: (name: string, value: string, options?: CookieOptions) => void
-  }
+  } | null
 ) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      '@supabase/ssr: Your project\'s URL and API key are required to create a Supabase client!\n\n' +
-      'Check your Supabase project\'s API settings to find these values\n\n' +
-      'https://supabase.com/dashboard/project/_/settings/api'
-    )
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key'
 
   return createSupabaseServerClient(
     supabaseUrl,
@@ -48,12 +32,12 @@ export function createServerClient(
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore?.getAll() || []
         },
         setAll(cookiesToSet: Array<{ name: string; value: string; options?: CookieOptions }>) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore?.set(name, value, options)
             )
           } catch {
             // The `setAll` method was called from a Server Component.
