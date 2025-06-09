@@ -15,8 +15,7 @@
         "$TURBO_DEFAULT$", 
         ".env*", 
         "next.config.*", 
-        "tailwind.config.*", 
-        "postcss.config.*", 
+        "components.json", 
         "tsconfig.json",
         "vercel.json",
         "!**/*.test.*",
@@ -48,8 +47,7 @@
         "$TURBO_DEFAULT$", 
         ".env*", 
         "next.config.*", 
-        "tailwind.config.*", 
-        "postcss.config.*"
+        "components.json"
       ]
     },
     "lint": {

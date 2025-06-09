@@ -21,7 +21,6 @@ saaskit/
 ├── .env.local                      # Local environment variables (git-ignored)
 ├── pnpm-lock.yaml                  # Lock file - auto-generated, don't edit
 ├── next.config.js                  # Next.js configuration
-├── tailwind.config.js              # Tailwind CSS configuration
 ├── middleware.ts                   # Next.js middleware for route protection
 ├── vitest.config.ts                # Vitest configuration for root app
 ├── vercel.json                     # Vercel deployment configuration
@@ -582,7 +581,7 @@ pnpm test --coverage
 
 **For the main application (root level):**
 - Files go directly in `app/`, `components/`, `lib/` directories
-- Configuration files at root level (`next.config.js`, `tailwind.config.js`, etc.)
+- Configuration files at root level (`next.config.js`, `components.json`, etc.)
 - No need for separate package.json (uses root workspace)
 
 **For additional applications:**

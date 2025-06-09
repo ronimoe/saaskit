@@ -1,6 +1,8 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import Link from 'next/link'
+import { Button } from '@saas/ui'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,18 +19,28 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <nav className="bg-gray-800 text-white p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-xl font-bold">SaaS Kit Demo</h1>
-            <div className="space-x-4">
-              <a href="/" className="hover:text-gray-300">Home</a>
-              <a href="/packages" className="hover:text-gray-300">Packages</a>
-              <a href="/structure" className="hover:text-gray-300">Structure</a>
-              <a href="/database-status" className="hover:text-gray-300">Database Status</a>
+        <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <Link href="/" className="flex items-center space-x-2">
+              <h1 className="text-2xl font-bold">SaaS Kit Demo</h1>
+            </Link>
+            <div className="flex items-center space-x-4">
+              <Button variant="ghost" asChild>
+                <Link href="/">Home</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/packages">Packages</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/structure">Structure</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/database-status">Database Status</Link>
+              </Button>
             </div>
           </div>
         </nav>
-        <main className="container mx-auto p-8">
+        <main className="container mx-auto px-4 py-8">
           {children}
         </main>
       </body>

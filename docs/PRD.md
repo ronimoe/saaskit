@@ -204,7 +204,7 @@ saas-platform/
 │   │   │   └── api/
 │   │   ├── middleware.ts           # Route protection
 │   │   ├── next.config.js
-│   │   ├── tailwind.config.js
+│   │   ├── components.json         # shadcn/ui configuration
 │   │   ├── vitest.config.ts
 │   │   └── package.json
 │   └── marketing-site/             # Future: Marketing website
