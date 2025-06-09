@@ -1,8 +1,10 @@
 "use client"
 
+import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { ThemeSelector, ThemeToggle } from "@/components/theme-toggle"
-import { Sparkles, Zap, Shield, Globe, Code2 } from "lucide-react"
+import { Sparkles, Zap, Shield, Globe, Code2, User } from "lucide-react"
 
 export function SiteHeader() {
   return (
@@ -10,7 +12,7 @@ export function SiteHeader() {
       {/* Top Navigation Bar */}
       <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-200 dark:border-slate-700">
         {/* Logo Section */}
-        <div className="flex items-center space-x-3">
+        <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
           <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg">
             <Code2 className="w-6 h-6 text-white" />
           </div>
@@ -18,10 +20,16 @@ export function SiteHeader() {
             <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">SaaS Kit</h2>
             <p className="text-sm text-slate-600 dark:text-slate-400">Modern SaaS Platform</p>
           </div>
-        </div>
+        </Link>
 
-        {/* Theme Controls */}
+        {/* Navigation & Controls */}
         <div className="flex items-center space-x-4">
+          <Link href="/profile">
+            <Button variant="outline" size="sm" className="gap-2">
+              <User className="h-4 w-4" />
+              Profile
+            </Button>
+          </Link>
           <ThemeSelector />
           <ThemeToggle />
         </div>

@@ -11,7 +11,6 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { createServerClient } from '@supabase/ssr';
 import { type Database } from '../types/database';
 import { env } from './env';
-import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
 // Export the database type for use throughout the app
@@ -40,6 +39,7 @@ export const createClientComponentClient = (): SupabaseClient<Database> => {
  * Use this in server components where you need to access user data
  */
 export const createServerComponentClient = async (): Promise<SupabaseClient<Database>> => {
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   
   return createServerClient<Database>(
@@ -70,6 +70,7 @@ export const createServerComponentClient = async (): Promise<SupabaseClient<Data
  * Use this in API routes (app/api/*)
  */
 export const createRouteHandlerClient = async (): Promise<SupabaseClient<Database>> => {
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   
   return createServerClient<Database>(
