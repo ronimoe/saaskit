@@ -1,1 +1,0 @@
-export { createBaseConfig, createReactConfig } from './base' 
