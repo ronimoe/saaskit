@@ -357,3 +357,6 @@
     transform: scale(1);
   }
 }
+
+/* Import additional styles */
+@import '../styles/globals.css';
