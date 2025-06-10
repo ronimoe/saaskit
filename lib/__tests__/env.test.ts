@@ -75,10 +75,11 @@ describe('env.ts', () => {
     });
 
     it('should throw error for missing required variables', () => {
-      // Missing required Supabase URL
+      // Missing required Supabase URL - set it to empty string to avoid defaults
       process.env = {
         NODE_ENV: 'development',
         NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+        NEXT_PUBLIC_SUPABASE_URL: '', // Empty string should fail URL validation
         NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key',
         SUPABASE_SERVICE_ROLE_KEY: 'test-service-role-key',
         SUPABASE_JWT_SECRET: 'test-jwt-secret',

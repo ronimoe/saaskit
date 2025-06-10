@@ -33,15 +33,17 @@ jest.mock('next/server', () => ({
 }));
 
 // Mock Next.js router
+const mockRouter = {
+  push: jest.fn(),
+  replace: jest.fn(),
+  prefetch: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+  refresh: jest.fn(),
+};
+
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: jest.fn(),
-    replace: jest.fn(),
-    prefetch: jest.fn(),
-    back: jest.fn(),
-    forward: jest.fn(),
-    refresh: jest.fn(),
-  }),
+  useRouter: jest.fn(() => mockRouter),
   usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(),
 }));

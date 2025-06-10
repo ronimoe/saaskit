@@ -26,8 +26,14 @@ describe('LoginForm', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
+    // Reset the router mock to return a fresh mock for each test
     mockUseRouter.mockReturnValue({
       push: mockPush,
+      replace: jest.fn(),
+      prefetch: jest.fn(),
+      back: jest.fn(),
+      forward: jest.fn(),
+      refresh: jest.fn(),
     } as any);
 
     mockUseAuth.mockReturnValue({
