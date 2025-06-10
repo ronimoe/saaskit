@@ -1,0 +1,25 @@
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/__tests__/**
+**/__mocks__/**
+**/test/**
+**/tests/**
+
+# Jest configuration
+jest.config.ts
+jest.setup.ts
+
+# Build outputs
+.next/**
+dist/**
+build/**
+node_modules/**
+
+# Development files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 
