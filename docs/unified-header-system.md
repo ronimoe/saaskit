@@ -14,27 +14,31 @@ The Unified Header System automatically detects the user's authentication status
 **Features:**
 - Logo with brand name and tagline
 - Main navigation (Home, Features, Pricing, Docs)
-- Call-to-action buttons (Sign In, Sign Up)
-- Mobile-responsive hamburger menu
+- **Authentication-aware buttons:**
+  - **Not authenticated:** Sign In, Sign Up buttons
+  - **Authenticated:** Dashboard link, Sign Out button
+- Mobile-responsive hamburger menu with auth-specific options
 - Theme toggle
 
 **When shown:**
-- User is not authenticated
 - On public marketing pages
+- Authentication state determines button display
 
 ### 2. Authentication Header (`auth`)
 **Used for:** Login, signup, password reset pages
 
 **Features:**
 - Logo only (maintains brand presence)
-- Context-aware alternate action link
+- **Authentication-aware actions:**
+  - **Not authenticated:** Context-aware alternate action link (Sign In ↔ Sign Up)
+  - **Authenticated:** "Already signed in" message with Dashboard and Sign Out buttons
 - Minimal, distraction-free design
 - Theme toggle
 - No navigation elements
 
 **When shown:**
 - On authentication pages (`/login`, `/signup`, `/reset-password`)
-- Regardless of authentication status
+- Adapts content based on authentication status
 
 ### 3. Application Header (`app`)
 **Used for:** Dashboard, profile, settings, and other authenticated pages
@@ -44,13 +48,27 @@ The Unified Header System automatically detects the user's authentication status
 - App navigation (Dashboard, Settings, Billing)
 - Search functionality
 - Notifications with badge indicator
-- User avatar with dropdown menu
+- User avatar with dropdown menu (includes Sign Out)
 - Mobile-responsive slide-out menu
 - Active page highlighting
 
 **When shown:**
 - User is authenticated
 - On application pages
+
+## Authentication-Aware Behavior
+
+The header system now provides consistent logout functionality across all variants:
+
+### When User is Authenticated:
+- **Landing Header:** Shows Dashboard button + Sign Out button instead of Sign In/Sign Up
+- **Auth Header:** Shows "Already signed in" message with Dashboard and Sign Out options
+- **App Header:** Full authenticated experience with user menu including Sign Out
+
+### When User is Not Authenticated:
+- **Landing Header:** Shows Sign In and Sign Up buttons
+- **Auth Header:** Shows context-aware alternate action (Sign In ↔ Sign Up)
+- **App Header:** Not shown (user redirected to auth pages)
 
 ## Usage
 
@@ -112,8 +130,8 @@ You can manually specify which variant to use:
 ### Main Components
 
 - `UnifiedHeader` - Main component with automatic detection
-- `PreAuthHeader` - Landing/marketing header variant
-- `AuthHeader` - Authentication pages header variant  
+- `PreAuthHeader` - Landing/marketing header variant (now auth-aware)
+- `AuthHeader` - Authentication pages header variant (now auth-aware)
 - `AppHeader` - Application/dashboard header variant
 
 ### Supporting Components
@@ -121,6 +139,7 @@ You can manually specify which variant to use:
 - `Logo` - Reusable logo component
 - Navigation items configuration
 - Mobile menu components
+- Authentication state handlers
 
 ## Responsive Design
 
@@ -129,14 +148,25 @@ The header system is fully responsive with:
 - **Desktop:** Full navigation and features visible
 - **Tablet:** Condensed layout with essential elements
 - **Mobile:** Hamburger menu with slide-out navigation
+- **Authentication-aware mobile menus:** Different options for authenticated vs non-authenticated users
 
 ## Authentication Integration
 
 The header integrates with the application's authentication system:
 
 ```tsx
-// Uses the auth context to determine state
-const { isAuthenticated, isLoading, isInitialized } = useAuthContext()
+// Uses the auth context to determine state and provide logout functionality
+const { isAuthenticated, isLoading, isInitialized, signOut, user } = useAuthContext()
+
+// Logout handler available in all variants
+const handleSignOut = async () => {
+  try {
+    await signOut()
+    router.push('/')
+  } catch (error) {
+    console.error('Sign out error:', error)
+  }
+}
 ```
 
 During loading states, a skeleton header is shown to prevent layout shifts.
@@ -170,11 +200,13 @@ The header system uses:
 - **Tailwind CSS** for styling
 - **CSS variables** for theming
 - **Dark mode** support via next-themes
+- **Consistent logout button styling** with red accents across variants
 
 ### Key Classes
 - `sticky top-0 z-50` - Sticky positioning
 - `bg-background/95 backdrop-blur` - Glassmorphism effect
 - `border-b` - Bottom border
+- `text-red-600 dark:text-red-400` - Logout button styling
 - Responsive breakpoints (`md:`, `lg:`)
 
 ## Benefits
@@ -183,30 +215,37 @@ The header system uses:
 - Same logo and color scheme across all pages
 - Consistent typography and spacing
 - Unified user experience
+- **Consistent logout experience** across all pages
 
 ### Better UX
 - Context-appropriate navigation
 - No distracting elements on auth pages
 - Progressive enhancement based on auth state
+- **Always accessible logout** when authenticated
+- **Clear authentication status** on all pages
 
 ### Developer Experience
 - Single component for all headers
 - Automatic context detection
 - TypeScript type safety
 - Easy to extend and customize
+- **Built-in authentication handling**
 
 ### Maintenance
 - Centralized header logic
 - Reduced code duplication
 - Single source of truth for navigation
+- **Centralized authentication state management**
 
 ## Best Practices
 
 1. **Use automatic detection** unless you have specific requirements
 2. **Customize navigation items** to match your application structure
-3. **Test all variants** in different screen sizes
+3. **Test all variants** in different screen sizes and authentication states
 4. **Maintain consistent branding** across all variants
 5. **Keep auth headers minimal** to focus user attention
+6. **Ensure logout is always accessible** for authenticated users
+7. **Test authentication state changes** to verify header updates correctly
 
 ## Examples
 
@@ -242,6 +281,20 @@ export default function SpecialPage() {
 }
 ```
 
+### Authentication State Examples
+
+**Landing page for authenticated user:**
+```tsx
+// Shows: Logo + Navigation + Dashboard button + Sign Out button
+<UnifiedHeader variant="landing" />
+```
+
+**Login page for authenticated user:**
+```tsx
+// Shows: Logo + "Already signed in" + Dashboard button + Sign Out button
+<UnifiedHeader variant="auth" />
+```
+
 ## Technical Details
 
 ### Dependencies
@@ -251,12 +304,13 @@ export default function SpecialPage() {
 - Tailwind CSS
 - Lucide React icons
 - next-themes
+- Authentication context provider
 
 ### File Structure
 ```
 components/
   layout/
-    unified-header.tsx    # Main header system
+    unified-header.tsx    # Main header system with auth-aware variants
   ui/                     # shadcn/ui components
     button.tsx
     dropdown-menu.tsx
@@ -264,6 +318,8 @@ components/
     avatar.tsx
     badge.tsx
     separator.tsx
+  providers/
+    auth-provider.tsx     # Authentication context
 ```
 
 ### TypeScript Types
@@ -278,6 +334,14 @@ export interface HeaderConfig {
   showUserMenu?: boolean
   className?: string
 }
+
+// Authentication context integration
+interface AuthContextValue {
+  user: User | null
+  isAuthenticated: boolean
+  signOut: () => Promise<void>
+  // ... other auth properties
+}
 ```
 
 ## Migration Guide
@@ -285,15 +349,18 @@ export interface HeaderConfig {
 ### From Separate Headers
 1. Replace individual header components with `UnifiedHeader`
 2. Remove duplicate navigation logic
-3. Update navigation item configurations
-4. Test all page variants
+3. Remove separate logout implementations
+4. Update navigation item configurations
+5. Test all page variants with different authentication states
 
 ### From No Header System
 1. Install dependencies (shadcn/ui components)
-2. Add the unified header component
-3. Configure navigation items
-4. Integrate with authentication system
-5. Add to layouts or individual pages
+2. Set up authentication context provider
+3. Add the unified header component
+4. Configure navigation items
+5. Integrate with authentication system
+6. Add to layouts or individual pages
+7. Test authentication state changes
 
 ## Troubleshooting
 
@@ -304,15 +371,20 @@ export interface HeaderConfig {
 - Verify pathname detection logic
 - Ensure auth state is properly updated
 
+**Logout not working:**
+- Verify authentication context is properly provided
+- Check signOut function implementation
+- Ensure router navigation after logout
+
 **Mobile menu not working:**
 - Verify Sheet component is properly imported
 - Check z-index conflicts
 - Ensure click handlers are properly bound
 
-**Styling issues:**
-- Check Tailwind CSS configuration
-- Verify CSS variable definitions
-- Test in different screen sizes
+**Authentication state not updating:**
+- Check authentication provider setup
+- Verify auth state change listeners
+- Ensure proper React state updates
 
 ### Debug Mode
 Enable debug logging to see header state:
@@ -323,4 +395,18 @@ Enable debug logging to see header state:
   // Add debug logging in development
   onVariantChange={(variant) => console.log('Header variant:', variant)}
 />
+```
+
+### Authentication Testing
+Test different authentication scenarios:
+
+```tsx
+// Test cases:
+// 1. Not authenticated on landing page
+// 2. Authenticated on landing page  
+// 3. Not authenticated on auth page
+// 4. Authenticated on auth page
+// 5. Authenticated on app page
+// 6. Logout from each variant
+// 7. Mobile menu behavior in each state
 ``` 

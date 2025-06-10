@@ -1,8 +1,7 @@
 /**
- * Supabase Client Configuration - Client Side Only
+ * Supabase Client Configuration
  * 
- * This module provides Supabase client instances for client-side operations.
- * For server-side operations, use the utilities in @/utils/supabase/ directory.
+ * This module provides Supabase client instances for both client-side and server-side operations.
  */
 
 import { createBrowserClient, createServerClient } from '@supabase/ssr'
@@ -22,6 +21,60 @@ export const createClientComponentClient = (): SupabaseClient<Database> => {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
+
+/**
+ * Server-side Supabase client for server components and actions
+ * Use this in server components, server actions, and API routes
+ */
+export const createServerComponentClient = async (): Promise<SupabaseClient<Database>> => {
+  const cookieStore = await import('next/headers').then((mod) => mod.cookies())
+  
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name) {
+          const cookie = cookieStore.get(name)
+          return cookie?.value
+        },
+        set(name, value, options) {
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch (error) {
+            // Cookie cannot be set - this happens on Static Site Generation
+            // or when the page doesn't re-render immediately
+            console.warn(`Error setting cookie "${name}":`, error)
+          }
+        },
+        remove(name, options) {
+          try {
+            cookieStore.set({ name, value: '', ...options })
+          } catch (error) {
+            // Cookie cannot be deleted - this happens on Static Site Generation
+            // or when the page doesn't re-render immediately
+            console.warn(`Error removing cookie "${name}":`, error)
+          }
+        },
+      },
+    }
+  )
+}
+
+/**
+ * Admin Supabase client for admin operations
+ * Use this for admin-level operations that require service role key
+ */
+export const createAdminClient = (): SupabaseClient<Database> => {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for admin operations')
+  }
+
+  return createSupabaseClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 }
 
@@ -195,5 +248,101 @@ export const authHelpers = {
       throw new Error('Authentication required')
     }
     return user
+  },
+
+  /**
+   * Sign in with email and password
+   */
+  signInWithPassword: async (
+    supabase: SupabaseClient<Database>,
+    email: string,
+    password: string
+  ): Promise<{ data?: any; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (error) {
+        return { error: error.message }
+      }
+
+      return { data }
+    } catch (error) {
+      console.error('signInWithPassword error:', error)
+      return { error: error instanceof Error ? error.message : 'Sign in failed' }
+    }
+  },
+
+  /**
+   * Sign up with email and password
+   */
+  signUpWithPassword: async (
+    supabase: SupabaseClient<Database>,
+    email: string,
+    password: string,
+    options?: { emailRedirectTo?: string }
+  ): Promise<{ data?: any; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: options?.emailRedirectTo,
+        },
+      })
+
+      if (error) {
+        return { error: error.message }
+      }
+
+      return { data }
+    } catch (error) {
+      console.error('signUpWithPassword error:', error)
+      return { error: error instanceof Error ? error.message : 'Sign up failed' }
+    }
+  },
+
+  /**
+   * Reset password
+   */
+  resetPassword: async (
+    supabase: SupabaseClient<Database>,
+    email: string,
+    redirectTo?: string
+  ): Promise<{ data?: any; error?: string }> => {
+    try {
+      const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo,
+      })
+
+      if (error) {
+        return { error: error.message }
+      }
+
+      return { data }
+    } catch (error) {
+      console.error('resetPassword error:', error)
+      return { error: error instanceof Error ? error.message : 'Password reset failed' }
+    }
+  },
+
+  /**
+   * Sign out
+   */
+  signOut: async (supabase: SupabaseClient<Database>): Promise<{ error?: string }> => {
+    try {
+      const { error } = await supabase.auth.signOut()
+
+      if (error) {
+        return { error: error.message }
+      }
+
+      return {}
+    } catch (error) {
+      console.error('signOut error:', error)
+      return { error: error instanceof Error ? error.message : 'Sign out failed' }
+    }
   },
 } 
