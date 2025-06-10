@@ -59,7 +59,7 @@ export function createProfileData(
 /**
  * Transforms profile form data for database update
  */
-export function transformProfileFormData(formData: ProfileFormData): ProfileUpdate {
+export function transformProfileFormData(formData: Partial<ProfileFormData>): ProfileUpdate {
   return {
     full_name: formData.full_name,
     phone: formData.phone,
@@ -111,7 +111,7 @@ export function getProfileDisplayName(profile: Profile): string {
 /**
  * Validates profile form data
  */
-export function validateProfileData(data: ProfileFormData): { isValid: boolean; errors: string[] } {
+export function validateProfileData(data: Partial<ProfileFormData>): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
   
   if (data.website_url && !isValidUrl(data.website_url)) {
