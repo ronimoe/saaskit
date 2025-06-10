@@ -141,7 +141,6 @@ async function handleSubscriptionCreated(
     .select();
 
   if (error) {
-    console.error(`Failed to create subscription ${stripeSubscription.id}:`, error);
     throw error;
   }
 
@@ -203,7 +202,6 @@ async function handleSubscriptionUpdated(
     .select();
 
   if (error) {
-    console.error(`Failed to update subscription ${stripeSubscription.id}:`, error);
     throw error;
   }
 
@@ -233,7 +231,6 @@ async function handleSubscriptionDeleted(
     .select();
 
   if (error) {
-    console.error(`Failed to mark subscription as deleted ${stripeSubscription.id}:`, error);
     throw error;
   }
 
