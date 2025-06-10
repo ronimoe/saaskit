@@ -13,20 +13,20 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'staging', 'production', 'test']).default('development'),
   
   // App Configuration
-  NEXT_PUBLIC_APP_URL: z.string().url('Invalid APP_URL format'),
+  NEXT_PUBLIC_APP_URL: z.string().url('Invalid APP_URL format').default('http://localhost:3000'),
   NEXT_PUBLIC_APP_NAME: z.string().default('SaaS Kit'),
   NEXT_PUBLIC_APP_DESCRIPTION: z.string().default('Modern SaaS Platform'),
   NEXT_PUBLIC_COMPANY_NAME: z.string().default('Your Company'),
   
   // Supabase (Required for database and auth)
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url('Invalid Supabase URL format'),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Supabase anon key is required'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'Supabase service role key is required'),
-  SUPABASE_JWT_SECRET: z.string().min(1, 'Supabase JWT secret is required'),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url('Invalid Supabase URL format').default('https://placeholder.supabase.co'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Supabase anon key is required').default('placeholder-anon-key'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'Supabase service role key is required').default('placeholder-service-key'),
+  SUPABASE_JWT_SECRET: z.string().min(1, 'Supabase JWT secret is required').default('placeholder-jwt-secret'),
   
-  // Stripe (Required for payments)
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith('pk_', 'Invalid Stripe publishable key format'),
-  STRIPE_SECRET_KEY: z.string().startsWith('sk_', 'Invalid Stripe secret key format'),
+  // Stripe (Optional for payments - can be set later)
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith('pk_', 'Invalid Stripe publishable key format').default('pk_test_placeholder').optional(),
+  STRIPE_SECRET_KEY: z.string().startsWith('sk_', 'Invalid Stripe secret key format').default('sk_test_placeholder').optional(),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith('whsec_', 'Invalid Stripe webhook secret format').optional(),
   
   // Stripe Price IDs (Optional - can be set later)

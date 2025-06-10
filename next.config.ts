@@ -124,15 +124,15 @@ const nextConfig: NextConfig = {
   // Redirects for common routes
   async redirects() {
     return [
-      // Redirect old paths to new structure if needed
+      // Redirect old auth paths to new structure if needed
       {
-        source: '/login',
-        destination: '/auth/login',
+        source: '/auth/login',
+        destination: '/login',
         permanent: false,
       },
       {
-        source: '/signup',
-        destination: '/auth/signup',
+        source: '/auth/signup',
+        destination: '/login',
         permanent: false,
       },
     ];

@@ -3,8 +3,8 @@
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ThemeSelector, ThemeToggle } from "@/components/theme-toggle"
-import { Sparkles, Zap, Shield, Globe, Code2, User } from "lucide-react"
+import { ThemeToggle } from "@/components/theme-toggle"
+import { Sparkles, Zap, Shield, Globe, Code2, LogIn } from "lucide-react"
 
 export function SiteHeader() {
   return (
@@ -24,13 +24,12 @@ export function SiteHeader() {
 
         {/* Navigation & Controls */}
         <div className="flex items-center space-x-4">
-          <Link href="/profile">
-            <Button variant="outline" size="sm" className="gap-2">
-              <User className="h-4 w-4" />
-              Profile
-            </Button>
-          </Link>
-          <ThemeSelector />
+          <Button variant="outline" size="sm" className="gap-2" asChild>
+            <Link href="/login">
+              <LogIn className="h-4 w-4" />
+              Login
+            </Link>
+          </Button>
           <ThemeToggle />
         </div>
       </div>

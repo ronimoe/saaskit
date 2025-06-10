@@ -87,7 +87,7 @@ async function ProfileContent() {
   const user = await getCurrentUser(await createServerComponentClient())
   
   if (!user) {
-    redirect('/auth/login')
+    redirect('/login')
   }
 
   const { profile, subscriptions } = await getProfileData(user.id)

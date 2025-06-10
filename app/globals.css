@@ -358,5 +358,61 @@
   }
 }
 
+/* Login page specific animations */
+@keyframes loginSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes loginIconBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes loginGradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes loginPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.25);
+  }
+}
+
+.login-slide-in {
+  animation: loginSlideIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.login-icon-bounce {
+  animation: loginIconBounce 2s ease-in-out infinite;
+}
+
+.login-gradient-bg {
+  background-size: 200% 200%;
+  animation: loginGradientShift 8s ease-in-out infinite;
+}
+
+.login-pulse-glow {
+  animation: loginPulseGlow 3s ease-in-out infinite;
+}
+
 /* Import additional styles */
 @import '../styles/globals.css';

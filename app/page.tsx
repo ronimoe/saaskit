@@ -89,42 +89,36 @@ export default function ShadcnDemo() {
               </CardContent>
             </Card>
 
-            {/* User Profile Card */}
+            {/* Authentication Card */}
             <Card className="h-fit">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  User Profile
+                  Authentication
                 </CardTitle>
                 <CardDescription>
-                  Avatar and user information display
+                  Login and signup functionality
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-4 mb-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="text-lg font-semibold">John Doe</h3>
-                    <p className="text-sm text-slate-600">Software Engineer</p>
-                    <div className="flex gap-1 mt-1">
-                      <Badge variant="outline">React</Badge>
-                      <Badge variant="outline">TypeScript</Badge>
-                    </div>
+                <div className="space-y-3">
+                  <Button variant="default" className="w-full" asChild>
+                    <a href="/login">Login</a>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <a href="/login">Sign Up</a>
+                  </Button>
+                </div>
+                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300 mt-4">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    Email authentication
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Secure login system
                   </div>
                 </div>
-                                 <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                   <div className="flex items-center gap-2">
-                     <Mail className="w-4 h-4" />
-                     john@example.com
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <MapPin className="w-4 h-4" />
-                     San Francisco, CA
-                   </div>
-                 </div>
               </CardContent>
             </Card>
 
