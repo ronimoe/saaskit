@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -19,7 +20,7 @@ import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Toaster } from "@/components/ui/sonner"
-import { SiteHeader } from "@/components/site-header"
+import { UnifiedHeader } from "@/components/layout/unified-header"
 import { SiteFooter } from "@/components/site-footer"
 import { ActionCards } from "@/components/action-cards"
 import { toast } from "sonner"
@@ -50,7 +51,16 @@ export default function ShadcnDemo() {
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
         <div className="container mx-auto max-w-6xl">
-          <SiteHeader />
+          <UnifiedHeader variant="landing" />
+          
+          {/* Demo Link */}
+          <div className="text-center mb-8">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/header-demo">
+                🎨 View Header System Demo
+              </Link>
+            </Button>
+          </div>
 
           {/* Component Showcase Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">

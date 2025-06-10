@@ -5,6 +5,7 @@ import { ProfileHeader } from '@/components/profile-header'
 import { ProfileStats } from '@/components/profile-stats'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { UnifiedHeader } from '@/components/layout/unified-header'
 import { redirect } from 'next/navigation'
 import type { Profile, Subscription } from '@/types/database'
 
@@ -42,7 +43,9 @@ async function getProfileData(userId: string) {
 
 function ProfileSkeleton() {
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <UnifiedHeader variant="app" />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="grid gap-6">
         {/* Header Skeleton */}
         <Card className="p-6">
@@ -79,6 +82,7 @@ function ProfileSkeleton() {
           </div>
         </Card>
       </div>
+    </div>
     </div>
   )
 }
@@ -126,6 +130,7 @@ async function ProfileContent() {
 export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <UnifiedHeader variant="app" />
       <Suspense fallback={<ProfileSkeleton />}>
         <ProfileContent />
       </Suspense>

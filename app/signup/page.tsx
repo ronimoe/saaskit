@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { SignupForm } from '@/components/auth/signup-form';
 import { Skeleton } from '@/components/ui/skeleton';
+import { UnifiedHeader } from '@/components/layout/unified-header';
 
 export const metadata: Metadata = {
   title: 'Sign Up',
@@ -41,7 +42,9 @@ function SignupFormSkeleton() {
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col">
+      <UnifiedHeader variant="auth" />
+      <div className="flex-1 flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background with modern gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950 login-gradient-bg" />
       
@@ -92,6 +95,7 @@ export default function SignupPage() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 } 
