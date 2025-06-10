@@ -177,6 +177,26 @@ describe('Auth Utils', () => {
         expect(result.error).toBe('OAuth failed');
       });
 
+      it('should handle OAuth sign in exceptions', async () => {
+        mockSupabaseClient.auth.signInWithOAuth.mockRejectedValue(new Error('Network error'));
+
+        const result = await oauthUtils.signInWithProvider(mockSupabaseClient, 'google');
+
+        expect(result.success).toBe(false);
+        expect(result.data).toBeNull();
+        expect(result.error).toBe('Network error');
+      });
+
+      it('should handle OAuth sign in non-Error exceptions', async () => {
+        mockSupabaseClient.auth.signInWithOAuth.mockRejectedValue('String error');
+
+        const result = await oauthUtils.signInWithProvider(mockSupabaseClient, 'github');
+
+        expect(result.success).toBe(false);
+        expect(result.data).toBeNull();
+        expect(result.error).toBe('Unexpected github authentication error');
+      });
+
       it('should use default redirect URL when none provided', async () => {
         const mockOAuthResponse = {
           data: { url: 'https://oauth-url.com' },
@@ -259,6 +279,24 @@ describe('Auth Utils', () => {
         expect(result.success).toBe(false);
         expect(result.data).toBeNull();
         expect(result.error).toBe('Refresh failed');
+      });
+
+      it('should handle refresh session exceptions', async () => {
+        mockSupabaseClient.auth.refreshSession.mockRejectedValue(new Error('Network error'));
+
+        const result = await sessionUtils.refreshSession(mockSupabaseClient);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
+
+      it('should handle refresh session non-Error exceptions', async () => {
+        mockSupabaseClient.auth.refreshSession.mockRejectedValue('String error');
+
+        const result = await sessionUtils.refreshSession(mockSupabaseClient);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Unexpected session refresh error');
       });
     });
 
@@ -348,6 +386,24 @@ describe('Auth Utils', () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe('No active session');
       });
+
+      it('should handle ensureValidSession exceptions', async () => {
+        getCurrentSession.mockRejectedValue(new Error('Session fetch error'));
+
+        const result = await sessionUtils.ensureValidSession(mockSupabaseClient);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Session fetch error');
+      });
+
+      it('should handle ensureValidSession non-Error exceptions', async () => {
+        getCurrentSession.mockRejectedValue('String error');
+
+        const result = await sessionUtils.ensureValidSession(mockSupabaseClient);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Session validation failed');
+      });
     });
   });
 
@@ -394,6 +450,47 @@ describe('Auth Utils', () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe('Creation failed');
       });
+
+      it('should handle create user exceptions', async () => {
+        mockAdminClient.auth.admin.createUser.mockRejectedValue(new Error('Network error'));
+
+        const options: UserManagementOptions = {
+          email: 'new@example.com',
+        };
+
+        const result = await adminUtils.createUser(options);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
+
+      it('should handle create user with role assignment', async () => {
+        const mockUserData = { user: mockUser };
+        mockAdminClient.auth.admin.createUser.mockResolvedValue({
+          data: mockUserData,
+          error: null,
+        });
+
+        // Mock the updateUserRole call
+        const updateRoleSpy = jest.spyOn(adminUtils, 'updateUserRole');
+        updateRoleSpy.mockResolvedValue({ 
+          data: mockAdminUser, 
+          error: null, 
+          success: true 
+        });
+
+        const options: UserManagementOptions = {
+          email: 'new@example.com',
+          role: 'admin',
+        };
+
+        const result = await adminUtils.createUser(options);
+
+        expect(result.success).toBe(true);
+        expect(updateRoleSpy).toHaveBeenCalledWith(mockUser.id, 'admin');
+
+        updateRoleSpy.mockRestore();
+      });
     });
 
     describe('deleteUser', () => {
@@ -415,6 +512,15 @@ describe('Auth Utils', () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe('Deletion failed');
       });
+
+      it('should handle delete user exceptions', async () => {
+        mockAdminClient.auth.admin.deleteUser.mockRejectedValue(new Error('Network error'));
+
+        const result = await adminUtils.deleteUser('user-id');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
     });
 
     describe('getUserById', () => {
@@ -428,6 +534,28 @@ describe('Auth Utils', () => {
 
         expect(result.success).toBe(true);
         expect(result.data).toBe(mockUser);
+      });
+
+      it('should handle get user by ID errors', async () => {
+        const mockError = { message: 'User not found' };
+        mockAdminClient.auth.admin.getUserById.mockResolvedValue({
+          data: null,
+          error: mockError,
+        });
+
+        const result = await adminUtils.getUserById('user-id');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('User not found');
+      });
+
+      it('should handle get user by ID exceptions', async () => {
+        mockAdminClient.auth.admin.getUserById.mockRejectedValue(new Error('Network error'));
+
+        const result = await adminUtils.getUserById('user-id');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
       });
     });
 
@@ -447,6 +575,41 @@ describe('Auth Utils', () => {
         expect(result.data?.page).toBe(1);
         expect(result.data?.perPage).toBe(50);
       });
+
+      it('should handle list users with missing total', async () => {
+        const mockUsers = [mockUser, mockAdminUser];
+        mockAdminClient.auth.admin.listUsers.mockResolvedValue({
+          data: { users: mockUsers }, // no total field
+          error: null,
+        });
+
+        const result = await adminUtils.listUsers(1, 50);
+
+        expect(result.success).toBe(true);
+        expect(result.data?.total).toBe(2); // should fallback to users.length
+      });
+
+      it('should handle list users errors', async () => {
+        const mockError = { message: 'List failed' };
+        mockAdminClient.auth.admin.listUsers.mockResolvedValue({
+          data: null,
+          error: mockError,
+        });
+
+        const result = await adminUtils.listUsers();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('List failed');
+      });
+
+      it('should handle list users exceptions', async () => {
+        mockAdminClient.auth.admin.listUsers.mockRejectedValue(new Error('Network error'));
+
+        const result = await adminUtils.listUsers();
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
     });
 
     describe('updateUserMetadata', () => {
@@ -465,6 +628,28 @@ describe('Auth Utils', () => {
           user_metadata: metadata,
         });
       });
+
+      it('should handle update user metadata errors', async () => {
+        const mockError = { message: 'Update failed' };
+        mockAdminClient.auth.admin.updateUserById.mockResolvedValue({
+          data: null,
+          error: mockError,
+        });
+
+        const result = await adminUtils.updateUserMetadata('user-id', {});
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Update failed');
+      });
+
+      it('should handle update user metadata exceptions', async () => {
+        mockAdminClient.auth.admin.updateUserById.mockRejectedValue(new Error('Network error'));
+
+        const result = await adminUtils.updateUserMetadata('user-id', {});
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
     });
 
     describe('updateUserRole', () => {
@@ -482,6 +667,28 @@ describe('Auth Utils', () => {
           user_metadata: { role: 'admin' },
         });
       });
+
+      it('should handle update user role errors', async () => {
+        const mockError = { message: 'Role update failed' };
+        mockAdminClient.auth.admin.updateUserById.mockResolvedValue({
+          data: null,
+          error: mockError,
+        });
+
+        const result = await adminUtils.updateUserRole('user-id', 'admin');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Role update failed');
+      });
+
+      it('should handle update user role exceptions', async () => {
+        mockAdminClient.auth.admin.updateUserById.mockRejectedValue(new Error('Network error'));
+
+        const result = await adminUtils.updateUserRole('user-id', 'admin');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
     });
 
     describe('sendPasswordResetEmail', () => {
@@ -495,6 +702,40 @@ describe('Auth Utils', () => {
           'user@example.com',
           { redirectTo: 'https://test.com/reset-password/confirm' }
         );
+      });
+
+      it('should send password reset email with custom redirect', async () => {
+        mockAdminClient.auth.resetPasswordForEmail.mockResolvedValue({ error: null });
+
+        const result = await adminUtils.sendPasswordResetEmail(
+          'user@example.com',
+          'https://custom.com/reset'
+        );
+
+        expect(result.success).toBe(true);
+        expect(mockAdminClient.auth.resetPasswordForEmail).toHaveBeenCalledWith(
+          'user@example.com',
+          { redirectTo: 'https://custom.com/reset' }
+        );
+      });
+
+      it('should handle send password reset email errors', async () => {
+        const mockError = { message: 'Email send failed' };
+        mockAdminClient.auth.resetPasswordForEmail.mockResolvedValue({ error: mockError });
+
+        const result = await adminUtils.sendPasswordResetEmail('user@example.com');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Email send failed');
+      });
+
+      it('should handle send password reset email exceptions', async () => {
+        mockAdminClient.auth.resetPasswordForEmail.mockRejectedValue(new Error('Network error'));
+
+        const result = await adminUtils.sendPasswordResetEmail('user@example.com');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
       });
     });
   });
@@ -535,6 +776,34 @@ describe('Auth Utils', () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe('Update failed');
       });
+
+      it('should handle profile update with password', async () => {
+        mockSupabaseClient.auth.updateUser.mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        });
+
+        const updates: ProfileUpdateData = {
+          password: 'newpassword123',
+        };
+
+        const result = await profileUtils.updateProfile(mockSupabaseClient, updates);
+
+        expect(result.success).toBe(true);
+        expect(mockSupabaseClient.auth.updateUser).toHaveBeenCalledWith({
+          password: 'newpassword123',
+        });
+      });
+
+      it('should handle profile update exceptions', async () => {
+        mockSupabaseClient.auth.updateUser.mockRejectedValue(new Error('Network error'));
+
+        const updates: ProfileUpdateData = { email: 'updated@example.com' };
+        const result = await profileUtils.updateProfile(mockSupabaseClient, updates);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
     });
 
     describe('getCurrentProfile', () => {
@@ -555,6 +824,15 @@ describe('Auth Utils', () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe('No authenticated user');
       });
+
+      it('should handle getCurrentProfile exceptions', async () => {
+        getCurrentUser.mockRejectedValue(new Error('Network error'));
+
+        const result = await profileUtils.getCurrentProfile(mockSupabaseClient);
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
+      });
     });
 
     describe('updateAvatar', () => {
@@ -571,6 +849,28 @@ describe('Auth Utils', () => {
         expect(mockSupabaseClient.auth.updateUser).toHaveBeenCalledWith({
           data: { avatar_url: 'https://avatar.url' },
         });
+      });
+
+      it('should handle update avatar errors', async () => {
+        const mockError = { message: 'Avatar update failed' };
+        mockSupabaseClient.auth.updateUser.mockResolvedValue({
+          data: null,
+          error: mockError,
+        });
+
+        const result = await profileUtils.updateAvatar(mockSupabaseClient, 'https://avatar.url');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Avatar update failed');
+      });
+
+      it('should handle update avatar exceptions', async () => {
+        mockSupabaseClient.auth.updateUser.mockRejectedValue(new Error('Network error'));
+
+        const result = await profileUtils.updateAvatar(mockSupabaseClient, 'https://avatar.url');
+
+        expect(result.success).toBe(false);
+        expect(result.error).toBe('Network error');
       });
     });
   });
@@ -599,6 +899,26 @@ describe('Auth Utils', () => {
         expect(status.session).toBeNull();
         expect(status.sessionInfo.isValid).toBe(false);
       });
+
+      it('should handle getAuthStatus exceptions', async () => {
+        getCurrentSession.mockRejectedValue(new Error('Session error'));
+
+        const status = await authStatusUtils.getAuthStatus(mockSupabaseClient);
+
+        expect(status.isAuthenticated).toBe(false);
+        expect(status.user).toBeNull();
+        expect(status.session).toBeNull();
+        expect(status.error).toBe('Session error');
+      });
+
+      it('should handle getAuthStatus non-Error exceptions', async () => {
+        getCurrentSession.mockRejectedValue('String error');
+
+        const status = await authStatusUtils.getAuthStatus(mockSupabaseClient);
+
+        expect(status.isAuthenticated).toBe(false);
+        expect(status.error).toBe('Unknown auth status error');
+      });
     });
 
     describe('hasRole', () => {
@@ -617,6 +937,30 @@ describe('Auth Utils', () => {
 
       it('should return false for null user', () => {
         expect(authStatusUtils.hasRole(null, 'user')).toBe(false);
+      });
+
+      it('should return false for user without metadata', () => {
+        const userWithoutMetadata = { ...mockUser } as any;
+        delete userWithoutMetadata.user_metadata;
+        expect(authStatusUtils.hasRole(userWithoutMetadata, 'user')).toBe(false);
+      });
+
+      it('should handle custom roles', () => {
+        const customUser = { 
+          ...mockUser, 
+          user_metadata: { role: 'moderator' } 
+        };
+        expect(authStatusUtils.hasRole(customUser, 'moderator')).toBe(true);
+        expect(authStatusUtils.hasRole(customUser, 'admin')).toBe(false);
+      });
+
+      it('should default to user role when no role is specified', () => {
+        const userWithoutRole = { 
+          ...mockUser, 
+          user_metadata: {} 
+        };
+        expect(authStatusUtils.hasRole(userWithoutRole, 'user')).toBe(true);
+        expect(authStatusUtils.hasRole(userWithoutRole, 'admin')).toBe(false);
       });
     });
 
