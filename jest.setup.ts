@@ -38,6 +38,13 @@ jest.mock('next/server', () => ({
   },
 }));
 
+// Mock ResizeObserver for Radix UI components
+global.ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
+
 // Mock Next.js router
 const mockRouter = {
   push: jest.fn(),
