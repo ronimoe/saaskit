@@ -25,6 +25,8 @@ import {
 } from '@/lib/supabase';
 import type { Database } from '@/types/database';
 import { env } from '@/lib/env';
+import { ensureStripeCustomer } from '@/lib/stripe-sync';
+import { createProfileData } from '@/lib/database-utils';
 
 /**
  * Common auth operation result type
@@ -740,6 +742,72 @@ export const authStatusUtils = {
 };
 
 /**
+ * Customer Creation Utilities
+ */
+export const customerUtils = {
+  /**
+   * Ensure a user has both a Stripe customer and profile
+   * Used as a fallback when callback creation fails
+   */
+  ensureCustomerAndProfile: async (
+    userId: string,
+    email: string
+  ): Promise<AuthResult<{ stripeCustomerId: string; profileId?: string }>> => {
+    try {
+      const supabase = await createServerComponentClient();
+
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
+
+      // Ensure Stripe customer exists
+      const stripeCustomerId = await ensureStripeCustomer(userId, email);
+
+      // Create profile if it doesn't exist
+      let profileId = existingProfile?.id;
+      
+      if (!existingProfile) {
+        const profileData = createProfileData(userId, email);
+        
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .insert(profileData)
+          .select()
+          .single();
+
+        if (profileError) {
+          console.error('[CUSTOMER UTILS] Profile creation failed:', profileError);
+          return {
+            data: { stripeCustomerId },
+            error: 'Failed to create profile',
+            success: false,
+          };
+        }
+
+        profileId = profile.id;
+      }
+
+      return {
+        data: { stripeCustomerId, profileId },
+        error: null,
+        success: true,
+      };
+
+    } catch (error) {
+      console.error('[CUSTOMER UTILS] Error ensuring customer and profile:', error);
+      return {
+        data: null,
+        error: error instanceof Error ? error.message : 'Unexpected error',
+        success: false,
+      };
+    }
+  },
+};
+
+/**
  * Unified Authentication Utilities Export
  * 
  * Re-exports existing utilities and provides new enhanced utilities
@@ -756,6 +824,7 @@ export const authUtils = {
   admin: adminUtils,
   profile: profileUtils,
   status: authStatusUtils,
+  customer: customerUtils,
 
   // Convenience methods
   createClientForComponent: createClientComponentClient,

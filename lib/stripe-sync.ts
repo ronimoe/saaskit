@@ -89,10 +89,10 @@ export async function syncStripeCustomerData(stripeCustomerId: string): Promise<
         status: subscription.status,
         priceId: priceData?.id || null,
         planName: typeof product === 'object' && 'name' in product ? product.name : null,
-        currentPeriodStart: subscription.current_period_start || null,
-        currentPeriodEnd: subscription.current_period_end || null,
-        cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
-        trialEnd: subscription.trial_end || null,
+        currentPeriodStart: (subscription as any).current_period_start || null,
+        currentPeriodEnd: (subscription as any).current_period_end || null,
+        cancelAtPeriodEnd: (subscription as any).cancel_at_period_end || false,
+        trialEnd: (subscription as any).trial_end || null,
         currency: priceData?.currency || null,
         unitAmount: priceData?.unit_amount || null,
         interval: priceData?.recurring?.interval || null,
@@ -127,19 +127,19 @@ async function updateDatabaseSubscription(
   data: SubscriptionData
 ): Promise<void> {
   try {
-    // Get the user associated with this customer
-    const { data: customerData, error: customerError } = await supabase
-      .from('stripe_customers')
-      .select('user_id')
+    // Get the user associated with this customer from existing subscription
+    const { data: existingSubscription, error: customerError } = await supabase
+      .from('subscriptions')
+      .select('user_id, profile_id')
       .eq('stripe_customer_id', stripeCustomerId)
       .single();
 
-    if (customerError || !customerData) {
-      console.warn(`[STRIPE SYNC] Customer not found in database: ${stripeCustomerId}`);
+    if (customerError || !existingSubscription) {
+      console.warn(`[STRIPE SYNC] No existing subscription found for customer: ${stripeCustomerId}`);
       return;
     }
 
-    const userId = customerData.user_id;
+    const userId = existingSubscription.user_id;
 
     if (data.status === 'none' || !data.subscriptionId) {
       // No active subscription - delete existing subscription record if any
@@ -154,22 +154,28 @@ async function updateDatabaseSubscription(
       return;
     }
 
-    // Get profile_id for the user
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
+    // Use profile_id from existing subscription or get it from profiles table
+    let profileId = existingSubscription.profile_id;
+    
+    if (!profileId) {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .single();
 
-    if (profileError || !profileData) {
-      console.error(`[STRIPE SYNC] Profile not found for user: ${userId}`);
-      return;
+      if (profileError || !profileData) {
+        console.error(`[STRIPE SYNC] Profile not found for user: ${userId}`);
+        return;
+      }
+      
+      profileId = profileData.id;
     }
 
     // Upsert subscription data
     const subscriptionPayload = {
       user_id: userId,
-      profile_id: profileData.id,
+      profile_id: profileId,
       stripe_customer_id: stripeCustomerId,
       stripe_subscription_id: data.subscriptionId,
       stripe_price_id: data.priceId || '',
@@ -217,15 +223,15 @@ async function updateDatabaseSubscription(
  */
 export async function ensureStripeCustomer(userId: string, email: string): Promise<string> {
   try {
-    // Check if customer already exists in our database
-    const { data: existingCustomer } = await supabase
-      .from('stripe_customers')
+    // Check if customer already exists in our subscriptions table
+    const { data: existingSubscription } = await supabase
+      .from('subscriptions')
       .select('stripe_customer_id')
       .eq('user_id', userId)
       .single();
 
-    if (existingCustomer?.stripe_customer_id) {
-      return existingCustomer.stripe_customer_id;
+    if (existingSubscription?.stripe_customer_id) {
+      return existingSubscription.stripe_customer_id;
     }
 
     // Create new Stripe customer
@@ -235,20 +241,6 @@ export async function ensureStripeCustomer(userId: string, email: string): Promi
         userId
       }
     });
-
-    // Store in our database
-    const { error: insertError } = await supabase
-      .from('stripe_customers')
-      .insert({
-        user_id: userId,
-        stripe_customer_id: customer.id,
-        email
-      });
-
-    if (insertError) {
-      console.error('[STRIPE SYNC] Error storing customer:', insertError);
-      throw insertError;
-    }
 
     console.log(`[STRIPE SYNC] Created new customer: ${customer.id} for user: ${userId}`);
     return customer.id;
@@ -264,7 +256,7 @@ export async function ensureStripeCustomer(userId: string, email: string): Promi
  */
 export async function getStripeCustomerId(userId: string): Promise<string | null> {
   const { data } = await supabase
-    .from('stripe_customers')
+    .from('subscriptions')
     .select('stripe_customer_id')
     .eq('user_id', userId)
     .single();

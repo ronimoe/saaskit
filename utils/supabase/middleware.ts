@@ -41,7 +41,8 @@ export async function updateSession(request: NextRequest) {
     '/login',
     '/signup',
     '/auth',
-    '/header-demo'
+    '/header-demo',
+    '/pricing'
   ]
 
   // Check if the current path is a public route

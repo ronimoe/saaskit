@@ -41,6 +41,43 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
       }
 
+      // Handle signup confirmation - create Stripe customer and profile
+      if (requestUrl.searchParams.get('type') === 'signup') {
+        try {
+          // Get the current user after code exchange
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (user?.id && user?.email) {
+            console.log(`[AUTH CALLBACK] Creating customer for new user: ${user.id}`);
+            
+            // Call our customer creation API
+            const createCustomerResponse = await fetch(new URL('/api/auth/create-customer', requestUrl.origin), {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                email: user.email,
+              }),
+            });
+
+            if (!createCustomerResponse.ok) {
+              const errorData = await createCustomerResponse.json();
+              console.error('[AUTH CALLBACK] Customer creation failed:', errorData);
+              
+              // Don't fail the auth flow, but log the error
+              // User can still access the app, customer can be created later
+            } else {
+              console.log('[AUTH CALLBACK] Customer and profile created successfully');
+            }
+          }
+        } catch (customerError) {
+          console.error('[AUTH CALLBACK] Customer creation error:', customerError);
+          // Don't fail the auth flow, continue with normal signup
+        }
+      }
+
       // Successful authentication - redirect to intended destination
       const redirectUrl = new URL(next, requestUrl.origin);
       
