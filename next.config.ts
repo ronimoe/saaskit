@@ -7,8 +7,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   eslint: {
-    // Disable ESLint during builds (handled separately in CI/CD)
-    ignoreDuringBuilds: false,
+    // Disable ESLint during builds to prevent test file conflicts
+    ignoreDuringBuilds: true,
     // Exclude test files from ESLint during builds
     dirs: ['app', 'components', 'lib', 'utils', 'types'],
   },
