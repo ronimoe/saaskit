@@ -142,4 +142,149 @@ export function useAuthGuard() {
     canShowUnauthenticatedContent: isInitialized && !isLoading && !isAuthenticated,
     shouldShowLoading: !isInitialized || isLoading,
   };
+}
+
+/**
+ * Hook for protecting routes at the component level
+ * Provides redirect functionality and role-based access
+ */
+export function useRouteProtection(options: {
+  requireAuth?: boolean;
+  redirectTo?: string;
+  requiredRole?: string;
+  onUnauthorized?: () => void;
+} = {}) {
+  const { 
+    isAuthenticated, 
+    isLoading, 
+    isInitialized, 
+    user 
+  } = useAuthContext();
+
+  const {
+    requireAuth = true,
+    redirectTo = '/login',
+    requiredRole,
+    onUnauthorized,
+  } = options;
+
+  const checkAccess = React.useCallback(() => {
+    // Still loading, don't make decisions yet
+    if (!isInitialized || isLoading) {
+      return { canAccess: null, reason: 'loading' };
+    }
+
+    // Check authentication requirement
+    if (requireAuth && !isAuthenticated) {
+      return { canAccess: false, reason: 'not_authenticated' };
+    }
+
+    // Check role requirement
+    if (requiredRole && (!user || !hasUserRole(user, requiredRole))) {
+      return { canAccess: false, reason: 'insufficient_role' };
+    }
+
+    return { canAccess: true, reason: 'authorized' };
+  }, [isAuthenticated, isLoading, isInitialized, user, requireAuth, requiredRole]);
+
+  const accessResult = checkAccess();
+
+  // Handle unauthorized access
+  React.useEffect(() => {
+    if (accessResult.canAccess === false) {
+      if (onUnauthorized) {
+        onUnauthorized();
+      } else if (typeof window !== 'undefined') {
+        // Only redirect on client side
+        const currentPath = window.location.pathname;
+        const redirectUrl = redirectTo.includes('?') 
+          ? `${redirectTo}&returnTo=${encodeURIComponent(currentPath)}`
+          : `${redirectTo}?returnTo=${encodeURIComponent(currentPath)}`;
+        
+        window.location.href = redirectUrl;
+      }
+    }
+  }, [accessResult.canAccess, accessResult.reason, onUnauthorized, redirectTo]);
+
+  return {
+    canAccess: accessResult.canAccess,
+    reason: accessResult.reason,
+    isLoading: !isInitialized || isLoading,
+    isAuthenticated,
+    user,
+  };
+}
+
+/**
+ * Helper function to check user roles
+ * Implement this based on your user metadata structure
+ */
+function hasUserRole(user: User | null, requiredRole: string): boolean {
+  if (!user || !user.user_metadata) {
+    return false;
+  }
+
+  const userRole = user.user_metadata.role || 'user';
+
+  // Simple role hierarchy: admin > user
+  if (requiredRole === 'user') {
+    return ['user', 'admin'].includes(userRole);
+  }
+
+  if (requiredRole === 'admin') {
+    return userRole === 'admin';
+  }
+
+  return userRole === requiredRole;
+}
+
+/**
+ * Component wrapper for route protection
+ * Alternative to withAuth HOC with more flexible options
+ */
+export function ProtectedRoute({
+  children,
+  fallback,
+  requireAuth = true,
+  requiredRole,
+  redirectTo = '/login',
+}: {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  requireAuth?: boolean;
+  requiredRole?: string;
+  redirectTo?: string;
+}) {
+  const { canAccess, isLoading } = useRouteProtection({
+    requireAuth,
+    requiredRole,
+    redirectTo,
+  });
+
+  // Show loading state
+  if (isLoading || canAccess === null) {
+    return (
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      )
+    );
+  }
+
+  // Show unauthorized state
+  if (canAccess === false) {
+    return (
+      fallback || (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-4">Access Denied</h2>
+            <p className="text-gray-600">You don&apos;t have permission to access this page.</p>
+          </div>
+        </div>
+      )
+    );
+  }
+
+  return <>{children}</>;
 } 
