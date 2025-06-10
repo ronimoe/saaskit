@@ -1,9 +1,43 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
+import { SignupForm } from '@/components/auth/signup-form';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export const metadata: Metadata = {
   title: 'Sign Up',
   description: 'Create your account to get started with our platform.',
 };
+
+function SignupFormSkeleton() {
+  return (
+    <div className="w-full max-w-md mx-auto">
+      <div className="space-y-6 p-8 border border-white/10 rounded-xl backdrop-blur-md bg-white/5">
+        <div className="space-y-2 text-center">
+          <Skeleton className="h-8 w-32 mx-auto" />
+          <Skeleton className="h-4 w-48 mx-auto" />
+        </div>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+          </div>
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function SignupPage() {
   return (
@@ -36,20 +70,15 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Placeholder for signup form */}
-        <div className="w-full max-w-md mx-auto border-white/10 backdrop-blur-md bg-white/10 dark:bg-white/5 shadow-2xl rounded-xl p-8">
-          <div className="text-center space-y-4">
-            <p className="text-gray-600 dark:text-gray-400">
-              Signup form coming soon...
-            </p>
-            <a 
-              href="/login"
-              className="inline-flex items-center justify-center w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl rounded-lg"
-            >
-              Back to Sign In
-            </a>
-          </div>
-        </div>
+        {/* Signup Form */}
+        <Suspense fallback={<SignupFormSkeleton />}>
+          <SignupForm 
+            redirectTo="/profile"
+            title=""
+            description=""
+            showLoginLink={true}
+          />
+        </Suspense>
 
         {/* Trust indicators */}
         <div className="text-center">

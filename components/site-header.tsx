@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Sparkles, Zap, Shield, Globe, Code2, LogIn } from "lucide-react"
+import { Sparkles, Zap, Shield, Globe, Code2, LogIn, UserPlus } from "lucide-react"
 
 export function SiteHeader() {
   return (
@@ -23,11 +23,25 @@ export function SiteHeader() {
         </Link>
 
         {/* Navigation & Controls */}
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" className="gap-2" asChild>
+        <div className="flex items-center space-x-3">
+          <Button 
+            size="sm" 
+            className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl" 
+            asChild
+          >
             <Link href="/login">
               <LogIn className="h-4 w-4" />
               Login
+            </Link>
+          </Button>
+          <Button 
+            size="sm" 
+            className="gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 active:scale-95 transition-all duration-200 shadow-lg hover:shadow-xl" 
+            asChild
+          >
+            <Link href="/signup">
+              <UserPlus className="h-4 w-4" />
+              Sign Up
             </Link>
           </Button>
           <ThemeToggle />

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useTransition, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2, LogIn, Mail, Lock } from 'lucide-react';
@@ -30,9 +30,32 @@ export function LoginForm({
   showSignupLink = true 
 }: LoginFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const { user } = useAuth();
+
+  // Handle URL parameters for messages and errors
+  useEffect(() => {
+    const message = searchParams.get('message');
+    const error = searchParams.get('error');
+    
+    if (message) {
+      toast.success(message);
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('message');
+      window.history.replaceState({}, '', url.toString());
+    }
+    
+    if (error) {
+      toast.error(error);
+      // Clean up URL parameters
+      const url = new URL(window.location.href);
+      url.searchParams.delete('error');
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [searchParams]);
 
   // Initialize form with React Hook Form and Zod validation
   const {

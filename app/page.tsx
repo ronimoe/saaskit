@@ -106,7 +106,7 @@ export default function ShadcnDemo() {
                     <a href="/login">Login</a>
                   </Button>
                   <Button variant="outline" className="w-full" asChild>
-                    <a href="/login">Sign Up</a>
+                    <a href="/signup">Sign Up</a>
                   </Button>
                 </div>
                 <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300 mt-4">
