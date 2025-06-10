@@ -11,7 +11,8 @@ import { Separator } from '@/components/ui/separator'
 import { Badge } from '@/components/ui/badge'
 import { Loader2, Save, Check, AlertCircle } from 'lucide-react'
 import { transformProfileFormData, validateProfileData, parseBillingAddress } from '@/lib/database-utils'
-import { createClientComponentClient } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/client'
+import { handleSupabaseResponse } from '@/lib/supabase'
 import { toast } from 'sonner'
 import type { Profile, ProfileFormData, BillingAddress } from '@/types/database'
 
@@ -69,6 +70,83 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     setIsSuccess(false)
   }
 
+  const attemptUpdate = async (updateData: any, retryCount = 0): Promise<void> => {
+    const maxRetries = 2
+    
+    try {
+      const supabase = createClient()
+      
+      const response = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', profile.id)
+        .select()
+
+      const result = handleSupabaseResponse(response)
+
+      if (result.error) {
+        console.error('Error updating profile:', result.error)
+        toast.error(`Failed to update profile: ${result.error}`)
+        return
+      }
+
+      setIsSuccess(true)
+      toast.success('Profile updated successfully!')
+      
+      // Reset success state after 3 seconds
+      setTimeout(() => setIsSuccess(false), 3000)
+
+    } catch (error) {
+      let errorMessage = 'An unexpected error occurred'
+      let shouldRetry = false
+      
+      if (error instanceof Error) {
+        errorMessage = error.message
+        
+        // Handle specific network errors
+        if (error.message.includes('Failed to fetch')) {
+          shouldRetry = retryCount < maxRetries
+          errorMessage = shouldRetry 
+            ? `Network connection error. Retrying... (attempt ${retryCount + 1}/${maxRetries + 1})`
+            : 'Network connection error. Please check your internet connection and try again.'
+        } else if (error.message.includes('NetworkError')) {
+          shouldRetry = retryCount < maxRetries
+          errorMessage = shouldRetry 
+            ? `Network error. Retrying... (attempt ${retryCount + 1}/${maxRetries + 1})`
+            : 'Network error occurred. Please try again.'
+        } else if (error.message.includes('timeout')) {
+          shouldRetry = retryCount < maxRetries
+          errorMessage = shouldRetry 
+            ? `Request timeout. Retrying... (attempt ${retryCount + 1}/${maxRetries + 1})`
+            : 'Request timeout. Please try again.'
+        }
+      }
+      
+      // Log detailed error information
+      console.error('Error updating profile:', {
+        message: errorMessage,
+        retryCount,
+        willRetry: shouldRetry,
+        originalError: error instanceof Error ? {
+          name: error.name,
+          message: error.message,
+          stack: error.stack
+        } : error,
+        timestamp: new Date().toISOString()
+      })
+      
+      if (shouldRetry) {
+        // Show retry message
+        toast.info(errorMessage)
+        // Wait a bit before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
+        return attemptUpdate(updateData, retryCount + 1)
+      } else {
+        toast.error(`Failed to update profile: ${errorMessage}`)
+      }
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -99,33 +177,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     }
 
     startTransition(async () => {
-      try {
-        const supabase = createClientComponentClient()
-        
-        const updateData = transformProfileFormData({
-          ...dataToValidate,
-          billing_address: billingAddress,
-        })
-        
-        const { error } = await supabase
-          .from('profiles')
-          .update(updateData)
-          .eq('id', profile.id)
-
-        if (error) {
-          throw error
-        }
-
-        setIsSuccess(true)
-        toast.success('Profile updated successfully!')
-        
-        // Reset success state after 3 seconds
-        setTimeout(() => setIsSuccess(false), 3000)
-
-      } catch (error) {
-        console.error('Error updating profile:', error)
-        toast.error('Failed to update profile. Please try again.')
-      }
+      const updateData = transformProfileFormData({
+        ...dataToValidate,
+        billing_address: billingAddress,
+      })
+      
+      await attemptUpdate(updateData)
     })
   }
 

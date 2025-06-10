@@ -8,7 +8,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import type { User, Session } from '@supabase/supabase-js';
-import { createClientComponentClient } from '@/lib/supabase';
+import { createClient } from '@/utils/supabase/client';
 
 interface AuthState {
   // State
@@ -88,7 +88,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null }, false, 'auth/initialize/start');
           
-          const supabase = createClientComponentClient();
+          const supabase = createClient();
           
           // Get initial session
           const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -147,7 +147,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           set({ isLoading: true, error: null }, false, 'auth/signOut/start');
           
-          const supabase = createClientComponentClient();
+          const supabase = createClient();
           const { error } = await supabase.auth.signOut();
           
           if (error) {

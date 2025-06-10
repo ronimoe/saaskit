@@ -19,10 +19,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_COMPANY_NAME: z.string().default('Your Company'),
   
   // Supabase (Required for database and auth)
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url('Invalid Supabase URL format').default('https://placeholder.supabase.co'),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Supabase anon key is required').default('placeholder-anon-key'),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'Supabase service role key is required').default('placeholder-service-key'),
-  SUPABASE_JWT_SECRET: z.string().min(1, 'Supabase JWT secret is required').default('placeholder-jwt-secret'),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url('Invalid Supabase URL format'),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1, 'Supabase anon key is required'),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'Supabase service role key is required'),
+  SUPABASE_JWT_SECRET: z.string().min(1, 'Supabase JWT secret is required'),
   
   // Stripe (Optional for payments - can be set later)
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().startsWith('pk_', 'Invalid Stripe publishable key format').default('pk_test_placeholder').optional(),

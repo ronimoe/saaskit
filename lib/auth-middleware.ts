@@ -22,23 +22,30 @@ export async function getAuthStatus(request: NextRequest): Promise<AuthMiddlewar
   try {
     const { supabase } = createMiddlewareClient(request);
     
+    // Use getUser() instead of getSession() for security
+    // This authenticates the data by contacting the Supabase Auth server
     const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession();
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-    if (sessionError) {
+    if (userError) {
       return {
         isAuthenticated: false,
         user: null,
         session: null,
-        error: sessionError.message,
+        error: userError.message,
       };
     }
 
+    // Get session separately if needed (but don't rely on it for auth)
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     return {
-      isAuthenticated: !!session?.user,
-      user: session?.user || null,
+      isAuthenticated: !!user,
+      user: user || null,
       session,
       error: null,
     };

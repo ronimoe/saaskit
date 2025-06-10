@@ -1,5 +1,11 @@
 import '@testing-library/jest-dom';
 
+// Set up environment variables for tests
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
+process.env.SUPABASE_JWT_SECRET = 'test-jwt-secret';
+
 // Suppress console output during tests
 const originalConsole = global.console;
 global.console = {

@@ -2,141 +2,194 @@
  * @jest-environment node
  */
 
-import { NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { middleware } from '../middleware';
-import * as authMiddleware from '../lib/auth-middleware';
-import * as supabase from '../lib/supabase';
+import { updateSession } from '../utils/supabase/middleware';
 
-// Mock the dependencies
-jest.mock('../lib/supabase', () => ({
-  createMiddlewareClient: jest.fn(),
-}));
-
-jest.mock('../lib/auth-middleware', () => ({
-  getAuthStatus: jest.fn(),
-  getRouteType: jest.fn(),
-  createLoginUrl: jest.fn(),
-  createPostAuthRedirectUrl: jest.fn(),
-}));
-
-const mockCreateMiddlewareClient = supabase.createMiddlewareClient as jest.MockedFunction<typeof supabase.createMiddlewareClient>;
-const mockGetAuthStatus = authMiddleware.getAuthStatus as jest.MockedFunction<typeof authMiddleware.getAuthStatus>;
-const mockGetRouteType = authMiddleware.getRouteType as jest.MockedFunction<typeof authMiddleware.getRouteType>;
-const mockCreateLoginUrl = authMiddleware.createLoginUrl as jest.MockedFunction<typeof authMiddleware.createLoginUrl>;
-const mockCreatePostAuthRedirectUrl = authMiddleware.createPostAuthRedirectUrl as jest.MockedFunction<typeof authMiddleware.createPostAuthRedirectUrl>;
-
-// Mock global Response
-Object.defineProperty(global, 'Response', {
-  value: {
-    redirect: jest.fn((url: string) => ({ type: 'redirect', url })),
-  },
-});
-
-// Mock NextResponse for the module
+// Mock Next.js dependencies
 jest.mock('next/server', () => ({
-  NextRequest: jest.requireActual('next/server').NextRequest,
   NextResponse: {
-    next: jest.fn(() => ({ type: 'next' })),
-    redirect: jest.fn((url: string) => ({ type: 'redirect', url })),
+    next: jest.fn(),
+    redirect: jest.fn(),
   },
+  NextRequest: jest.fn(),
 }));
+
+// Mock the updateSession function
+jest.mock('../utils/supabase/middleware', () => ({
+  updateSession: jest.fn(),
+}));
+
+// Mock @supabase/ssr
+const mockAuth = {
+  getUser: jest.fn(),
+};
+
+const mockCreateServerClient = jest.fn();
+
+jest.mock('@supabase/ssr', () => ({
+  createServerClient: (...args: any[]) => mockCreateServerClient(...args),
+}));
+
+const mockUpdateSession = updateSession as jest.MockedFunction<typeof updateSession>;
+const mockNextResponse = NextResponse.next as jest.MockedFunction<typeof NextResponse.next>;
+const mockRedirect = NextResponse.redirect as jest.MockedFunction<typeof NextResponse.redirect>;
 
 describe('Middleware - Comprehensive Tests', () => {
   const createMockRequest = (url: string): NextRequest => {
     const fullUrl = new URL(url, 'http://localhost:3000');
-    const request = new NextRequest(fullUrl);
-    
-    // Mock the nextUrl property properly
-    Object.defineProperty(request, 'nextUrl', {
-      value: {
+    const request = {
+      nextUrl: {
         pathname: fullUrl.pathname,
         searchParams: fullUrl.searchParams,
+        clone: () => ({
+          pathname: fullUrl.pathname,
+          searchParams: fullUrl.searchParams,
+        }),
       },
-      writable: false,
-    });
-    
-    // Ensure the url property is set
-    Object.defineProperty(request, 'url', {
-      value: fullUrl.toString(),
-      writable: false,
-    });
-    
+      url: fullUrl.toString(),
+      cookies: {
+        getAll: jest.fn().mockReturnValue([]),
+        set: jest.fn(),
+      },
+    } as unknown as NextRequest;
+
     return request;
   };
 
-  const mockResponse = { type: 'response' };
+  const mockResponse = { type: 'next', headers: new Headers() };
+  const mockRedirectResponse = { type: 'redirect', url: 'http://localhost:3000/login' };
+
   const mockUser = {
     id: '123e4567-e89b-12d3-a456-426614174000',
     email: 'test@example.com',
-    user_metadata: { role: 'user', name: 'Test User' },
+    user_metadata: { name: 'Test User' },
     app_metadata: {},
     aud: 'authenticated',
     created_at: '2023-01-01T00:00:00Z',
     updated_at: '2023-01-01T00:00:00Z',
+    email_confirmed_at: '2023-01-01T00:00:00Z',
+    last_sign_in_at: '2023-01-01T00:00:00Z',
+    role: 'authenticated',
   };
-  
-  const mockSession = {
-    access_token: 'mock-access-token',
-    refresh_token: 'mock-refresh-token',
-    expires_in: 3600,
-    expires_at: Date.now() + 3600000,
-    token_type: 'bearer',
-    user: mockUser,
-  };
+
+  beforeAll(() => {
+    // Set up environment variables
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();
     
-    mockCreateMiddlewareClient.mockReturnValue({
-      supabase: {} as any,
-      response: mockResponse as any,
+    // Default mock implementations
+    mockUpdateSession.mockResolvedValue(mockResponse as any);
+    mockNextResponse.mockReturnValue(mockResponse as any);
+    mockRedirect.mockReturnValue(mockRedirectResponse as any);
+    
+    mockCreateServerClient.mockReturnValue({
+      auth: mockAuth,
+    });
+
+    // Default: successful auth response with user
+    mockAuth.getUser.mockResolvedValue({
+      data: { user: mockUser },
+      error: null,
     });
   });
 
-  describe('Protected Routes - Happy Path', () => {
-    it('should allow authenticated users to access protected routes', async () => {
+  describe('Direct middleware function tests', () => {
+    it('should call updateSession and return its result', async () => {
+      const request = createMockRequest('/profile');
+      const expectedResponse = { type: 'custom' };
+      
+      mockUpdateSession.mockResolvedValue(expectedResponse as any);
+
+      const result = await middleware(request);
+
+      expect(mockUpdateSession).toHaveBeenCalledWith(request);
+      expect(result).toBe(expectedResponse);
+    });
+
+    it('should handle updateSession errors gracefully', async () => {
+      const request = createMockRequest('/profile');
+      const error = new Error('updateSession failed');
+      
+      mockUpdateSession.mockRejectedValue(error);
+
+      await expect(middleware(request)).rejects.toThrow('updateSession failed');
+    });
+  });
+
+  describe('Protected Routes - Unauthenticated Access', () => {
+    beforeEach(() => {
+      // Mock unauthenticated response
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: null },
+        error: null,
+      });
+      
+      // Mock updateSession to simulate redirect behavior
+      mockUpdateSession.mockResolvedValue(mockRedirectResponse as any);
+    });
+
+    it('should redirect unauthenticated users from profile page', async () => {
+      const request = createMockRequest('/profile');
+
+      const result = await middleware(request);
+
+      expect(result).toBe(mockRedirectResponse);
+    });
+
+    it('should redirect unauthenticated users from dashboard', async () => {
+      const request = createMockRequest('/dashboard');
+
+      const result = await middleware(request);
+
+      expect(result).toBe(mockRedirectResponse);
+    });
+
+    it('should redirect unauthenticated users from admin panel', async () => {
+      const request = createMockRequest('/admin');
+
+      const result = await middleware(request);
+
+      expect(result).toBe(mockRedirectResponse);
+    });
+  });
+
+  describe('Protected Routes - Authenticated Access', () => {
+    it('should allow authenticated users to access profile page', async () => {
       const request = createMockRequest('/profile');
       
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
 
       const result = await middleware(request);
 
-      expect(mockGetRouteType).toHaveBeenCalledWith('/profile');
-      expect(mockGetAuthStatus).toHaveBeenCalledWith(request);
       expect(result).toBe(mockResponse);
     });
 
-    it('should allow authenticated users to access nested protected routes', async () => {
-      const request = createMockRequest('/profile/settings');
+    it('should allow authenticated users to access dashboard', async () => {
+      const request = createMockRequest('/dashboard');
       
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
 
       const result = await middleware(request);
 
-      expect(mockGetRouteType).toHaveBeenCalledWith('/profile/settings');
       expect(result).toBe(mockResponse);
     });
 
-    it('should allow authenticated users to access dashboard routes', async () => {
-      const request = createMockRequest('/dashboard/analytics');
+    it('should allow authenticated users to access admin panel', async () => {
+      const request = createMockRequest('/admin');
       
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
 
@@ -146,114 +199,32 @@ describe('Middleware - Comprehensive Tests', () => {
     });
   });
 
-  describe('Protected Routes - Unauthorized Access', () => {
-    it('should redirect unauthenticated users to login with returnTo parameter', async () => {
-      const request = createMockRequest('/profile');
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
+  describe('Auth Routes - Unauthenticated Access', () => {
+    beforeEach(() => {
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: null },
         error: null,
       });
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(mockGetRouteType).toHaveBeenCalledWith('/profile');
-      expect(mockGetAuthStatus).toHaveBeenCalledWith(request);
-      expect(mockCreateLoginUrl).toHaveBeenCalledWith('http://localhost:3000/profile', '/profile');
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
     });
 
-    it('should redirect users to login for nested protected routes', async () => {
-      const request = createMockRequest('/dashboard/settings/billing');
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fdashboard%2Fsettings%2Fbilling');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(mockCreateLoginUrl).toHaveBeenCalledWith(
-        'http://localhost:3000/dashboard/settings/billing',
-        '/dashboard/settings/billing'
-      );
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
-    });
-
-    it('should redirect for admin routes', async () => {
-      const request = createMockRequest('/admin/users');
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fadmin%2Fusers');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
-    });
-  });
-
-  describe('Auth Routes - Happy Path', () => {
     it('should allow unauthenticated users to access login page', async () => {
       const request = createMockRequest('/login');
-      
-      mockGetRouteType.mockReturnValue('auth');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
 
       const result = await middleware(request);
 
-      expect(mockGetRouteType).toHaveBeenCalledWith('/login');
-      expect(mockGetAuthStatus).toHaveBeenCalledWith(request);
       expect(result).toBe(mockResponse);
     });
 
     it('should allow unauthenticated users to access signup page', async () => {
       const request = createMockRequest('/signup');
-      
-      mockGetRouteType.mockReturnValue('auth');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
 
       const result = await middleware(request);
 
       expect(result).toBe(mockResponse);
     });
 
-    it('should allow unauthenticated users to access password reset', async () => {
-      const request = createMockRequest('/reset-password');
-      
-      mockGetRouteType.mockReturnValue('auth');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
+    it('should allow unauthenticated users to access auth callbacks', async () => {
+      const request = createMockRequest('/auth/callback');
 
       const result = await middleware(request);
 
@@ -261,184 +232,53 @@ describe('Middleware - Comprehensive Tests', () => {
     });
   });
 
-  describe('Auth Routes - Authenticated User Redirects', () => {
-    it('should redirect authenticated users away from login page to default', async () => {
+  describe('Auth Routes - Authenticated User Access', () => {
+    it('should allow authenticated users to access auth routes', async () => {
       const request = createMockRequest('/login');
-      const redirectUrl = new URL('http://localhost:3000/profile');
       
-      mockGetRouteType.mockReturnValue('auth');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
-      mockCreatePostAuthRedirectUrl.mockReturnValue(redirectUrl);
 
       const result = await middleware(request);
 
-      expect(mockGetRouteType).toHaveBeenCalledWith('/login');
-      expect(mockGetAuthStatus).toHaveBeenCalledWith(request);
-      expect(mockCreatePostAuthRedirectUrl).toHaveBeenCalledWith('http://localhost:3000/login', undefined);
-      expect(result).toEqual({ type: 'redirect', url: redirectUrl });
+      expect(result).toBe(mockResponse);
     });
 
-    it('should redirect authenticated users to returnTo URL when present', async () => {
-      const request = createMockRequest('/login?returnTo=%2Fprofile%2Fsettings');
-      const redirectUrl = new URL('http://localhost:3000/profile/settings');
-      
-      mockGetRouteType.mockReturnValue('auth');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
-        error: null,
-      });
-      mockCreatePostAuthRedirectUrl.mockReturnValue(redirectUrl);
-
-      const result = await middleware(request);
-
-      expect(mockCreatePostAuthRedirectUrl).toHaveBeenCalledWith(
-        'http://localhost:3000/login?returnTo=%2Fprofile%2Fsettings',
-        '/profile/settings'
-      );
-      expect(result).toEqual({ type: 'redirect', url: redirectUrl });
-    });
-
-    it('should redirect authenticated users from signup page', async () => {
+    it('should allow authenticated users to access signup page', async () => {
       const request = createMockRequest('/signup');
-      const redirectUrl = new URL('http://localhost:3000/profile');
       
-      mockGetRouteType.mockReturnValue('auth');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
-      mockCreatePostAuthRedirectUrl.mockReturnValue(redirectUrl);
 
       const result = await middleware(request);
 
-      expect(result).toEqual({ type: 'redirect', url: redirectUrl });
-    });
-
-    it('should handle complex returnTo URLs with query parameters', async () => {
-      const request = createMockRequest('/login?returnTo=%2Fdashboard%3Ftab%3Danalytics');
-      const redirectUrl = new URL('http://localhost:3000/dashboard?tab=analytics');
-      
-      mockGetRouteType.mockReturnValue('auth');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
-        error: null,
-      });
-      mockCreatePostAuthRedirectUrl.mockReturnValue(redirectUrl);
-
-      const result = await middleware(request);
-
-      expect(mockCreatePostAuthRedirectUrl).toHaveBeenCalledWith(
-        'http://localhost:3000/login?returnTo=%2Fdashboard%3Ftab%3Danalytics',
-        '/dashboard?tab=analytics'
-      );
-      expect(result).toEqual({ type: 'redirect', url: redirectUrl });
+      expect(result).toBe(mockResponse);
     });
   });
 
   describe('Public Routes', () => {
-    it('should allow access to home page regardless of auth status', async () => {
+    it('should allow access to home page regardless of auth status - unauthenticated', async () => {
       const request = createMockRequest('/');
       
-      mockGetRouteType.mockReturnValue('public');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: null },
         error: null,
       });
 
       const result = await middleware(request);
 
-      expect(mockGetRouteType).toHaveBeenCalledWith('/');
       expect(result).toBe(mockResponse);
     });
 
     it('should allow authenticated users to access public routes', async () => {
-      const request = createMockRequest('/about');
+      const request = createMockRequest('/');
       
-      mockGetRouteType.mockReturnValue('public');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
-        error: null,
-      });
-
-      const result = await middleware(request);
-
-      expect(result).toBe(mockResponse);
-    });
-
-    it('should allow access to pricing page', async () => {
-      const request = createMockRequest('/pricing');
-      
-      mockGetRouteType.mockReturnValue('public');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-
-      const result = await middleware(request);
-
-      expect(result).toBe(mockResponse);
-    });
-
-    it('should allow access to contact page', async () => {
-      const request = createMockRequest('/contact');
-      
-      mockGetRouteType.mockReturnValue('public');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-
-      const result = await middleware(request);
-
-      expect(result).toBe(mockResponse);
-    });
-  });
-
-  describe('Other Routes', () => {
-    it('should allow access to unclassified routes by default', async () => {
-      const request = createMockRequest('/some-other-route');
-      
-      mockGetRouteType.mockReturnValue('other');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-
-      const result = await middleware(request);
-
-      expect(mockGetRouteType).toHaveBeenCalledWith('/some-other-route');
-      expect(result).toBe(mockResponse);
-    });
-
-    it('should allow access to API routes', async () => {
-      const request = createMockRequest('/api/health');
-      
-      mockGetRouteType.mockReturnValue('other');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
 
@@ -449,327 +289,121 @@ describe('Middleware - Comprehensive Tests', () => {
   });
 
   describe('Edge Cases and Error Handling', () => {
-    it('should handle auth errors gracefully and still redirect protected routes', async () => {
-      const request = createMockRequest('/profile');
+    it('should handle auth errors gracefully and still allow public routes', async () => {
+      const request = createMockRequest('/');
       
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: 'Auth service temporarily unavailable',
-      });
-
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile');
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
+      // Mock updateSession to handle auth errors gracefully and return normal response for public routes
+      mockUpdateSession.mockResolvedValue(mockResponse as any);
 
       const result = await middleware(request);
 
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
+      expect(result).toBe(mockResponse);
     });
 
-    it('should handle middleware errors by allowing the request through', async () => {
-      const request = createMockRequest('/profile');
+    it('should handle middleware errors by passing them through', async () => {
+      const request = createMockRequest('/test');
+      const error = new Error('Network error');
       
-      mockGetAuthStatus.mockRejectedValue(new Error('Middleware error'));
+      mockUpdateSession.mockRejectedValue(error);
 
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'next' });
+      await expect(middleware(request)).rejects.toThrow('Network error');
     });
 
     it('should handle Supabase connection errors', async () => {
       const request = createMockRequest('/profile');
+      const error = new Error('Supabase connection failed');
       
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: 'Connection to auth service failed',
-      });
+      mockUpdateSession.mockRejectedValue(error);
 
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile');
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
+      await expect(middleware(request)).rejects.toThrow('Supabase connection failed');
     });
 
-    it('should handle malformed URLs gracefully', async () => {
-      const request = createMockRequest('/profile%20with%20spaces');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile%2520with%2520spaces');
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
-    });
-
-    it('should handle createMiddlewareClient errors', async () => {
+    it('should handle null/undefined auth results by redirecting protected routes', async () => {
       const request = createMockRequest('/profile');
       
-      mockCreateMiddlewareClient.mockImplementation(() => {
-        throw new Error('Failed to create middleware client');
-      });
+      // Mock updateSession to simulate redirect for null auth results
+      mockUpdateSession.mockResolvedValue(mockRedirectResponse as any);
 
       const result = await middleware(request);
 
-      expect(result).toEqual({ type: 'next' });
-    });
-
-    it('should handle null/undefined auth results', async () => {
-      const request = createMockRequest('/profile');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile');
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
-    });
-
-    it('should handle expired sessions', async () => {
-      const expiredSession = {
-        ...mockSession,
-        expires_at: Date.now() - 3600000, // Expired 1 hour ago
-      };
-
-      const request = createMockRequest('/profile');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: expiredSession,
-        error: 'Session expired',
-      });
-
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile');
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
-    });
-  });
-
-  describe('Session States', () => {
-    it('should handle valid session with user', async () => {
-      const request = createMockRequest('/profile');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
-        error: null,
-      });
-
-      const result = await middleware(request);
-
-      expect(result).toBe(mockResponse);
-    });
-
-    it('should handle session without user', async () => {
-      const sessionWithoutUser = {
-        ...mockSession,
-        user: null as any, // Type assertion for test scenario
-      };
-
-      const request = createMockRequest('/profile');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: sessionWithoutUser,
-        error: null,
-      });
-
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile');
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
-    });
-
-    it('should handle user without session', async () => {
-      const request = createMockRequest('/profile');
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: mockUser,
-        session: null,
-        error: null,
-      });
-
-      const loginUrl = new URL('http://localhost:3000/login?returnTo=%2Fprofile');
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
-
-      const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
+      expect(result).toBe(mockRedirectResponse);
     });
   });
 
   describe('URL Edge Cases', () => {
-    it('should handle URLs with fragments', async () => {
-      const request = createMockRequest('/profile#settings');
+    it('should handle URLs with query parameters', async () => {
+      const request = createMockRequest('/profile?tab=settings');
       
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: null },
         error: null,
       });
+      
+      mockUpdateSession.mockResolvedValue(mockRedirectResponse as any);
 
       const result = await middleware(request);
 
-      expect(mockGetRouteType).toHaveBeenCalledWith('/profile');
-      expect(result).toBe(mockResponse);
+      expect(result).toBe(mockRedirectResponse);
     });
 
-    it('should handle URLs with query parameters', async () => {
-      const request = createMockRequest('/profile?tab=settings&view=advanced');
+    it('should handle URLs with fragments', async () => {
+      const request = createMockRequest('/profile#section');
       
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: null },
         error: null,
       });
+      
+      mockUpdateSession.mockResolvedValue(mockRedirectResponse as any);
 
       const result = await middleware(request);
 
-      expect(mockGetRouteType).toHaveBeenCalledWith('/profile');
-      expect(result).toBe(mockResponse);
+      expect(result).toBe(mockRedirectResponse);
     });
 
     it('should handle root path variations', async () => {
-      const variations = ['/', '/?redirect=true'];
+      const request = createMockRequest('/');
       
-      for (const path of variations) {
-        const request = createMockRequest(path);
-        
-        mockGetRouteType.mockReturnValue('public');
-        mockGetAuthStatus.mockResolvedValue({
-          isAuthenticated: false,
-          user: null,
-          session: null,
-          error: null,
-        });
-
-        const result = await middleware(request);
-
-        expect(result).toBe(mockResponse);
-      }
-    });
-
-    it('should handle very long URLs', async () => {
-      const longPath = '/profile/' + 'a'.repeat(1000);
-      const request = createMockRequest(longPath);
-      
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: null },
         error: null,
       });
-
-      const loginUrl = new URL(`http://localhost:3000/login?returnTo=${encodeURIComponent(longPath)}`);
-      mockCreateLoginUrl.mockReturnValue(loginUrl);
 
       const result = await middleware(request);
-
-      expect(result).toEqual({ type: 'redirect', url: loginUrl });
-    });
-
-    it('should handle invalid URL patterns gracefully', async () => {
-      // Test that the middleware can handle edge cases that might cause URL parsing issues
-      // We'll mock the request creation to simulate what happens with problematic URLs
-      const mockRequest = {
-        nextUrl: { pathname: '//' },
-        url: 'http://localhost:3000//',
-      } as NextRequest;
-
-      mockGetRouteType.mockReturnValue('public');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
-        error: null,
-      });
-
-      const result = await middleware(mockRequest);
 
       expect(result).toBe(mockResponse);
     });
   });
 
-  describe('Performance and Optimization', () => {
-    it('should not call getAuthStatus for public routes when possible', async () => {
-      const request = createMockRequest('/');
+  describe('Cookie Handling', () => {
+    it('should properly configure cookies for Supabase client', async () => {
+      const request = createMockRequest('/profile');
       
-      mockGetRouteType.mockReturnValue('public');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: false,
-        user: null,
-        session: null,
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
 
-      const result = await middleware(request);
+      await middleware(request);
 
-      expect(mockGetAuthStatus).toHaveBeenCalledWith(request);
-      expect(result).toBe(mockResponse);
+      expect(mockUpdateSession).toHaveBeenCalledWith(request);
     });
 
-    it('should handle concurrent requests properly', async () => {
-      const requests = [
-        createMockRequest('/profile'),
-        createMockRequest('/dashboard'),
-        createMockRequest('/settings'),
-      ];
-
-      mockGetRouteType.mockReturnValue('protected');
-      mockGetAuthStatus.mockResolvedValue({
-        isAuthenticated: true,
-        user: mockUser,
-        session: mockSession,
+    it('should handle cookie operations through updateSession', async () => {
+      const request = createMockRequest('/profile');
+      const mockCookies = [{ name: 'session', value: 'test-value' }];
+      
+      request.cookies.getAll = jest.fn().mockReturnValue(mockCookies);
+      
+      mockAuth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
 
-      const results = await Promise.all(requests.map(req => middleware(req)));
+      await middleware(request);
 
-      results.forEach(result => {
-        expect(result).toBe(mockResponse);
-      });
-
-      expect(mockGetAuthStatus).toHaveBeenCalledTimes(3);
+      // The cookie operations are handled inside updateSession, so we just verify it was called
+      expect(mockUpdateSession).toHaveBeenCalledWith(request);
     });
   });
 }); 

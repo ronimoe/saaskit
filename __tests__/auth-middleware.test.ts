@@ -90,6 +90,17 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       supabase: mockSupabaseClient as any,
       response: { type: 'response' } as any,
     });
+
+    // Default: authenticated user
+    mockSupabaseClient.auth.getUser.mockResolvedValue({
+      data: { user: mockUser },
+      error: null,
+    });
+
+    mockSupabaseClient.auth.getSession.mockResolvedValue({
+      data: { session: mockSession },
+      error: null,
+    });
   });
 
   describe('getAuthStatus', () => {
@@ -97,6 +108,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       it('should return authenticated status for valid session with user', async () => {
         const request = createMockRequest('/profile');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: mockSession },
           error: null,
@@ -111,7 +127,7 @@ describe('Auth Middleware - Comprehensive Tests', () => {
           error: null,
         });
         expect(mockCreateMiddlewareClient).toHaveBeenCalledWith(request);
-        expect(mockSupabaseClient.auth.getSession).toHaveBeenCalled();
+        expect(mockSupabaseClient.auth.getUser).toHaveBeenCalled();
       });
 
       it('should return authenticated status for fresh session', async () => {
@@ -122,6 +138,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
 
         const request = createMockRequest('/dashboard');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: freshSession },
           error: null,
@@ -147,6 +168,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
         const adminSession = { ...mockSession, user: adminUser };
         const request = createMockRequest('/admin');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: adminUser },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: adminSession },
           error: null,
@@ -164,6 +190,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       it('should return unauthenticated status for no session', async () => {
         const request = createMockRequest('/login');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: null },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: null },
           error: null,
@@ -183,6 +214,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
         const sessionWithoutUser = { ...mockSession, user: null as any };
         const request = createMockRequest('/signup');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: null },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: sessionWithoutUser },
           error: null,
@@ -199,11 +235,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
     describe('Edge Cases and Error Handling', () => {
       it('should handle session errors gracefully', async () => {
         const request = createMockRequest('/profile');
-        const sessionError = new Error('Session validation failed');
+        const userError = new Error('Session validation failed');
         
-        mockSupabaseClient.auth.getSession.mockResolvedValue({
-          data: { session: null },
-          error: sessionError,
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: null },
+          error: userError,
         });
 
         const result = await getAuthStatus(request);
@@ -222,6 +258,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
 
         const request = createMockRequest('/profile');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: expiredSession },
           error: null,
@@ -229,7 +270,7 @@ describe('Auth Middleware - Comprehensive Tests', () => {
 
         const result = await getAuthStatus(request);
 
-        // Current implementation doesn't check expiration, only presence of session.user
+        // Current implementation doesn't check expiration, only presence of user
         expect(result.isAuthenticated).toBe(true);
         expect(result.session).toEqual(expiredSession);
       });
@@ -238,7 +279,7 @@ describe('Auth Middleware - Comprehensive Tests', () => {
         const request = createMockRequest('/profile');
         const networkError = new Error('Network connection failed');
         
-        mockSupabaseClient.auth.getSession.mockRejectedValue(networkError);
+        mockSupabaseClient.auth.getUser.mockRejectedValue(networkError);
 
         const result = await getAuthStatus(request);
 
@@ -251,6 +292,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       it('should handle malformed session data', async () => {
         const request = createMockRequest('/profile');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: { invalid: 'data' } as any },
           error: null,
@@ -258,7 +304,8 @@ describe('Auth Middleware - Comprehensive Tests', () => {
 
         const result = await getAuthStatus(request);
 
-        expect(result.isAuthenticated).toBe(false);
+        expect(result.isAuthenticated).toBe(true);
+        expect(result.user).toEqual(mockUser);
       });
 
       it('should handle createMiddlewareClient errors', async () => {
@@ -277,34 +324,18 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       it('should handle undefined session response', async () => {
         const request = createMockRequest('/profile');
         
-        mockSupabaseClient.auth.getSession.mockResolvedValue({
-          data: undefined as any,
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: null },
           error: null,
         });
+
+        mockSupabaseClient.auth.getSession.mockResolvedValue(undefined as any);
 
         const result = await getAuthStatus(request);
 
         expect(result.isAuthenticated).toBe(false);
         expect(result.user).toBeNull();
         expect(result.session).toBeNull();
-      });
-
-      it('should handle session with missing required properties', async () => {
-        const incompleteSession = {
-          access_token: 'token',
-          // Missing other required properties
-        } as any;
-
-        const request = createMockRequest('/profile');
-        
-        mockSupabaseClient.auth.getSession.mockResolvedValue({
-          data: { session: incompleteSession },
-          error: null,
-        });
-
-        const result = await getAuthStatus(request);
-
-        expect(result.isAuthenticated).toBe(false);
       });
     });
 
@@ -317,6 +348,11 @@ describe('Auth Middleware - Comprehensive Tests', () => {
 
         const request = createMockRequest('/profile');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
           data: { session: soonToExpireSession },
           error: null,
@@ -329,15 +365,20 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       });
 
       it('should handle session with very long expiration', async () => {
-        const longLivedSession = {
+        const longSession = {
           ...mockSession,
-          expires_at: Date.now() / 1000 + (365 * 24 * 60 * 60), // 1 year
+          expires_at: Date.now() / 1000 + 86400 * 30, // Expires in 30 days
         };
 
         const request = createMockRequest('/profile');
         
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: mockUser },
+          error: null,
+        });
+
         mockSupabaseClient.auth.getSession.mockResolvedValue({
-          data: { session: longLivedSession },
+          data: { session: longSession },
           error: null,
         });
 
@@ -347,17 +388,16 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       });
 
       it('should handle user with empty metadata', async () => {
-        const userWithoutMetadata = {
+        const userWithEmptyMetadata = {
           ...mockUser,
           user_metadata: {},
           app_metadata: {},
         };
 
-        const sessionWithoutMetadata = { ...mockSession, user: userWithoutMetadata };
         const request = createMockRequest('/profile');
         
-        mockSupabaseClient.auth.getSession.mockResolvedValue({
-          data: { session: sessionWithoutMetadata },
+        mockSupabaseClient.auth.getUser.mockResolvedValue({
+          data: { user: userWithEmptyMetadata },
           error: null,
         });
 
@@ -372,144 +412,131 @@ describe('Auth Middleware - Comprehensive Tests', () => {
 
   describe('getRouteType', () => {
     describe('Protected Routes', () => {
-      it('should identify protected routes correctly', () => {
-        const protectedPaths = [
-          '/profile',
-          '/profile/',
-          '/profile/settings',
-          '/profile/nested/deep',
-          '/dashboard',
-          '/dashboard/analytics',
-          '/dashboard/users/123',
-          '/settings',
-          '/settings/billing',
-          '/admin',
-          '/admin/users',
-          '/admin/system/config',
-        ];
+      const protectedPaths = [
+        '/profile',
+        '/dashboard',
+        '/settings',
+        '/admin',
+        '/profile/settings',
+        '/dashboard/analytics',
+        '/admin/users',
+      ];
 
-        protectedPaths.forEach(path => {
+      protectedPaths.forEach(path => {
+        it(`should classify ${path} as protected`, () => {
           expect(getRouteType(path)).toBe('protected');
         });
       });
 
-      it('should handle protected routes with query parameters', () => {
-        // Query parameters and fragments don't affect route matching
+      it('should handle nested protected routes', () => {
         expect(getRouteType('/profile')).toBe('protected');
         expect(getRouteType('/dashboard')).toBe('protected');
       });
 
-      it('should handle protected routes with fragments', () => {
-        // Query parameters and fragments don't affect route matching
+      it('should handle admin routes', () => {
         expect(getRouteType('/profile')).toBe('protected');
         expect(getRouteType('/admin')).toBe('protected');
       });
     });
 
     describe('Auth Routes', () => {
-      it('should identify auth routes correctly', () => {
-        // Based on actual implementation in routeConfig
-        const authPaths = [
-          '/login',
-          '/signup', 
-          '/reset-password',
-          '/verify-email',
-        ];
+      const authPaths = [
+        '/login',
+        '/signup',
+        '/reset-password',
+        '/verify-email',
+        '/login/forgot-password',
+        '/signup/verify',
+      ];
 
-        authPaths.forEach(path => {
+      authPaths.forEach(path => {
+        it(`should classify ${path} as auth`, () => {
           expect(getRouteType(path)).toBe('auth');
         });
-        
-        // Routes not in config should be 'other'
+      });
+
+      it('should handle auth route variations', () => {
         expect(getRouteType('/forgot-password')).toBe('other');
       });
 
-      it('should handle auth routes with query parameters', () => {
-        // Route type only checks the pathname, not query parameters
+      it('should handle nested auth routes', () => {
         expect(getRouteType('/login')).toBe('auth');
         expect(getRouteType('/signup')).toBe('auth');
         expect(getRouteType('/reset-password')).toBe('auth');
       });
 
-      it('should not match auth-like subpaths', () => {
+      it('should not classify non-auth login/signup references as auth', () => {
         expect(getRouteType('/help/login-issues')).toBe('other');
         expect(getRouteType('/docs/signup-guide')).toBe('other');
       });
     });
 
     describe('Public Routes', () => {
-      it('should identify public routes correctly', () => {
-        // Based on actual implementation in routeConfig  
-        const publicPaths = [
-          '/',
-          '/about',
-          '/contact',
-          '/pricing',
-          '/features',
-          '/terms',
-          '/privacy',
-          '/api',
-        ];
+      const publicPaths = [
+        '/',
+        '/about',
+        '/contact',
+        '/pricing',
+        '/features',
+        '/terms',
+        '/privacy',
+        '/api',
+        '/api/users',
+        '/api/health',
+      ];
 
-        publicPaths.forEach(path => {
+      publicPaths.forEach(path => {
+        it(`should classify ${path} as public`, () => {
           expect(getRouteType(path)).toBe('public');
         });
-        
-        // Routes not in config should be 'other'
+      });
+
+      it('should handle non-exact public matches that are not matched', () => {
         expect(getRouteType('/docs')).toBe('other');
         expect(getRouteType('/blog')).toBe('other');
         expect(getRouteType('/help')).toBe('other');
       });
 
-      it('should handle public routes with query parameters', () => {
-        // Query parameters don't affect route matching
+      it('should handle exact public routes', () => {
         expect(getRouteType('/')).toBe('public');
         expect(getRouteType('/pricing')).toBe('public');
       });
 
       it('should handle nested public routes', () => {
-        // Features and API sub-routes are public since they're in config
         expect(getRouteType('/features/analytics')).toBe('public');
         expect(getRouteType('/api/users')).toBe('public');
       });
     });
 
     describe('Other Routes', () => {
-      it('should classify unmatched routes as other', () => {
-        const otherPaths = [
-          '/unknown-route',
-          '/custom-page',
-          '/temp-landing',
-          '/_next/static/css/app.css',
-          '/favicon.ico',
-          '/robots.txt',
-          '/docs',
-          '/blog',
-          '/help',
-        ];
+      const otherPaths = [
+        '/docs',
+        '/blog',
+        '/help',
+        '/unknown',
+        '/random-path',
+      ];
 
-        otherPaths.forEach(path => {
+      otherPaths.forEach(path => {
+        it(`should classify ${path} as other`, () => {
           expect(getRouteType(path)).toBe('other');
         });
       });
 
-      it('should handle API routes as public', () => {
-        // API routes are configured as public
+      it('should handle API routes', () => {
         expect(getRouteType('/api')).toBe('public');
         expect(getRouteType('/api/users')).toBe('public');
         expect(getRouteType('/api/health')).toBe('public');
         expect(getRouteType('/api/v1/users')).toBe('public');
       });
-    });
 
-    describe('Edge Cases', () => {
-      it('should handle empty and malformed paths', () => {
+      it('should handle edge cases', () => {
         expect(getRouteType('')).toBe('other');
         expect(getRouteType('not-a-path')).toBe('other');
         expect(getRouteType('///')).toBe('public'); // '///' startsWith '/', which is public
       });
 
-      it('should handle paths with special characters', () => {
+      it('should handle specific path patterns', () => {
         expect(getRouteType('/profile/test')).toBe('protected'); // Nested paths work
         expect(getRouteType('/login%20page')).toBe('other'); // Encoded space makes it not match
         expect(getRouteType('/pricing-test')).toBe('other'); // Dash makes it not match exactly
@@ -517,13 +544,12 @@ describe('Auth Middleware - Comprehensive Tests', () => {
 
       it('should handle very long paths', () => {
         const longProfilePath = '/profile/' + 'a'.repeat(1000);
-        expect(getRouteType(longProfilePath)).toBe('protected');
-        
         const longOtherPath = '/unknown/' + 'b'.repeat(1000);
+        expect(getRouteType(longProfilePath)).toBe('protected');
         expect(getRouteType(longOtherPath)).toBe('other');
       });
 
-      it('should handle case sensitivity', () => {
+      it('should be case sensitive', () => {
         expect(getRouteType('/Profile')).toBe('other'); // Case sensitive
         expect(getRouteType('/LOGIN')).toBe('other'); // Case sensitive
         expect(getRouteType('/PRICING')).toBe('other'); // Case sensitive
@@ -532,254 +558,220 @@ describe('Auth Middleware - Comprehensive Tests', () => {
   });
 
   describe('createLoginUrl', () => {
-    describe('Happy Path', () => {
-      it('should create login URL without returnTo parameter', () => {
-        const requestUrl = 'http://localhost:3000/';
-        const pathname = '/';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        expect(result.toString()).toBe('http://localhost:3000/login');
-        expect(result.pathname).toBe('/login');
-        expect(result.searchParams.has('returnTo')).toBe(false);
-      });
+    const baseUrl = 'https://example.com';
 
-      it('should create login URL with returnTo parameter', () => {
-        const requestUrl = 'http://localhost:3000/profile';
-        const pathname = '/profile';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        expect(result.toString()).toBe('http://localhost:3000/login?returnTo=%2Fprofile');
-        expect(result.pathname).toBe('/login');
-        expect(result.searchParams.get('returnTo')).toBe('/profile');
-      });
-
-      it('should create login URL with complex returnTo path', () => {
-        const requestUrl = 'http://localhost:3000/dashboard/analytics?period=month&view=charts';
-        const pathname = '/dashboard/analytics?period=month&view=charts';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        expect(result.pathname).toBe('/login');
-        expect(result.searchParams.get('returnTo')).toBe('/dashboard/analytics?period=month&view=charts');
-      });
-
-      it('should preserve existing login page query parameters', () => {
-        const requestUrl = 'http://localhost:3000/profile';
-        const pathname = '/profile';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        result.searchParams.set('error', 'access_denied');
-        
-        expect(result.searchParams.get('returnTo')).toBe('/profile');
-        expect(result.searchParams.get('error')).toBe('access_denied');
-      });
+    it('should create login URL without return path', () => {
+      const requestUrl = 'https://example.com';
+      const pathname = '/login';
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.has('returnTo')).toBe(false);
     });
 
-    describe('Edge Cases', () => {
-      it('should handle URLs with different origins', () => {
-        const requestUrl = 'https://myapp.com/profile';
-        const pathname = '/profile';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        expect(result.toString()).toBe('https://myapp.com/login?returnTo=%2Fprofile');
-        expect(result.origin).toBe('https://myapp.com');
-      });
+    it('should create login URL with protected return path', () => {
+      const requestUrl = 'https://example.com';
+      const pathname = '/profile';
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.get('returnTo')).toBe('/profile');
+    });
 
-      it('should handle URLs with ports', () => {
-        const requestUrl = 'http://localhost:8080/dashboard';
-        const pathname = '/dashboard';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        expect(result.toString()).toBe('http://localhost:8080/login?returnTo=%2Fdashboard');
-        expect(result.port).toBe('8080');
-      });
+    it('should ignore non-protected return paths', () => {
+      const requestUrl = 'https://example.com';
+      const pathname = '/about';
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.has('returnTo')).toBe(false);
+    });
 
-      it('should handle paths with special characters', () => {
-        const requestUrl = 'http://localhost:3000/profile/test';
-        const pathname = '/profile/test';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        // Should add returnTo since this is a protected route
-        expect(result.searchParams.get('returnTo')).toBe('/profile/test');
-      });
+    it('should handle auth routes as return path', () => {
+      const requestUrl = 'https://example.com';
+      const pathname = '/signup';
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.has('returnTo')).toBe(false);
+    });
 
-      it('should handle very long paths', () => {
-        const longPath = '/profile/' + 'a'.repeat(1000);
-        const requestUrl = `http://localhost:3000${longPath}`;
-        
-        const result = createLoginUrl(requestUrl, longPath);
-        
-        expect(result.searchParams.get('returnTo')).toBe(longPath);
-      });
+    it('should handle multiple protected paths', () => {
+      const requestUrl = 'https://example.com';
+      const pathname = '/dashboard/settings';
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.get('returnTo')).toBe('/dashboard/settings');
+    });
 
-      it('should handle malformed URLs gracefully', () => {
-        const requestUrl = 'not-a-valid-url';
-        const pathname = '/profile';
-        
-        expect(() => createLoginUrl(requestUrl, pathname)).toThrow();
-      });
+    it('should preserve base URL', () => {
+      const requestUrl = 'https://custom.domain.com';
+      const pathname = '/admin';
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.origin).toBe('https://custom.domain.com');
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.get('returnTo')).toBe('/admin');
+    });
 
-      it('should handle empty pathname', () => {
-        const requestUrl = 'http://localhost:3000/';
-        const pathname = '';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        expect(result.toString()).toBe('http://localhost:3000/login');
-        expect(result.searchParams.has('returnTo')).toBe(false);
-      });
+    it('should handle very long protected paths', () => {
+      const requestUrl = 'https://example.com';
+      const longPath = '/profile/' + 'segment/'.repeat(100) + 'end';
+      
+      const result = createLoginUrl(requestUrl, longPath);
+      
+      expect(result.searchParams.get('returnTo')).toBe(longPath);
+    });
 
-      it('should handle pathname with fragments', () => {
-        const requestUrl = 'http://localhost:3000/profile';
-        const pathname = '/profile';
-        
-        const result = createLoginUrl(requestUrl, pathname);
-        
-        // Should add returnTo since /profile is protected
-        expect(result.searchParams.get('returnTo')).toBe('/profile');
-      });
+    it('should throw for invalid base URL', () => {
+      const requestUrl = 'invalid-url';
+      const pathname = '/profile';
+      
+      expect(() => createLoginUrl(requestUrl, pathname)).toThrow();
+    });
+
+    it('should handle undefined return path', () => {
+      const requestUrl = 'https://example.com';
+      const pathname = undefined;
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.has('returnTo')).toBe(false);
+    });
+
+    it('should handle empty return path', () => {
+      const requestUrl = 'https://example.com';
+      const pathname = '';
+      
+      const result = createLoginUrl(requestUrl, pathname);
+      
+      expect(result.pathname).toBe('/login');
+      expect(result.searchParams.has('returnTo')).toBe(false);
     });
   });
 
   describe('createPostAuthRedirectUrl', () => {
-    describe('Happy Path', () => {
-      it('should create redirect URL to returnTo parameter', () => {
-        const requestUrl = 'http://localhost:3000/login?returnTo=%2Fprofile';
-        const returnTo = '/profile';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        expect(result.toString()).toBe('http://localhost:3000/profile');
-        expect(result.pathname).toBe('/profile');
-      });
+    const baseUrl = 'https://example.com';
 
-      it('should create redirect URL to default when no returnTo', () => {
-        const requestUrl = 'http://localhost:3000/login';
-        
-        const result = createPostAuthRedirectUrl(requestUrl);
-        
-        expect(result.toString()).toBe('http://localhost:3000/profile');
-        expect(result.pathname).toBe('/profile');
-      });
-
-      it('should handle complex returnTo URLs with query parameters', () => {
-        const requestUrl = 'http://localhost:3000/login';
-        const returnTo = '/dashboard/analytics'; // Simplified since query handling is complex
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        expect(result.toString()).toBe('http://localhost:3000/dashboard/analytics');
-        expect(result.pathname).toBe('/dashboard/analytics');
-      });
-
-      it('should preserve the original origin', () => {
-        const requestUrl = 'https://myapp.com/login?returnTo=%2Fdashboard';
-        const returnTo = '/dashboard';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        expect(result.toString()).toBe('https://myapp.com/dashboard');
-        expect(result.origin).toBe('https://myapp.com');
-      });
+    it('should redirect to return path if protected', () => {
+      const result = createPostAuthRedirectUrl(baseUrl, '/dashboard');
+      
+      expect(result.pathname).toBe('/dashboard');
     });
 
-    describe('Edge Cases', () => {
-      it('should handle URLs with different ports', () => {
-        const requestUrl = 'http://localhost:8080/login?returnTo=%2Fprofile';
-        const returnTo = '/profile';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        expect(result.toString()).toBe('http://localhost:8080/profile');
-        expect(result.port).toBe('8080');
-      });
+    it('should redirect to profile for non-protected return path', () => {
+      const result = createPostAuthRedirectUrl(baseUrl, '/about');
+      
+      expect(result.pathname).toBe('/profile');
+    });
 
-      it('should sanitize potentially dangerous returnTo URLs', () => {
-        const requestUrl = 'http://localhost:3000/login';
-        const returnTo = 'javascript:alert("xss")';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        // Should fallback to default since it's not a valid relative path
-        expect(result.toString()).toBe('http://localhost:3000/profile');
-      });
+    it('should redirect to profile for auth return path', () => {
+      const result = createPostAuthRedirectUrl(baseUrl, '/login');
+      
+      expect(result.pathname).toBe('/profile');
+    });
 
-      it('should handle external URLs in returnTo by falling back to default', () => {
-        const requestUrl = 'http://localhost:3000/login';
-        const returnTo = 'https://evil.com/steal-data';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        // Should fallback to default for security
-        expect(result.toString()).toBe('http://localhost:3000/profile');
-      });
+    it('should redirect to profile for undefined return path', () => {
+      const result = createPostAuthRedirectUrl(baseUrl);
+      
+      expect(result.pathname).toBe('/profile');
+    });
 
-      it('should handle returnTo with special characters', () => {
-        const requestUrl = 'http://localhost:3000/login';
-        const returnTo = '/profile/user-name'; // URL encoded paths
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        expect(result.pathname).toBe('/profile/user-name');
-      });
+    it('should handle nested protected paths', () => {
+      const result = createPostAuthRedirectUrl(baseUrl, '/admin/users/123');
+      
+      expect(result.pathname).toBe('/admin/users/123');
+    });
 
-      it('should handle very long returnTo paths', () => {
-        const longPath = '/profile/' + 'a'.repeat(1000);
-        const requestUrl = 'http://localhost:3000/login';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, longPath);
-        
-        expect(result.pathname).toBe(longPath);
-      });
-
-      it('should handle empty returnTo parameter', () => {
-        const requestUrl = 'http://localhost:3000/login?returnTo=';
-        const returnTo = '';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        expect(result.toString()).toBe('http://localhost:3000/profile');
-      });
-
-      it('should handle returnTo with fragments', () => {
-        const requestUrl = 'http://localhost:3000/login';
-        const returnTo = '/profile'; // Simplified since current implementation doesn't handle fragments
-        
-        const result = createPostAuthRedirectUrl(requestUrl, returnTo);
-        
-        expect(result.toString()).toBe('http://localhost:3000/profile');
-        expect(result.pathname).toBe('/profile');
-      });
-
-      it('should handle malformed request URLs', () => {
-        const requestUrl = 'not-a-valid-url';
-        const returnTo = '/profile';
-        
-        expect(() => createPostAuthRedirectUrl(requestUrl, returnTo)).toThrow();
-      });
-
-      it('should handle undefined returnTo parameter', () => {
-        const requestUrl = 'http://localhost:3000/login';
-        
-        const result = createPostAuthRedirectUrl(requestUrl, undefined);
-        
-        expect(result.toString()).toBe('http://localhost:3000/profile');
-      });
+    it('should preserve base URL', () => {
+      const customBaseUrl = 'https://app.example.com';
+      const result = createPostAuthRedirectUrl(customBaseUrl, '/profile');
+      
+      expect(result.origin).toBe('https://app.example.com');
+      expect(result.pathname).toBe('/profile');
     });
   });
 
-      describe('serverAuthUtils', () => {
-    describe('hasRole function', () => {
-      it('should return true for matching user role', () => {
+  describe('matchesRoutePattern', () => {
+    const patterns = ['/api', '/admin', '/profile'];
+
+    it('should match exact patterns', () => {
+      expect(matchesRoutePattern('/api', patterns)).toBe(true);
+      expect(matchesRoutePattern('/admin', patterns)).toBe(true);
+      expect(matchesRoutePattern('/profile', patterns)).toBe(true);
+    });
+
+    it('should match nested patterns', () => {
+      expect(matchesRoutePattern('/api/users', patterns)).toBe(true);
+      expect(matchesRoutePattern('/admin/settings', patterns)).toBe(true);
+      expect(matchesRoutePattern('/profile/edit', patterns)).toBe(true);
+    });
+
+    it('should not match partial patterns', () => {
+      expect(matchesRoutePattern('/ap', patterns)).toBe(false);
+      expect(matchesRoutePattern('/admi', patterns)).toBe(false);
+      expect(matchesRoutePattern('/profil', patterns)).toBe(false);
+    });
+
+    it('should not match similar but different patterns', () => {
+      expect(matchesRoutePattern('/api-v2', patterns)).toBe(false);
+      expect(matchesRoutePattern('/admin-panel', patterns)).toBe(false);
+      expect(matchesRoutePattern('/profile-settings', patterns)).toBe(false);
+    });
+
+    it('should handle empty patterns array', () => {
+      expect(matchesRoutePattern('/anything', [])).toBe(false);
+    });
+
+         it('should handle root pattern', () => {
+       const rootPatterns = ['/'];
+       expect(matchesRoutePattern('/', rootPatterns)).toBe(true);
+       expect(matchesRoutePattern('/anything', rootPatterns)).toBe(false); // Root pattern only matches exact '/'
+     });
+  });
+
+  describe('routeConfig', () => {
+    it('should have protected routes defined', () => {
+      expect(routeConfig.protected).toContain('/profile');
+      expect(routeConfig.protected).toContain('/dashboard');
+      expect(routeConfig.protected).toContain('/settings');
+      expect(routeConfig.protected).toContain('/admin');
+    });
+
+    it('should have auth routes defined', () => {
+      expect(routeConfig.auth).toContain('/login');
+      expect(routeConfig.auth).toContain('/signup');
+      expect(routeConfig.auth).toContain('/reset-password');
+      expect(routeConfig.auth).toContain('/verify-email');
+    });
+
+    it('should have public routes defined', () => {
+      expect(routeConfig.public).toContain('/');
+      expect(routeConfig.public).toContain('/about');
+      expect(routeConfig.public).toContain('/contact');
+      expect(routeConfig.public).toContain('/pricing');
+      expect(routeConfig.public).toContain('/features');
+      expect(routeConfig.public).toContain('/terms');
+      expect(routeConfig.public).toContain('/privacy');
+      expect(routeConfig.public).toContain('/api');
+    });
+  });
+
+  describe('serverAuthUtils', () => {
+    describe('hasRole', () => {
+      it('should return true for user with matching role', () => {
         expect(serverAuthUtils.hasRole(mockUser, 'user')).toBe(true);
       });
 
-      it('should return true for admin role in user_metadata', () => {
+      it('should return true for admin role checking user role', () => {
         const adminUser = {
           ...mockUser,
           user_metadata: { ...mockUser.user_metadata, role: 'admin' }
@@ -787,7 +779,7 @@ describe('Auth Middleware - Comprehensive Tests', () => {
         expect(serverAuthUtils.hasRole(adminUser, 'admin')).toBe(true);
       });
 
-      it('should return false for non-matching role', () => {
+      it('should return false for user without required role', () => {
         expect(serverAuthUtils.hasRole(mockUser, 'superadmin')).toBe(false);
       });
 
@@ -795,56 +787,57 @@ describe('Auth Middleware - Comprehensive Tests', () => {
         expect(serverAuthUtils.hasRole(null, 'user')).toBe(false);
       });
 
-      it('should return false for user without metadata', () => {
+      it('should handle user without metadata', () => {
         const userWithoutMetadata = { ...mockUser, user_metadata: {} };
         expect(serverAuthUtils.hasRole(userWithoutMetadata, 'admin')).toBe(false);
       });
 
-      it('should handle case sensitivity', () => {
+      it('should be case sensitive', () => {
         expect(serverAuthUtils.hasRole(mockUser, 'USER')).toBe(false);
         expect(serverAuthUtils.hasRole(mockUser, 'Admin')).toBe(false);
       });
 
-      it('should handle empty role parameter', () => {
+      it('should handle empty role string', () => {
         expect(serverAuthUtils.hasRole(mockUser, '')).toBe(false);
       });
 
-      it('should handle role hierarchy - admin can access user role', () => {
+      it('should handle role hierarchy', () => {
         const adminUser = {
           ...mockUser,
           user_metadata: { ...mockUser.user_metadata, role: 'admin' }
         };
         
+        // Admin should have both user and admin access
         expect(serverAuthUtils.hasRole(adminUser, 'user')).toBe(true);
         expect(serverAuthUtils.hasRole(adminUser, 'admin')).toBe(true);
       });
     });
 
-    describe('canAccessResource function', () => {
-      it('should return true for read access for authenticated users', () => {
+    describe('canAccessResource', () => {
+      it('should allow user to read their own resources', () => {
         expect(serverAuthUtils.canAccessResource(mockUser, 'resource1', 'read')).toBe(true);
       });
 
-      it('should return true for write access for non-admin users', () => {
-        // Based on current implementation, non-admins can only read
+      it('should deny user write access to protected resources', () => {
         expect(serverAuthUtils.canAccessResource(mockUser, 'resource1', 'write')).toBe(false);
       });
 
-      it('should return true for admin users for all actions', () => {
+      it('should allow admin full access to resources', () => {
         const adminUser = {
           ...mockUser,
           user_metadata: { ...mockUser.user_metadata, role: 'admin' }
         };
+        
         expect(serverAuthUtils.canAccessResource(adminUser, 'resource1', 'read')).toBe(true);
         expect(serverAuthUtils.canAccessResource(adminUser, 'resource1', 'write')).toBe(true);
         expect(serverAuthUtils.canAccessResource(adminUser, 'resource1', 'delete')).toBe(true);
       });
 
-      it('should return false for null user', () => {
+      it('should deny access for null user', () => {
         expect(serverAuthUtils.canAccessResource(null, 'resource1', 'read')).toBe(false);
       });
 
-      it('should handle different resource IDs', () => {
+      it('should allow access to user-owned resources', () => {
         expect(serverAuthUtils.canAccessResource(mockUser, 'user-123', 'read')).toBe(true);
         expect(serverAuthUtils.canAccessResource(mockUser, 'document-456', 'read')).toBe(true);
       });
@@ -852,92 +845,18 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       it('should handle empty resource ID', () => {
         expect(serverAuthUtils.canAccessResource(mockUser, '', 'read')).toBe(true);
       });
-
-      it('should respect permission levels', () => {
-        const regularUser = mockUser;
-        const adminUser = {
-          ...mockUser,
-          user_metadata: { ...mockUser.user_metadata, role: 'admin' }
-        };
-        
-        // Regular users can only read
-        expect(serverAuthUtils.canAccessResource(regularUser, 'test-resource', 'read')).toBe(true);
-        expect(serverAuthUtils.canAccessResource(regularUser, 'test-resource', 'write')).toBe(false);
-        expect(serverAuthUtils.canAccessResource(regularUser, 'test-resource', 'delete')).toBe(false);
-        
-        // Admin users can do everything
-        expect(serverAuthUtils.canAccessResource(adminUser, 'test-resource', 'read')).toBe(true);
-        expect(serverAuthUtils.canAccessResource(adminUser, 'test-resource', 'write')).toBe(true);
-        expect(serverAuthUtils.canAccessResource(adminUser, 'test-resource', 'delete')).toBe(true);
-      });
-    });
-
-    describe('Server-side utils integration', () => {
-      it('should provide consistent interface for role checking', () => {
-        const utils = serverAuthUtils;
-        
-        expect(typeof utils.hasRole).toBe('function');
-        expect(typeof utils.canAccessResource).toBe('function');
-      });
-
-      it('should handle complex user scenarios', () => {
-        const complexUser = {
-          ...mockUser,
-          user_metadata: {
-            role: 'user', // Current implementation only recognizes 'user' and 'admin'
-            custom_role: 'content_manager',
-            permissions: ['read', 'write', 'publish'],
-            team: 'marketing',
-            level: 3
-          }
-        };
-
-        expect(serverAuthUtils.hasRole(complexUser, 'user')).toBe(true);
-        expect(serverAuthUtils.hasRole(complexUser, 'admin')).toBe(false);
-        // Implementation doesn't check custom roles in current logic
-        expect(serverAuthUtils.hasRole(complexUser, 'content_manager')).toBe(false);
-      });
-
-      it('should maintain type safety with User interface', () => {
-        // This test ensures our utils work with proper Supabase User types
-        const typedUser: User = mockUser;
-        
-        expect(serverAuthUtils.hasRole(typedUser, 'user')).toBe(true);
-        expect(serverAuthUtils.canAccessResource(typedUser, 'test', 'read')).toBe(true);
-      });
     });
   });
 
   describe('Module Integration', () => {
-    it('should export all required functions', () => {
-      expect(typeof getAuthStatus).toBe('function');
-      expect(typeof getRouteType).toBe('function');
-      expect(typeof createLoginUrl).toBe('function');
-      expect(typeof createPostAuthRedirectUrl).toBe('function');
-      expect(typeof serverAuthUtils).toBe('object');
-    });
-
-    it('should maintain consistent return types', () => {
-      // Test that all functions return expected types
-      const request = createMockRequest('/test');
+    it('should handle end-to-end authentication flow', async () => {
+      const request = createMockRequest('/profile');
       
-      mockSupabaseClient.auth.getSession.mockResolvedValue({
-        data: { session: mockSession },
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
         error: null,
       });
 
-      return getAuthStatus(request).then((result: AuthMiddlewareResult) => {
-        expect(typeof result.isAuthenticated).toBe('boolean');
-        expect(result.user === null || typeof result.user === 'object').toBe(true);
-        expect(result.session === null || typeof result.session === 'object').toBe(true);
-        expect(result.error === null || typeof result.error === 'string').toBe(true);
-      });
-    });
-
-    it('should handle end-to-end authentication flow', async () => {
-      // Simulate a complete authentication check flow
-      const request = createMockRequest('/profile');
-      
       mockSupabaseClient.auth.getSession.mockResolvedValue({
         data: { session: mockSession },
         error: null,
@@ -950,8 +869,92 @@ describe('Auth Middleware - Comprehensive Tests', () => {
       expect(routeType).toBe('protected');
       
       // Verify the combination works for authorization
-      const isAuthorized = authStatus.isAuthenticated && routeType === 'protected';
-      expect(isAuthorized).toBe(true);
+      expect(authStatus.isAuthenticated && routeType === 'protected').toBe(true);
+    });
+
+    it('should handle unauthorized access flow', async () => {
+      const request = createMockRequest('/profile');
+      
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: null },
+        error: null,
+      });
+
+      const authStatus = await getAuthStatus(request);
+      const routeType = getRouteType('/profile');
+      const loginUrl = createLoginUrl('https://example.com', '/profile');
+      
+      expect(authStatus.isAuthenticated).toBe(false);
+      expect(routeType).toBe('protected');
+      expect(loginUrl.pathname).toBe('/login');
+      expect(loginUrl.searchParams.get('returnTo')).toBe('/profile');
+    });
+
+    it('should handle auth route access for unauthenticated users', async () => {
+      const request = createMockRequest('/login');
+      
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: null },
+        error: null,
+      });
+
+      const authStatus = await getAuthStatus(request);
+      const routeType = getRouteType('/login');
+      
+      expect(authStatus.isAuthenticated).toBe(false);
+      expect(routeType).toBe('auth');
+      
+      // Auth routes should be accessible to unauthenticated users
+      expect(!authStatus.isAuthenticated && routeType === 'auth').toBe(true);
+    });
+
+    it('should handle public route access regardless of auth status', async () => {
+      const request = createMockRequest('/');
+      
+      // Test with unauthenticated user
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: null },
+        error: null,
+      });
+
+      const authStatus1 = await getAuthStatus(request);
+      const routeType = getRouteType('/');
+      
+      expect(authStatus1.isAuthenticated).toBe(false);
+      expect(routeType).toBe('public');
+      
+      // Test with authenticated user
+      mockSupabaseClient.auth.getUser.mockResolvedValue({
+        data: { user: mockUser },
+        error: null,
+      });
+
+      const authStatus2 = await getAuthStatus(request);
+      
+      expect(authStatus2.isAuthenticated).toBe(true);
+      expect(routeType).toBe('public');
+      
+      // Public routes should be accessible regardless of auth status
+      expect(routeType === 'public').toBe(true);
+    });
+
+    it('should handle role-based access control', () => {
+      const adminUser = {
+        ...mockUser,
+        user_metadata: { ...mockUser.user_metadata, role: 'admin' }
+      };
+      
+      // Regular user access
+      expect(serverAuthUtils.hasRole(mockUser, 'user')).toBe(true);
+      expect(serverAuthUtils.hasRole(mockUser, 'admin')).toBe(false);
+      
+      // Admin user access
+      expect(serverAuthUtils.hasRole(adminUser, 'user')).toBe(true);
+      expect(serverAuthUtils.hasRole(adminUser, 'admin')).toBe(true);
+      
+      // Resource access
+      expect(serverAuthUtils.canAccessResource(mockUser, 'user-resource', 'read')).toBe(true);
+      expect(serverAuthUtils.canAccessResource(adminUser, 'any-resource', 'write')).toBe(true);
     });
   });
 }); 

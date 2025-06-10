@@ -1,152 +1,89 @@
 /**
- * Supabase Client Configuration
+ * Supabase Client Configuration - Client Side Only
  * 
- * This module provides Supabase client instances for different contexts:
- * - Client-side operations (browser)
- * - Server-side operations (API routes, server components)
- * - Server actions and middleware
+ * This module provides Supabase client instances for client-side operations.
+ * For server-side operations, use the utilities in @/utils/supabase/ directory.
  */
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { createServerClient } from '@supabase/ssr';
-import { type Database } from '../types/database';
-import { env } from './env';
-import { NextRequest, NextResponse } from 'next/server';
+import { createBrowserClient, createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient, type SupabaseClient } from '@supabase/supabase-js'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
+import type { Database } from '../types/database'
 
 // Export the database type for use throughout the app
-export type { Database } from '../types/database';
+export type { Database } from '../types/database'
 
 /**
  * Client-side Supabase client
  * Use this in client components, browser-side operations
  */
 export const createClientComponentClient = (): SupabaseClient<Database> => {
-  return createClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    }
-  );
-};
+  return createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
+}
 
 /**
- * Server Component client
- * Use this in server components where you need to access user data
+ * Middleware Supabase client
+ * Use this in middleware for server-side authentication checks
  */
-export const createServerComponentClient = async (): Promise<SupabaseClient<Database>> => {
-  const { cookies } = await import('next/headers');
-  const cookieStore = await cookies();
-  
-  return createServerClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
-            });
-          } catch (error) {
-            // Handle cases where cookies cannot be set (e.g., in middleware)
-            console.warn('Failed to set cookies:', error);
-          }
-        },
-      },
-    }
-  );
-};
-
-/**
- * Route Handler client
- * Use this in API routes (app/api/*)
- */
-export const createRouteHandlerClient = async (): Promise<SupabaseClient<Database>> => {
-  const { cookies } = await import('next/headers');
-  const cookieStore = await cookies();
-  
-  return createServerClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
-};
-
-/**
- * Middleware client
- * Use this in middleware.ts for authentication checks
- */
-export const createMiddlewareClient = (
-  request: NextRequest
-): { supabase: SupabaseClient<Database>; response: NextResponse } => {
+export const createMiddlewareClient = (request: NextRequest) => {
   let response = NextResponse.next({
     request: {
       headers: request.headers,
     },
-  });
+  })
 
-  const supabase = createServerClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll() {
-          return request.cookies.getAll();
+        get(name: string) {
+          return request.cookies.get(name)?.value
         },
-        setAll(cookiesToSet: Array<{ name: string; value: string; options?: Record<string, unknown> }>) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        set(name: string, value: string, options: any) {
+          request.cookies.set({
+            name,
+            value,
+            ...options,
+          })
           response = NextResponse.next({
             request: {
               headers: request.headers,
             },
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
+          })
+          response.cookies.set({
+            name,
+            value,
+            ...options,
+          })
+        },
+        remove(name: string, options: any) {
+          request.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          })
+          response.cookies.set({
+            name,
+            value: '',
+            ...options,
+          })
         },
       },
     }
-  );
+  )
 
-  return { supabase, response };
-};
-
-/**
- * Admin client (server-side only)
- * Use this for administrative operations that bypass RLS
- * NEVER expose this to the client side
- */
-export const createAdminClient = (): SupabaseClient<Database> => {
-  return createClient<Database>(
-    env.NEXT_PUBLIC_SUPABASE_URL,
-    env.SUPABASE_SERVICE_ROLE_KEY,
-    {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false,
-      },
-    }
-  );
-};
+  return { supabase, response }
+}
 
 /**
  * Utility function to get the current user from any Supabase client
@@ -156,19 +93,19 @@ export const getCurrentUser = async (supabase: SupabaseClient<Database>) => {
     const {
       data: { user },
       error,
-    } = await supabase.auth.getUser();
+    } = await supabase.auth.getUser()
 
     if (error) {
-      console.error('Error getting current user:', error);
-      return null;
+      console.error('Error getting current user:', error)
+      return null
     }
 
-    return user;
+    return user
   } catch (error) {
-    console.error('Unexpected error getting current user:', error);
-    return null;
+    console.error('Unexpected error getting current user:', error)
+    return null
   }
-};
+}
 
 /**
  * Utility function to get the current session from any Supabase client
@@ -178,19 +115,19 @@ export const getCurrentSession = async (supabase: SupabaseClient<Database>) => {
     const {
       data: { session },
       error,
-    } = await supabase.auth.getSession();
+    } = await supabase.auth.getSession()
 
     if (error) {
-      console.error('Error getting current session:', error);
-      return null;
+      console.error('Error getting current session:', error)
+      return null
     }
 
-    return session;
+    return session
   } catch (error) {
-    console.error('Unexpected error getting current session:', error);
-    return null;
+    console.error('Unexpected error getting current session:', error)
+    return null
   }
-};
+}
 
 /**
  * Type-safe helper for handling Supabase responses
@@ -199,122 +136,64 @@ export const handleSupabaseResponse = <T>(
   response: { data: T | null; error: Error | null }
 ): { data: T; error: null } | { data: null; error: string } => {
   if (response.error) {
-    console.error('Supabase error:', response.error);
+    // Extract useful error information for logging
+    const errorInfo = {
+      message: response.error.message || 'Unknown error',
+      name: response.error.name || 'Error',
+      stack: response.error.stack,
+      ...(response.error as any), // Include any additional properties
+    }
+    
+    console.error('Supabase error details:', errorInfo)
+    console.error('Full Supabase error object:', JSON.stringify(response.error, null, 2))
+    
     return {
       data: null,
       error: response.error.message || 'An unexpected error occurred',
-    };
+    }
   }
 
   if (!response.data) {
     return {
       data: null,
       error: 'No data returned',
-    };
+    }
   }
 
   return {
     data: response.data,
     error: null,
-  };
-};
+  }
+}
 
 /**
- * Auth state management helpers
+ * Authentication helpers
  */
 export const authHelpers = {
   /**
-   * Sign in with email and password
+   * Check if user is authenticated
    */
-  signInWithPassword: async (
-    supabase: SupabaseClient<Database>,
-    email: string,
-    password: string
-  ) => {
-    const response = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (response.error) {
-      return {
-        data: null,
-        error: response.error.message || 'Sign in failed',
-      };
+  isAuthenticated: async (supabase: SupabaseClient<Database>): Promise<boolean> => {
+    const user = await getCurrentUser(supabase)
+    return !!user
+  },
+
+  /**
+   * Get user ID safely
+   */
+  getUserId: async (supabase: SupabaseClient<Database>): Promise<string | null> => {
+    const user = await getCurrentUser(supabase)
+    return user?.id || null
+  },
+
+  /**
+   * Require authenticated user (throws if not authenticated)
+   */
+  requireAuth: async (supabase: SupabaseClient<Database>) => {
+    const user = await getCurrentUser(supabase)
+    if (!user) {
+      throw new Error('Authentication required')
     }
-
-    return {
-      data: response.data,
-      error: null,
-    };
+    return user
   },
-
-  /**
-   * Sign up with email and password
-   */
-  signUpWithPassword: async (
-    supabase: SupabaseClient<Database>,
-    email: string,
-    password: string,
-    options?: {
-      emailRedirectTo?: string;
-      data?: Record<string, unknown>;
-    }
-  ) => {
-    const response = await supabase.auth.signUp({
-      email,
-      password,
-      options,
-    });
-    
-    if (response.error) {
-      return {
-        data: null,
-        error: response.error.message || 'Sign up failed',
-      };
-    }
-
-    return {
-      data: response.data,
-      error: null,
-    };
-  },
-
-  /**
-   * Sign out the current user
-   */
-  signOut: async (supabase: SupabaseClient<Database>) => {
-    const { error } = await supabase.auth.signOut();
-    return { error: error?.message || null };
-  },
-
-  /**
-   * Reset password
-   */
-  resetPassword: async (
-    supabase: SupabaseClient<Database>,
-    email: string,
-    redirectTo?: string
-  ) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo,
-    });
-    return { error: error?.message || null };
-  },
-
-  /**
-   * Update user password
-   */
-  updatePassword: async (
-    supabase: SupabaseClient<Database>,
-    newPassword: string
-  ) => {
-    const { error } = await supabase.auth.updateUser({
-      password: newPassword,
-    });
-    return { error: error?.message || null };
-  },
-};
-
-// Default client for immediate use (client-side only)
-export const supabase = createClientComponentClient(); 
+} 

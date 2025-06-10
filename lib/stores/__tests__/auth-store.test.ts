@@ -14,8 +14,8 @@ const mockSupabaseClient = {
   },
 };
 
-jest.mock('@/lib/supabase', () => ({
-  createClientComponentClient: jest.fn(() => mockSupabaseClient),
+jest.mock('@/utils/supabase/client', () => ({
+  createClient: jest.fn(() => mockSupabaseClient),
 }));
 
 // Mock console methods to avoid noise in tests

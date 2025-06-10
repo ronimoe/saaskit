@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { createServerComponentClient, getCurrentUser } from '@/lib/supabase'
+import { createClient } from '@/utils/supabase/server'
 import { ProfileForm } from '@/components/profile-form'
 import { ProfileHeader } from '@/components/profile-header'
 import { ProfileStats } from '@/components/profile-stats'
@@ -9,7 +9,7 @@ import { redirect } from 'next/navigation'
 import type { Profile, Subscription } from '@/types/database'
 
 async function getProfileData(userId: string) {
-  const supabase = await createServerComponentClient()
+  const supabase = await createClient()
   
   // Get profile data
   const { data: profile, error: profileError } = await supabase
@@ -84,7 +84,8 @@ function ProfileSkeleton() {
 }
 
 async function ProfileContent() {
-  const user = await getCurrentUser(await createServerComponentClient())
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
   
   if (!user) {
     redirect('/login')

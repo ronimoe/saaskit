@@ -57,6 +57,14 @@ const nextConfig: NextConfig = {
 
   // Webpack configuration for additional optimizations
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Suppress Supabase realtime-js dynamic import warnings
+    config.ignoreWarnings = [
+      {
+        module: /node_modules\/@supabase\/realtime-js/,
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+    ];
+
     // Exclude test files from build
     config.module.rules.push({
       test: /\.(test|spec)\.(ts|tsx|js|jsx)$/,
