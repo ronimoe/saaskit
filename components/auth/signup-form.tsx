@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2, UserPlus, Mail, Lock, Check, X } from 'lucide-react';
 import { toast } from 'sonner';
@@ -67,6 +67,7 @@ export function SignupForm({
     setError,
     reset,
     watch,
+    control,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -284,11 +285,18 @@ export function SignupForm({
           {/* Terms and Conditions */}
           <div className="space-y-2">
             <div className="flex items-start space-x-3">
-              <Checkbox
-                id="terms"
-                disabled={isLoading}
-                {...register('terms')}
-                className="mt-1"
+              <Controller
+                name="terms"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    id="terms"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    disabled={isLoading}
+                    className="mt-1"
+                  />
+                )}
               />
               <label htmlFor="terms" className="text-sm text-gray-700 dark:text-gray-300 leading-5">
                 I agree to the{' '}
@@ -372,6 +380,7 @@ export function SignupFormMinimal({
     formState: { errors, isSubmitting },
     setError,
     reset,
+    control: controlMinimal,
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -462,7 +471,18 @@ export function SignupFormMinimal({
       </div>
 
       <div className="flex items-center space-x-2">
-        <Checkbox id="terms-minimal" {...register('terms')} disabled={isLoading} />
+        <Controller
+          name="terms"
+          control={controlMinimal}
+          render={({ field }) => (
+            <Checkbox 
+              id="terms-minimal" 
+              checked={field.value}
+              onCheckedChange={field.onChange}
+              disabled={isLoading} 
+            />
+          )}
+        />
         <label htmlFor="terms-minimal" className="text-sm">
           I agree to the terms
         </label>
