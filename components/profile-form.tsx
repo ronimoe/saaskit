@@ -60,7 +60,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     country: initialBillingAddress?.country || '',
   })
 
-  const updateField = (field: keyof ProfileFormData, value: any) => {
+  const updateField = (field: keyof ProfileFormData, value: unknown) => {
     setFormData(prev => ({ ...prev, [field]: value }))
     setIsSuccess(false)
   }
@@ -70,7 +70,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     setIsSuccess(false)
   }
 
-  const attemptUpdate = async (updateData: any, retryCount = 0): Promise<void> => {
+  const attemptUpdate = async (updateData: Record<string, unknown>, retryCount = 0): Promise<void> => {
     const maxRetries = 2
     
     try {

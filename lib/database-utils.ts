@@ -75,7 +75,7 @@ export function transformProfileFormData(formData: Partial<ProfileFormData>): Pr
 /**
  * Parses billing address from JSONB field
  */
-export function parseBillingAddress(billingAddress: any): BillingAddress | null {
+export function parseBillingAddress(billingAddress: unknown): BillingAddress | null {
   if (!billingAddress) return null
   
   try {
@@ -314,7 +314,7 @@ function isValidBillingAddress(address: BillingAddress): boolean {
  * Builds profile query filters for Supabase
  */
 export function buildProfileFilters(filters: ProfileFilters) {
-  const queryFilters: any = {}
+  const queryFilters: Record<string, string> = {}
   
   if (filters.email) {
     queryFilters.email = `ilike.%${filters.email}%`
@@ -339,7 +339,7 @@ export function buildProfileFilters(filters: ProfileFilters) {
  * Builds subscription query filters for Supabase
  */
 export function buildSubscriptionFilters(filters: SubscriptionFilters) {
-  const queryFilters: any = {}
+  const queryFilters: Record<string, string> = {}
   
   if (filters.status) {
     if (Array.isArray(filters.status)) {
@@ -383,9 +383,14 @@ export function isSubscriptionActive(
  * Type guard for subscription with profile
  */
 export function hasProfile(
-  subscription: any
+  subscription: unknown
 ): subscription is SubscriptionWithProfile {
-  return !!(subscription && subscription.profile && typeof subscription.profile === 'object')
+  return !!(subscription && 
+           typeof subscription === 'object' && 
+           subscription !== null &&
+           'profile' in subscription && 
+           subscription.profile && 
+           typeof subscription.profile === 'object')
 }
 
 // ==================================================

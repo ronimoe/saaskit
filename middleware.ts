@@ -1,4 +1,5 @@
 import { updateSession } from '@/utils/supabase/middleware'
+import { NextRequest } from 'next/server'
 
 /**
  * Next.js Middleware for Route Protection
@@ -8,7 +9,7 @@ import { updateSession } from '@/utils/supabase/middleware'
  * Follows the exact pattern from bootstrap-nextjs-app-with-supabase-auth guide.
  */
 
-export async function middleware(request: any) {
+export async function middleware(request: NextRequest) {
   return await updateSession(request)
 }
 

@@ -97,11 +97,11 @@ export const createMiddlewareClient = (request: NextRequest) => {
         get(name: string) {
           return request.cookies.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: Record<string, unknown>) {
           request.cookies.set({
             name,
             value,
-            ...options,
+            ...(options as Record<string, unknown>),
           })
           response = NextResponse.next({
             request: {
@@ -111,14 +111,14 @@ export const createMiddlewareClient = (request: NextRequest) => {
           response.cookies.set({
             name,
             value,
-            ...options,
+            ...(options as Record<string, unknown>),
           })
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: Record<string, unknown>) {
           request.cookies.set({
             name,
             value: '',
-            ...options,
+            ...(options as Record<string, unknown>),
           })
           response = NextResponse.next({
             request: {
@@ -128,7 +128,7 @@ export const createMiddlewareClient = (request: NextRequest) => {
           response.cookies.set({
             name,
             value: '',
-            ...options,
+            ...(options as Record<string, unknown>),
           })
         },
       },
@@ -194,7 +194,7 @@ export const handleSupabaseResponse = <T>(
       message: response.error.message || 'Unknown error',
       name: response.error.name || 'Error',
       stack: response.error.stack,
-      ...(response.error as any), // Include any additional properties
+      ...(response.error as unknown as Record<string, unknown>), // Include additional properties
     }
     
     console.error('Supabase error details:', errorInfo)
@@ -257,7 +257,7 @@ export const authHelpers = {
     supabase: SupabaseClient<Database>,
     email: string,
     password: string
-  ): Promise<{ data?: any; error?: string }> => {
+  ): Promise<{ data?: unknown; error?: string }> => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -283,7 +283,7 @@ export const authHelpers = {
     email: string,
     password: string,
     options?: { emailRedirectTo?: string }
-  ): Promise<{ data?: any; error?: string }> => {
+  ): Promise<{ data?: unknown; error?: string }> => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -311,7 +311,7 @@ export const authHelpers = {
     supabase: SupabaseClient<Database>,
     email: string,
     redirectTo?: string
-  ): Promise<{ data?: any; error?: string }> => {
+  ): Promise<{ data?: unknown; error?: string }> => {
     try {
       const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,

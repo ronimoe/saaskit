@@ -96,8 +96,8 @@ export function ProfileStats({ profile, subscriptions }: ProfileStatsProps) {
     const daysUntilExpiry = getDaysUntilExpiry(currentSubscription)
     const price = formatSubscriptionPrice(
       currentSubscription.unit_amount, 
-      currentSubscription.currency as any, 
-      currentSubscription.interval as any
+      currentSubscription.currency as 'usd' | 'eur' | 'gbp' | 'cad', 
+      currentSubscription.interval as 'month' | 'year'
     )
 
     stats[2] = {

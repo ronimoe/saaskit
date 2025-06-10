@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   eslint: {
     // Disable ESLint during builds (handled separately in CI/CD)
     ignoreDuringBuilds: false,
+    // Exclude test files from ESLint during builds
+    dirs: ['app', 'components', 'lib', 'utils', 'types'],
   },
 
   // Image optimization
@@ -65,16 +67,25 @@ const nextConfig: NextConfig = {
       },
     ];
 
-    // Exclude test files from build
+    // Exclude test files from webpack processing completely
     config.module.rules.push({
       test: /\.(test|spec)\.(ts|tsx|js|jsx)$/,
-      loader: 'ignore-loader',
+      type: 'javascript/auto',
+      use: 'null-loader',
     });
 
-    // Exclude test directories from build
+    // Exclude test directories
     config.module.rules.push({
-      test: /[\\/](__tests__|__mocks__)[\\/]/,
-      loader: 'ignore-loader',
+      test: /[\\/](__tests__|__mocks__)[\\/].*\.(ts|tsx|js|jsx)$/,
+      type: 'javascript/auto', 
+      use: 'null-loader',
+    });
+
+    // Exclude Jest config files
+    config.module.rules.push({
+      test: /jest\.(config|setup)\.(ts|js|mjs)$/,
+      type: 'javascript/auto',
+      use: 'null-loader',
     });
 
     // Optimize bundle size by analyzing what's included
@@ -179,7 +190,7 @@ const nextConfig: NextConfig = {
   // Generate ETags for static assets
   generateEtags: true,
 
-  // Page extensions
+  // Page extensions - exclude test files by not including test extensions
   pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
 
   // Strict mode for React

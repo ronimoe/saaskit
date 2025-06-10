@@ -32,7 +32,7 @@ import { env } from '@/lib/env';
 /**
  * Common auth operation result type
  */
-export interface AuthResult<T = any> {
+export interface AuthResult<T = unknown> {
   data: T | null;
   error: string | null;
   success: boolean;
@@ -53,7 +53,7 @@ export interface OAuthOptions {
 export interface UserManagementOptions {
   email: string;
   password?: string;
-  userData?: Record<string, any>;
+  userData?: Record<string, unknown>;
   emailConfirm?: boolean;
   role?: string;
 }
@@ -64,8 +64,8 @@ export interface UserManagementOptions {
 export interface ProfileUpdateData {
   email?: string;
   password?: string;
-  userData?: Record<string, any>;
-  appMetadata?: Record<string, any>;
+  userData?: Record<string, unknown>;
+  appMetadata?: Record<string, unknown>;
 }
 
 /**
@@ -432,7 +432,7 @@ export const adminUtils = {
    */
   updateUserMetadata: async (
     userId: string,
-    metadata: Record<string, any>
+    metadata: Record<string, unknown>
   ): Promise<AuthResult<User>> => {
     try {
       const adminClient = createAdminClient();
@@ -551,7 +551,7 @@ export const profileUtils = {
     updates: ProfileUpdateData
   ): Promise<AuthResult<User>> => {
     try {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
 
       if (updates.email) {
         updateData.email = updates.email;
