@@ -345,4 +345,27 @@ export const authHelpers = {
       return { error: error instanceof Error ? error.message : 'Sign out failed' }
     }
   },
+
+  /**
+   * Update password for authenticated user
+   */
+  updatePassword: async (
+    supabase: SupabaseClient<Database>,
+    newPassword: string
+  ): Promise<{ error?: string }> => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (error) {
+        return { error: error.message }
+      }
+
+      return {}
+    } catch (error) {
+      console.error('updatePassword error:', error)
+      return { error: error instanceof Error ? error.message : 'Password update failed' }
+    }
+  },
 } 
