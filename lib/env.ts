@@ -10,7 +10,7 @@ import { z } from 'zod';
 // Define the schema for environment variables
 const envSchema = z.object({
   // Node Environment
-  NODE_ENV: z.enum(['development', 'staging', 'production']).default('development'),
+  NODE_ENV: z.enum(['development', 'staging', 'production', 'test']).default('development'),
   
   // App Configuration
   NEXT_PUBLIC_APP_URL: z.string().url('Invalid APP_URL format'),
