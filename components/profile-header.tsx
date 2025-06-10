@@ -7,11 +7,9 @@ import { Card } from '@/components/ui/card'
 import { MapPin, Calendar, Globe, Building2, Phone, Mail } from 'lucide-react'
 import { getProfileDisplayName, parseBillingAddress } from '@/lib/database-utils'
 import type { Profile } from '@/types/database'
-import type { User } from '@supabase/supabase-js'
 
 interface ProfileHeaderProps {
   profile: Profile
-  user: User
 }
 
 function getInitials(name: string): string {
@@ -32,7 +30,7 @@ function formatDate(dateString: string | null): string {
   })
 }
 
-export function ProfileHeader({ profile, user }: ProfileHeaderProps) {
+export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const displayName = getProfileDisplayName(profile)
   const billingAddress = parseBillingAddress(profile.billing_address)
   const initials = getInitials(displayName)

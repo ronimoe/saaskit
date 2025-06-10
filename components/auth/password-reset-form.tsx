@@ -104,7 +104,7 @@ export function PasswordResetForm({
               If this email address is associated with an account, you&apos;ll receive a password reset link within a few minutes.
             </p>
             <p className="text-xs text-gray-500 dark:text-gray-500">
-              Didn't receive the email? Check your spam folder or try again.
+              Didn&apos;t receive the email? Check your spam folder or try again.
             </p>
           </div>
         </CardContent>

@@ -14,9 +14,6 @@ import type {
   User, 
   Session, 
   Provider,
-  AuthError,
-  AuthTokenResponsePassword,
-  AuthTokenResponse,
 } from '@supabase/supabase-js';
 import { 
   createClientComponentClient,

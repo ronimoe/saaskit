@@ -48,9 +48,8 @@ export interface HeaderConfig {
   className?: string
 }
 
-interface UnifiedHeaderProps extends HeaderConfig {
-  // Optional props for customization
-}
+// UnifiedHeaderProps is just HeaderConfig
+type UnifiedHeaderProps = HeaderConfig
 
 // Navigation items for different states
 const landingNavItems = [
@@ -66,8 +65,8 @@ const appNavItems = [
   { href: '/billing', label: 'Billing', icon: CreditCard },
 ]
 
-// Logo component
-function Logo({ variant }: { variant: HeaderVariant }) {
+// Logo component  
+function Logo() {
   const linkClass = "flex items-center space-x-3 hover:opacity-80 transition-opacity"
   
   return (
@@ -90,7 +89,7 @@ function Logo({ variant }: { variant: HeaderVariant }) {
 // Pre-auth navigation (Landing/Marketing pages)
 function PreAuthHeader({ showNavigation = true, className }: HeaderConfig) {
   const [isOpen, setIsOpen] = React.useState(false)
-  const { isAuthenticated, signOut, user } = useAuthContext()
+  const { isAuthenticated, signOut } = useAuthContext()
   const router = useRouter()
 
   const handleSignOut = async () => {
@@ -105,7 +104,7 @@ function PreAuthHeader({ showNavigation = true, className }: HeaderConfig) {
   return (
     <header className={cn("sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60", className)}>
       <div className="container flex h-16 items-center justify-between px-4">
-        <Logo variant="landing" />
+        <Logo />
         
         {showNavigation && (
           <>
@@ -261,7 +260,7 @@ function PreAuthHeader({ showNavigation = true, className }: HeaderConfig) {
 // Auth pages header (Login/Register)
 function AuthHeader({ className }: HeaderConfig) {
   const pathname = usePathname()
-  const { isAuthenticated, signOut, user } = useAuthContext()
+  const { isAuthenticated, signOut } = useAuthContext()
   const router = useRouter()
   const currentPath = pathname || ''
   const isSignupFlow = currentPath.includes('signup')
@@ -278,7 +277,7 @@ function AuthHeader({ className }: HeaderConfig) {
   return (
     <header className={cn("w-full", className)}>
       <div className="container flex h-16 items-center justify-between px-4">
-        <Logo variant="auth" />
+        <Logo />
         
         {/* Minimal navigation for auth pages */}
         <div className="flex items-center space-x-3">
@@ -354,7 +353,7 @@ function AppHeader({ showSearch = true, showNotifications = true, className }: H
     <header className={cn("sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60", className)}>
       <div className="container flex h-16 items-center justify-between px-4">
         <div className="flex items-center space-x-4">
-          <Logo variant="app" />
+          <Logo />
           
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-6 text-sm font-medium">

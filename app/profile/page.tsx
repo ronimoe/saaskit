@@ -89,7 +89,7 @@ function ProfileSkeleton() {
 
 async function ProfileContent() {
   const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
   
   if (!user) {
     redirect('/login')
@@ -105,7 +105,7 @@ async function ProfileContent() {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="grid gap-6">
         {/* Profile Header */}
-        <ProfileHeader profile={profile} user={user} />
+        <ProfileHeader profile={profile} />
 
         {/* Profile Stats */}
         <ProfileStats profile={profile} subscriptions={subscriptions} />
