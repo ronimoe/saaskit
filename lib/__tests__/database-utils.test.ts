@@ -48,7 +48,7 @@ import type {
   ProfileFilters,
   BillingAddress,
   StripeSubscriptionData,
-} from '@/types/database'
+} from '../../types/database'
 
 // ==================================================
 // MOCK DATA
@@ -208,6 +208,10 @@ describe('Profile Utilities', () => {
     it('handles undefined timezone defaulting to UTC', () => {
       const formData: ProfileFormData = {
         full_name: 'John Doe',
+        phone: null,
+        company_name: null,
+        website_url: null,
+        timezone: null,
         email_notifications: true,
         marketing_emails: false,
       }
@@ -220,9 +224,13 @@ describe('Profile Utilities', () => {
     it('handles null billing address', () => {
       const formData: ProfileFormData = {
         full_name: 'John Doe',
+        phone: null,
+        company_name: null,
+        website_url: null,
+        timezone: null,
         email_notifications: true,
         marketing_emails: false,
-        billing_address: null,
+        billing_address: undefined,
       }
       
       const result = transformProfileFormData(formData)

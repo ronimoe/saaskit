@@ -57,6 +57,14 @@ const nextConfig: NextConfig = {
 
   // Webpack configuration for additional optimizations
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    // Suppress Supabase realtime-js dynamic import warnings
+    config.ignoreWarnings = [
+      {
+        module: /node_modules\/@supabase\/realtime-js/,
+        message: /Critical dependency: the request of a dependency is an expression/,
+      },
+    ];
+
     // Exclude test files from build
     config.module.rules.push({
       test: /\.(test|spec)\.(ts|tsx|js|jsx)$/,
@@ -124,15 +132,15 @@ const nextConfig: NextConfig = {
   // Redirects for common routes
   async redirects() {
     return [
-      // Redirect old paths to new structure if needed
+      // Redirect old auth paths to new structure if needed
       {
-        source: '/login',
-        destination: '/auth/login',
+        source: '/auth/login',
+        destination: '/login',
         permanent: false,
       },
       {
-        source: '/signup',
-        destination: '/auth/signup',
+        source: '/auth/signup',
+        destination: '/login',
         permanent: false,
       },
     ];

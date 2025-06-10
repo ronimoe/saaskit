@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -19,7 +20,7 @@ import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Toaster } from "@/components/ui/sonner"
-import { SiteHeader } from "@/components/site-header"
+import { UnifiedHeader } from "@/components/layout/unified-header"
 import { SiteFooter } from "@/components/site-footer"
 import { ActionCards } from "@/components/action-cards"
 import { toast } from "sonner"
@@ -50,7 +51,16 @@ export default function ShadcnDemo() {
     <>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
         <div className="container mx-auto max-w-6xl">
-          <SiteHeader />
+          <UnifiedHeader variant="landing" />
+          
+          {/* Demo Link */}
+          <div className="text-center mb-8">
+            <Button asChild variant="outline" className="gap-2">
+              <Link href="/header-demo">
+                🎨 View Header System Demo
+              </Link>
+            </Button>
+          </div>
 
           {/* Component Showcase Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
@@ -89,42 +99,36 @@ export default function ShadcnDemo() {
               </CardContent>
             </Card>
 
-            {/* User Profile Card */}
+            {/* Authentication Card */}
             <Card className="h-fit">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
-                  User Profile
+                  Authentication
                 </CardTitle>
                 <CardDescription>
-                  Avatar and user information display
+                  Login and signup functionality
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-4 mb-4">
-                  <Avatar className="w-16 h-16">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>CN</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="text-lg font-semibold">John Doe</h3>
-                    <p className="text-sm text-slate-600">Software Engineer</p>
-                    <div className="flex gap-1 mt-1">
-                      <Badge variant="outline">React</Badge>
-                      <Badge variant="outline">TypeScript</Badge>
-                    </div>
+                <div className="space-y-3">
+                  <Button variant="default" className="w-full" asChild>
+                    <a href="/login">Login</a>
+                  </Button>
+                  <Button variant="outline" className="w-full" asChild>
+                    <a href="/signup">Sign Up</a>
+                  </Button>
+                </div>
+                <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300 mt-4">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    Email authentication
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    Secure login system
                   </div>
                 </div>
-                                 <div className="space-y-2 text-sm text-slate-600 dark:text-slate-300">
-                   <div className="flex items-center gap-2">
-                     <Mail className="w-4 h-4" />
-                     john@example.com
-                   </div>
-                   <div className="flex items-center gap-2">
-                     <MapPin className="w-4 h-4" />
-                     San Francisco, CA
-                   </div>
-                 </div>
               </CardContent>
             </Card>
 
