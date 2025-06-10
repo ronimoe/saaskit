@@ -45,6 +45,10 @@ const nextConfig: NextConfig = {
       'recharts',
       'date-fns',
     ],
+    // Enable webpack build worker for better performance
+    webpackBuildWorker: true,
+    // Optimize memory usage
+    memoryBasedWorkersCount: true,
   },
 
   // Turbopack configuration (moved from experimental)
@@ -59,12 +63,26 @@ const nextConfig: NextConfig = {
 
   // Webpack configuration for additional optimizations
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Suppress Supabase realtime-js dynamic import warnings
+    // Optimize webpack cache performance
+    config.cache = {
+      ...config.cache,
+      // Reduce cache serialization overhead
+      maxGenerations: 1,
+      // Use memory cache for better performance
+      type: 'filesystem',
+      buildDependencies: {
+        config: [__filename],
+      },
+    };
+
+    // Suppress webpack cache warnings and Supabase realtime-js dynamic import warnings
     config.ignoreWarnings = [
       {
         module: /node_modules\/@supabase\/realtime-js/,
         message: /Critical dependency: the request of a dependency is an expression/,
       },
+      // Suppress large string cache warnings
+      /Serializing big strings/,
     ];
 
     // Exclude test files from webpack processing completely
@@ -108,6 +126,27 @@ const nextConfig: NextConfig = {
       ...config.resolve.alias,
       // Ensure proper tree-shaking for lodash and similar libraries
       'lodash': 'lodash-es',
+    };
+
+    // Optimize module concatenation to reduce large string generation
+    config.optimization = {
+      ...config.optimization,
+      concatenateModules: true,
+      // Split chunks to avoid large bundles that create big strings
+      splitChunks: {
+        ...config.optimization?.splitChunks,
+        chunks: 'all',
+        maxSize: 244000, // 244KB max chunk size
+        cacheGroups: {
+          ...config.optimization?.splitChunks?.cacheGroups,
+          vendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'vendors',
+            chunks: 'all',
+            maxSize: 244000,
+          },
+        },
+      },
     };
 
     return config;
