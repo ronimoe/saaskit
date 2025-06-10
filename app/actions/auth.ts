@@ -3,10 +3,10 @@
 import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase';
 import { authHelpers } from '@/lib/supabase';
-import { loginSchema, signupSchema, passwordResetSchema } from '@/lib/schemas/auth';
+import { loginSchema, signupSchema, passwordResetSchema, passwordResetConfirmSchema } from '@/lib/schemas/auth';
 import { authMessages } from '@/lib/schemas/auth';
 import { env } from '@/lib/env';
-import type { LoginFormData, SignupFormData, PasswordResetFormData } from '@/lib/schemas/auth';
+import type { LoginFormData, SignupFormData, PasswordResetFormData, PasswordResetConfirmFormData } from '@/lib/schemas/auth';
 
 /**
  * Server action response type for consistent error handling
@@ -179,7 +179,7 @@ export async function requestPasswordResetAction(formData: PasswordResetFormData
     const result = await authHelpers.resetPassword(
       supabase,
       validatedData.email,
-      `${env.NEXT_PUBLIC_APP_URL}/auth/reset-password`
+      `${env.NEXT_PUBLIC_APP_URL}/reset-password/confirm`
     );
     
     if (result.error) {
@@ -196,6 +196,50 @@ export async function requestPasswordResetAction(formData: PasswordResetFormData
     
   } catch (error) {
     console.error('Password reset error:', error);
+    
+    // Handle validation errors
+    if (error && typeof error === 'object' && 'issues' in error) {
+      return handleValidationError(error);
+    }
+    
+    return {
+      success: false,
+      message: authMessages.unexpectedError,
+    };
+  }
+}
+
+/**
+ * Confirm password reset with new password
+ */
+export async function confirmPasswordResetAction(formData: PasswordResetConfirmFormData): Promise<ActionResponse> {
+  try {
+    // Validate input data
+    const validatedData = passwordResetConfirmSchema.parse(formData);
+    
+    // Create Supabase client
+    const supabase = await createServerComponentClient();
+    
+    // Update password
+    const result = await authHelpers.updatePassword(
+      supabase,
+      validatedData.password
+    );
+    
+    if (result.error) {
+      return {
+        success: false,
+        message: result.error,
+      };
+    }
+    
+    return {
+      success: true,
+      message: authMessages.passwordResetSuccess,
+    };
+    
+  } catch (error) {
+    console.error('Password reset confirm error:', error);
     
     // Handle validation errors
     if (error && typeof error === 'object' && 'issues' in error) {

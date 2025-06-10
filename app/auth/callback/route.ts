@@ -49,6 +49,13 @@ export async function GET(request: NextRequest) {
         redirectUrl.searchParams.set('message', 'Email confirmed successfully! Welcome to your account.');
       }
       
+      // Handle password reset flow
+      if (requestUrl.searchParams.get('type') === 'recovery') {
+        // For password reset, redirect to the confirmation page
+        const resetConfirmUrl = new URL('/reset-password/confirm', requestUrl.origin);
+        return NextResponse.redirect(resetConfirmUrl);
+      }
+      
       return NextResponse.redirect(redirectUrl);
       
     } catch (error) {

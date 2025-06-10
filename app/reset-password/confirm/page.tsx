@@ -1,13 +1,13 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { PasswordResetForm } from '@/components/auth/password-reset-form';
+import { PasswordResetConfirmForm } from '@/components/auth/password-reset-confirm-form';
 
 export const metadata: Metadata = {
-  title: 'Reset Password',
-  description: 'Reset your password to regain access to your account.',
+  title: 'Set New Password',
+  description: 'Set your new password to complete the reset process.',
 };
 
-export default function ResetPasswordPage() {
+export default function PasswordResetConfirmPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Background with modern gradient */}
@@ -23,24 +23,24 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md space-y-8 relative z-10 login-slide-in">
         {/* Header */}
         <div className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg login-icon-bounce login-pulse-glow">
+          <div className="mx-auto w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg login-icon-bounce login-pulse-glow">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
-              <div className="w-4 h-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-sm"></div>
+              <div className="w-4 h-4 bg-gradient-to-r from-green-500 to-emerald-500 rounded-sm"></div>
             </div>
           </div>
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent">
-              Reset Password
+              Set New Password
             </h1>
             <p className="mt-2 text-gray-600 dark:text-gray-400">
-              Enter your email to receive reset instructions
+              Choose a new password for your account
             </p>
           </div>
         </div>
 
-        {/* Password Reset Form */}
+        {/* Password Reset Confirm Form */}
         <Suspense fallback={<div className="animate-pulse bg-white/10 rounded-xl h-64" />}>
-          <PasswordResetForm />
+          <PasswordResetConfirmForm />
         </Suspense>
 
         {/* Trust indicators */}
