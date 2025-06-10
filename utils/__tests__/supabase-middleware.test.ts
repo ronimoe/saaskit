@@ -220,14 +220,14 @@ describe('Supabase Middleware - updateSession', () => {
       expect(result).toBe(mockNextResponse);
     });
 
-    it('should redirect unauthenticated user from home page to login', async () => {
+    it('should allow unauthenticated user to access home page', async () => {
       const request = createMockRequest('/');
-      const expectedUrl = new URL('/', 'https://example.com');
-      expectedUrl.pathname = '/login';
       
       const result = await updateSession(request);
       
-      expect(mockNextResponseRedirect).toHaveBeenCalledWith(expectedUrl);
+      expect(mockAuth.getUser).toHaveBeenCalled();
+      expect(mockNextResponseRedirect).not.toHaveBeenCalled();
+      expect(result).toBe(mockNextResponse);
     });
 
     it('should redirect unauthenticated user from any other route to login', async () => {
