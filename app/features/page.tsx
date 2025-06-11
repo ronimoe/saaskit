@@ -1,8 +1,11 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { GlassCard } from '@/components/ui/glass-card'
+import { MagneticGlassCard } from '@/components/ui/magnetic-glass-card'
+import { ParticleBackground } from '@/components/ui/particle-background'
 import { Button } from '@/components/ui/button'
 import { UnifiedHeader } from '@/components/layout/unified-header'
+
 import { 
   Shield, 
   Zap, 
@@ -160,6 +163,11 @@ export default function FeaturesPage() {
       
       {/* Hero Section */}
       <section className="relative overflow-hidden">
+        {/* Floating Elements */}
+        <div className="floating-element top-20 left-10 w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-xl float-animation" />
+        <div className="floating-element top-40 right-20 w-16 h-16 bg-gradient-to-br from-pink-500/20 to-orange-500/20 rounded-full blur-lg float-slow" />
+        <div className="floating-element bottom-32 left-20 w-24 h-24 bg-gradient-to-br from-green-500/20 to-teal-500/20 rounded-full blur-xl float-fast" />
+        
         {/* Animated Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl animate-pulse" />
@@ -206,22 +214,32 @@ export default function FeaturesPage() {
           </p>
         </div>
 
-        {/* Interactive Feature Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {/* Particle Background */}
+        <ParticleBackground 
+          particleCount={30}
+          speed={0.5}
+          interactive={true}
+          colors={['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B']}
+          className="opacity-30"
+        />
+        
+        {/* Interactive Feature Grid with Non-Traditional Layout */}
+        <div className="asymmetric-grid staggered-grid relative z-10">
           {features.map((feature, index) => {
             const Icon = feature.icon
+            const gridClass = `grid-cell-${(index % 9) + 1}` // Cycle through 9 different cell types
             return (
-              <GlassCard 
+              <MagneticGlassCard 
                 key={feature.id}
                 variant="primary"
                 size="md" 
                 depth="medium"
                 glow="medium"
                 interactive="hover"
-                className="group relative animate-in fade-in slide-in-from-bottom-4"
-                style={{ 
-                  animationDelay: `${index * 100}ms`
-                }}
+                magnetic={true}
+                magneticStrength={0.2}
+                magneticGlow={index % 3 === 0} // Add glow to every third card
+                className={`group relative staggered-item ${gridClass} card-3d hover-float`}
               >
                 {/* Gradient Background */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
@@ -279,14 +297,15 @@ export default function FeaturesPage() {
                 
                 {/* Hover Effect Border */}
                 <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none`} />
-              </GlassCard>
+              </MagneticGlassCard>
             )
           })}
         </div>
       </section>
 
       {/* Dynamic Theme Showcase Section */}
-      <section className="relative container mx-auto px-4 py-20">
+      <section className="relative container mx-auto px-4 py-20 diagonal-section diagonal-top diagonal-bottom bg-gradient-to-br from-slate-100/50 to-blue-50/30 dark:from-slate-800/50 dark:to-blue-900/30">
+        <div className="diagonal-content">
         <div className="text-center mb-16">
           <Badge className="mb-6 bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0">
             <Palette className="w-4 h-4 mr-2" />
@@ -403,6 +422,52 @@ export default function FeaturesPage() {
             </GlassCard>
           </div>
         </div>
+        </div>
+      </section>
+
+      {/* Interactive Data Visualization Section */}
+      <section className="container mx-auto px-4 py-20">
+        <div className="text-center mb-16">
+          <Badge className="mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0">
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Interactive Analytics
+          </Badge>
+          
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Real-Time Data Visualizations
+          </h2>
+          
+          <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">
+            Experience our advanced charting system with D3.js-powered interactive visualizations, real-time data updates, and responsive design.
+          </p>
+        </div>
+
+                 {/* Demo with curved layout */}
+         <div className="curved-grid max-w-6xl mx-auto">
+           <div className="perspective-container">
+             <div className="transform-3d tilt-left">
+               <GlassCard variant="primary" size="xl" depth="floating" glow="strong">
+                 <div className="h-[400px] flex items-center justify-center">
+                   <div className="text-center space-y-4">
+                     <BarChart3 className="w-16 h-16 mx-auto text-indigo-500" />
+                     <div>
+                       <h3 className="text-xl font-semibold mb-2">Interactive Data Visualizations</h3>
+                       <p className="text-muted-foreground">
+                         Advanced D3.js charts with real-time data, smooth animations, and interactive tooltips
+                       </p>
+                     </div>
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                       <div className="h-16 bg-gradient-to-t from-blue-500 to-cyan-400 rounded opacity-80"></div>
+                       <div className="h-20 bg-gradient-to-t from-purple-500 to-pink-400 rounded opacity-80"></div>
+                       <div className="h-12 bg-gradient-to-t from-green-500 to-emerald-400 rounded opacity-80"></div>
+                       <div className="h-16 bg-gradient-to-t from-orange-500 to-yellow-400 rounded opacity-80"></div>
+                     </div>
+                   </div>
+                 </div>
+               </GlassCard>
+             </div>
+           </div>
+         </div>
       </section>
 
       {/* Stats Section */}

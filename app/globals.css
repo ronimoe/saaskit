@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "../styles/glassmorphism.css";
+@import "../styles/advanced-animations.css";
+@import "../styles/non-traditional-layouts.css";
 
 @custom-variant dark (&:is(.dark *));
 

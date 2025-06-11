@@ -1,0 +1,310 @@
+/* Non-Traditional Layout Utilities */
+
+/* Asymmetrical Grid System */
+.asymmetric-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(12, 1fr);
+  grid-auto-rows: minmax(200px, auto);
+}
+
+/* Dynamic grid cell positioning for masonry-like effect */
+.grid-cell-1 { grid-column: span 4; grid-row: span 1; }
+.grid-cell-2 { grid-column: span 3; grid-row: span 2; }
+.grid-cell-3 { grid-column: span 5; grid-row: span 1; }
+.grid-cell-4 { grid-column: span 4; grid-row: span 2; }
+.grid-cell-5 { grid-column: span 3; grid-row: span 1; }
+.grid-cell-6 { grid-column: span 5; grid-row: span 2; }
+.grid-cell-7 { grid-column: span 6; grid-row: span 1; }
+.grid-cell-8 { grid-column: span 3; grid-row: span 1; }
+.grid-cell-9 { grid-column: span 3; grid-row: span 2; }
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .asymmetric-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+  .grid-cell-1 { grid-column: span 4; }
+  .grid-cell-2 { grid-column: span 4; }
+  .grid-cell-3 { grid-column: span 8; }
+  .grid-cell-4 { grid-column: span 4; }
+  .grid-cell-5 { grid-column: span 4; }
+  .grid-cell-6 { grid-column: span 8; }
+  .grid-cell-7 { grid-column: span 8; }
+  .grid-cell-8 { grid-column: span 4; }
+  .grid-cell-9 { grid-column: span 4; }
+}
+
+@media (max-width: 640px) {
+  .asymmetric-grid {
+    grid-template-columns: 1fr;
+  }
+  .grid-cell-1,
+  .grid-cell-2,
+  .grid-cell-3,
+  .grid-cell-4,
+  .grid-cell-5,
+  .grid-cell-6,
+  .grid-cell-7,
+  .grid-cell-8,
+  .grid-cell-9 {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
+
+/* Diagonal Section Layouts */
+.diagonal-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.diagonal-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: inherit;
+  transform: skewY(-2deg);
+  transform-origin: top left;
+  z-index: 1;
+}
+
+.diagonal-bottom::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: inherit;
+  transform: skewY(-2deg);
+  transform-origin: bottom right;
+  z-index: 1;
+}
+
+.diagonal-content {
+  position: relative;
+  z-index: 2;
+  padding: 4rem 0;
+}
+
+/* 3D Transform Utilities */
+.perspective-container {
+  perspective: 1000px;
+  perspective-origin: center center;
+}
+
+.transform-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease-out;
+}
+
+.rotate-x-12 {
+  transform: rotateX(12deg);
+}
+
+.rotate-y-12 {
+  transform: rotateY(12deg);
+}
+
+.rotate-z-12 {
+  transform: rotateZ(12deg);
+}
+
+.tilt-left {
+  transform: perspective(1000px) rotateY(-15deg) rotateX(10deg);
+}
+
+.tilt-right {
+  transform: perspective(1000px) rotateY(15deg) rotateX(10deg);
+}
+
+.hover-float {
+  transition: transform 0.3s ease-out;
+}
+
+.hover-float:hover {
+  transform: translateY(-10px) scale(1.02);
+}
+
+/* 3D Card Effects */
+.card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease-out;
+}
+
+.card-3d:hover {
+  transform: perspective(1000px) rotateX(5deg) rotateY(10deg) translateZ(20px);
+}
+
+.card-3d-deep {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.4s ease-out;
+}
+
+.card-3d-deep:hover {
+  transform: perspective(1000px) rotateX(10deg) rotateY(15deg) translateZ(40px);
+}
+
+/* Floating Elements */
+.floating-element {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+.float-slow {
+  animation: float 8s ease-in-out infinite;
+}
+
+.float-fast {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+/* Organic/Curved Layouts */
+.curved-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.curved-grid > :nth-child(even) {
+  transform: translateY(2rem);
+}
+
+.curved-grid > :nth-child(3n) {
+  transform: translateY(-1rem);
+}
+
+.curved-path {
+  clip-path: ellipse(80% 60% at 50% 40%);
+}
+
+.organic-shape {
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+}
+
+/* Interactive Hover Repositioning */
+.repositioning-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  transition: all 0.3s ease-out;
+}
+
+.repositioning-card {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 1;
+}
+
+.repositioning-card:hover {
+  z-index: 10;
+  transform: scale(1.05) translateY(-10px);
+}
+
+.repositioning-grid:hover .repositioning-card:not(:hover) {
+  transform: scale(0.95);
+  opacity: 0.7;
+}
+
+/* Parallax Layers */
+.parallax-container {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.parallax-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.parallax-background {
+  transform: translateZ(-1px) scale(2);
+}
+
+.parallax-midground {
+  transform: translateZ(-0.5px) scale(1.5);
+}
+
+.parallax-foreground {
+  transform: translateZ(0);
+}
+
+/* Staggered Animation Grid */
+.staggered-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+}
+
+.staggered-item {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: staggerIn 0.6s ease-out forwards;
+}
+
+.staggered-item:nth-child(1) { animation-delay: 0.1s; }
+.staggered-item:nth-child(2) { animation-delay: 0.2s; }
+.staggered-item:nth-child(3) { animation-delay: 0.3s; }
+.staggered-item:nth-child(4) { animation-delay: 0.4s; }
+.staggered-item:nth-child(5) { animation-delay: 0.5s; }
+.staggered-item:nth-child(6) { animation-delay: 0.6s; }
+.staggered-item:nth-child(7) { animation-delay: 0.7s; }
+.staggered-item:nth-child(8) { animation-delay: 0.8s; }
+.staggered-item:nth-child(9) { animation-delay: 0.9s; }
+
+@keyframes staggerIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .transform-3d,
+  .card-3d,
+  .card-3d-deep,
+  .hover-float,
+  .repositioning-card,
+  .staggered-item {
+    animation: none;
+    transition: none;
+  }
+  
+  .float-animation,
+  .float-slow,
+  .float-fast {
+    animation: none;
+  }
+  
+  .card-3d:hover,
+  .card-3d-deep:hover,
+  .hover-float:hover,
+  .repositioning-card:hover {
+    transform: none;
+  }
+} 

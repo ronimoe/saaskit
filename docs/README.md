@@ -21,6 +21,13 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 - **[Database Tables Reference](./database-tables.md)** - Detailed reference for all database tables
 - **[Race Condition Fixes](./RACE_CONDITION_FIXES.md)** - Solutions to database race conditions
 
+### Next-Generation UI System
+- **[UI System Overview](./ui-system-overview.md)** - Complete overview of the advanced UI components and systems
+- **[Glass Components](./glass-components.md)** - Detailed guide to glassmorphism effects and glass card components
+- **[Theme System](./theme-system.md)** - Advanced theming with dynamic colors and brand integration
+- **[Animation System](./animations-system.md)** - Magnetic effects, particle backgrounds, and micro-interactions
+- **[Non-Traditional Layouts](./non-traditional-layouts.md)** - Asymmetrical grids, 3D effects, and floating elements
+
 ## 🏗️ Architecture Overview
 
 This SaaS Kit is built with:
