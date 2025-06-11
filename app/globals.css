@@ -137,6 +137,25 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+  
+  /* Dynamic brand colors (overridden by JS) */
+  --brand-primary: var(--primary);
+  --brand-secondary: var(--secondary);
+  --brand-accent: var(--accent);
+  --brand-success: var(--success);
+  --brand-warning: var(--warning);
+  --brand-error: var(--destructive);
+  --brand-info: var(--info);
+  
+  /* Theme feature toggles */
+  --glassmorphism-enabled: 1;
+  --animations-enabled: 1;
+  --high-contrast-enabled: 0;
+  
+  /* Interactive color intensities */
+  --interactive-hover-intensity: 1.1;
+  --interactive-active-intensity: 0.9;
+  --interactive-focus-intensity: 1.05;
 }
 
 .dark {
@@ -195,6 +214,34 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Theme-specific body classes */
+  body.theme-high-contrast {
+    filter: contrast(1.5);
+  }
+  
+  body.theme-high-contrast * {
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+  
+  body.theme-no-animations * {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
+  
+  body.theme-no-glassmorphism .glass,
+  body.theme-no-glassmorphism .glass-subtle,
+  body.theme-no-glassmorphism .glass-light,
+  body.theme-no-glassmorphism .glass-strong,
+  body.theme-no-glassmorphism .glass-floating {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--card) !important;
+    border: 1px solid var(--border) !important;
   }
   
   /* Improved scrollbar styling */
@@ -312,6 +359,74 @@
       margin-left: 0;
     }
   }
+  
+  /* Dynamic brand color utilities */
+  .brand-primary {
+    color: var(--brand-primary);
+  }
+  
+  .bg-brand-primary {
+    background-color: var(--brand-primary);
+  }
+  
+  .border-brand-primary {
+    border-color: var(--brand-primary);
+  }
+  
+  .brand-secondary {
+    color: var(--brand-secondary);
+  }
+  
+  .bg-brand-secondary {
+    background-color: var(--brand-secondary);
+  }
+  
+  .brand-accent {
+    color: var(--brand-accent);
+  }
+  
+  .bg-brand-accent {
+    background-color: var(--brand-accent);
+  }
+  
+  /* Interactive color adaptation */
+  .interactive-colors {
+    transition: all var(--duration-normal) cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .interactive-colors:hover {
+    filter: brightness(var(--interactive-hover-intensity));
+    transform: translateY(-1px);
+  }
+  
+  .interactive-colors:active {
+    filter: brightness(var(--interactive-active-intensity));
+    transform: translateY(0);
+  }
+  
+  .interactive-colors:focus-visible {
+    filter: brightness(var(--interactive-focus-intensity));
+    outline: 2px solid var(--brand-primary);
+    outline-offset: 2px;
+  }
+  
+  /* Theme feature conditionals */
+  .conditional-glassmorphism {
+    backdrop-filter: blur(calc(12px * var(--glassmorphism-enabled)));
+    -webkit-backdrop-filter: blur(calc(12px * var(--glassmorphism-enabled)));
+  }
+  
+  .conditional-animation {
+    transition-duration: calc(var(--duration-normal) * var(--animations-enabled));
+  }
+  
+  /* Color intensity variants */
+  .color-intensity-50 { filter: brightness(0.5); }
+  .color-intensity-75 { filter: brightness(0.75); }
+  .color-intensity-90 { filter: brightness(0.9); }
+  .color-intensity-110 { filter: brightness(1.1); }
+  .color-intensity-125 { filter: brightness(1.25); }
+  .color-intensity-150 { filter: brightness(1.5); }
 }
 
 /* Custom animations */

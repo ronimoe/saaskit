@@ -22,6 +22,8 @@ import {
   Target,
   Database,
   Settings,
+  Settings2,
+  Eye,
   CreditCard
 } from 'lucide-react'
 import Link from 'next/link'
@@ -280,6 +282,126 @@ export default function FeaturesPage() {
               </GlassCard>
             )
           })}
+        </div>
+      </section>
+
+      {/* Dynamic Theme Showcase Section */}
+      <section className="relative container mx-auto px-4 py-20">
+        <div className="text-center mb-16">
+          <Badge className="mb-6 bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0">
+            <Palette className="w-4 h-4 mr-2" />
+            Dynamic Theming
+          </Badge>
+          
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Adaptive Color System
+          </h2>
+          
+          <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">
+            Experience real-time color adaptation, interactive themes, and seamless transitions that respond to user preferences and interactions.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          {/* Interactive Demo */}
+          <div className="space-y-6">
+            <GlassCard variant="primary" size="lg" depth="medium" glow="medium" className="interactive-colors">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-brand-primary rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Dynamic Primary Colors</h3>
+                    <p className="text-sm text-muted-foreground">Hover to see real-time adaptation</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="h-16 bg-brand-primary rounded-lg border-2 border-brand-primary/20 interactive-colors"></div>
+                  <div className="h-16 bg-brand-secondary rounded-lg border-2 border-brand-secondary/20 interactive-colors"></div>
+                  <div className="h-16 bg-brand-accent rounded-lg border-2 border-brand-accent/20 interactive-colors"></div>
+                </div>
+                
+                <div className="text-xs text-muted-foreground">
+                  Colors automatically adapt based on your theme selection and user interactions
+                </div>
+              </div>
+            </GlassCard>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <GlassCard variant="subtle" size="md" glow="subtle" className="conditional-glassmorphism">
+                <div className="text-center">
+                  <Layers className="w-8 h-8 mx-auto mb-2 text-primary" />
+                  <div className="font-medium">Glassmorphism</div>
+                  <div className="text-xs text-muted-foreground">Adaptive transparency</div>
+                </div>
+              </GlassCard>
+              
+              <GlassCard variant="subtle" size="md" glow="subtle" className="conditional-animation">
+                <div className="text-center">
+                  <Zap className="w-8 h-8 mx-auto mb-2 text-primary animate-pulse" />
+                  <div className="font-medium">Smart Animations</div>
+                  <div className="text-xs text-muted-foreground">Performance aware</div>
+                </div>
+              </GlassCard>
+            </div>
+          </div>
+          
+          {/* Features List */}
+          <div className="space-y-6">
+            <GlassCard variant="secondary" size="lg" depth="medium" glow="subtle">
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Palette className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Real-time Color Adaptation</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Colors dynamically adjust based on user interactions, creating a responsive and engaging visual experience.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Settings2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Intelligent Theme Switching</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Seamless transitions between light, dark, and custom themes with smooth animations and perfect color consistency.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Eye className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Accessibility First</h3>
+                    <p className="text-sm text-muted-foreground">
+                      High contrast modes, reduced motion support, and WCAG compliance ensure accessibility for all users.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold mb-2">Brand Integration</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Customize colors to match your brand with automatic generation of complementary palettes and color schemes.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </GlassCard>
+          </div>
         </div>
       </section>
 
