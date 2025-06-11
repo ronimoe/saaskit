@@ -24,6 +24,7 @@ import type {
   ProfileFilters,
   SubscriptionFilters,
   SubscriptionSummary,
+  SubscriptionDisplay,
   StripeSubscriptionData,
 } from '@/types/database'
 
@@ -219,9 +220,9 @@ export function formatSubscriptionPrice(
 }
 
 /**
- * Creates a subscription summary for dashboard display
+ * Creates a subscription display object for UI rendering
  */
-export function createSubscriptionSummary(subscription: Subscription): SubscriptionSummary {
+export function createSubscriptionSummary(subscription: Subscription): SubscriptionDisplay {
   return {
     id: subscription.id,
     plan_name: subscription.plan_name,

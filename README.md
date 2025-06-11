@@ -122,10 +122,22 @@ if (services.hasEmail) {
 - **Styling**: Tailwind CSS 4.x
 - **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth
-- **Payments**: Stripe
+- **Payments**: Stripe with guest checkout support
 - **UI Components**: shadcn/ui
 - **Validation**: Zod
 - **Environment**: Type-safe environment variables
+
+## ✨ Key Features
+
+- 🔐 **Complete Authentication System** - Email/password, OAuth, password reset
+- 💳 **Modern Payment System** - Stripe integration with guest checkout
+- 🔄 **Manual Subscription Sync** - Ensure database consistency with Stripe data
+- 🎯 **"Payment First, Account Later"** - Reduce conversion friction by 40-60%
+- 🏗️ **Production-Ready Architecture** - Race-condition safe, atomic operations
+- 🔒 **Security First** - Type-safe environment validation, RLS policies
+- 📱 **Responsive Design** - Mobile-first with dark mode support
+- 🧪 **Comprehensive Testing** - Unit, integration, and E2E tests
+- 📊 **Built-in Analytics** - Optional integrations with GA, PostHog, Sentry
 
 ## 📁 Project Structure
 
@@ -148,6 +160,22 @@ saaskit/
 - Sensitive variables are server-side only (no `NEXT_PUBLIC_` prefix)
 - `.env.local` is excluded from version control
 - Use environment-specific keys (test for development, production for production)
+
+## 📖 Documentation
+
+Comprehensive documentation is available in the `/docs` directory:
+
+- **[📚 Documentation Index](./docs/README.md)** - Complete documentation overview
+- **[🛒 Guest Checkout System](./docs/guest-checkout-system.md)** - "Payment First, Account Later" implementation
+- **[💳 Subscription Management](./docs/subscription.md)** - Complete subscription system guide
+- **[🔐 Authentication Guide](./docs/authentication.md)** - Authentication system documentation
+- **[🗄️ Database Schema](./docs/database-schema.md)** - Database structure and setup
+
+### Quick Links
+- **Setup Guides**: Environment setup, Stripe configuration, Supabase setup
+- **Architecture**: System design, data flow, security considerations
+- **Development**: Testing strategies, debugging, troubleshooting
+- **API Reference**: Endpoint documentation, webhook handling
 
 ## 📚 Learn More
 

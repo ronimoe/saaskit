@@ -41,7 +41,11 @@ export async function updateSession(request: NextRequest) {
     '/login',
     '/signup',
     '/auth',
-    '/header-demo'
+    '/header-demo',
+    '/pricing',
+    '/api/stripe/checkout', // Allow guest checkout
+    '/api/stripe/webhook', // Allow Stripe webhooks
+    '/checkout' // Allow checkout pages
   ]
 
   // Check if the current path is a public route

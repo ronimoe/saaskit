@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerComponentClient } from '@/lib/supabase';
+import { ensureCustomerExists } from '@/lib/customer-service';
 
 /**
  * Auth callback handler for Supabase authentication flows
  * Handles email confirmations, password resets, and other auth callbacks
+ * Uses atomic customer creation to prevent race conditions
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -39,6 +41,42 @@ export async function GET(request: NextRequest) {
         loginUrl.searchParams.set('error', 'Authentication failed. Please try again.');
         
         return NextResponse.redirect(loginUrl);
+      }
+
+      // Handle signup confirmation - create Stripe customer and profile
+      if (requestUrl.searchParams.get('type') === 'signup') {
+        try {
+          // Get the current user after code exchange
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (user?.id && user?.email) {
+            console.log(`[AUTH CALLBACK] Creating customer for new user: ${user.id}`);
+            
+            // Use our race-condition-safe customer service directly
+            const customerResult = await ensureCustomerExists(
+              user.id,
+              user.email,
+              user.user_metadata?.full_name
+            );
+
+            if (!customerResult.success) {
+              console.error('[AUTH CALLBACK] Customer creation failed:', customerResult.error);
+              
+              // Don't fail the auth flow, but log the error
+              // User can still access the app, customer can be created later
+            } else {
+              console.log('[AUTH CALLBACK] Customer and profile created successfully', {
+                profileId: customerResult.profile?.id,
+                stripeCustomerId: customerResult.stripeCustomerId,
+                isNewCustomer: customerResult.isNewCustomer,
+                isNewProfile: customerResult.isNewProfile
+              });
+            }
+          }
+        } catch (customerError) {
+          console.error('[AUTH CALLBACK] Customer creation error:', customerError);
+          // Don't fail the auth flow, continue with normal signup
+        }
       }
 
       // Successful authentication - redirect to intended destination
