@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { getStripe } from '@/lib/stripe-client';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User, UserPlus } from 'lucide-react';
 
 interface CheckoutButtonProps {
   priceId: string;
@@ -13,6 +13,7 @@ interface CheckoutButtonProps {
   isPopular?: boolean;
   className?: string;
   children?: React.ReactNode;
+  enableGuestCheckout?: boolean;
 }
 
 export default function CheckoutButton({ 
@@ -20,40 +21,62 @@ export default function CheckoutButton({
   planName, 
   isPopular = false, 
   className = '',
-  children 
+  children,
+  enableGuestCheckout = true
 }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(false);
   const router = useRouter();
 
   const handleCheckout = async () => {
     try {
       setIsLoading(true);
       setError(null);
+      setCheckingAuth(true);
 
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
+      
+      setCheckingAuth(false);
 
-      // Redirect to login if not authenticated
-      if (!user) {
-        router.push('/login?redirect=/pricing');
-        return;
+      let checkoutData;
+
+      if (user) {
+        // Authenticated user checkout
+        checkoutData = {
+          priceId,
+          userId: user.id,
+          userEmail: user.email,
+          fullName: user.user_metadata?.full_name || user.user_metadata?.name || undefined,
+          isGuest: false
+        };
+
+        console.log('[CHECKOUT BUTTON] Starting authenticated checkout:', {
+          priceId,
+          userId: user.id,
+          hasEmail: !!user.email,
+          hasFullName: !!checkoutData.fullName
+        });
+      } else {
+        // Guest checkout (no authentication required)
+        if (!enableGuestCheckout) {
+          router.push('/login?redirect=/pricing');
+          return;
+        }
+
+        checkoutData = {
+          priceId,
+          isGuest: true,
+          planName
+        };
+
+        console.log('[CHECKOUT BUTTON] Starting guest checkout:', {
+          priceId,
+          planName,
+          isGuest: true
+        });
       }
-
-      // Prepare checkout data with user information
-      const checkoutData = {
-        priceId,
-        userId: user.id,
-        userEmail: user.email,
-        fullName: user.user_metadata?.full_name || user.user_metadata?.name || undefined
-      };
-
-      console.log('[CHECKOUT BUTTON] Starting checkout with data:', {
-        priceId,
-        userId: user.id,
-        hasEmail: !!user.email,
-        hasFullName: !!checkoutData.fullName
-      });
 
       // Create checkout session
       const response = await fetch('/api/stripe/checkout', {
@@ -73,8 +96,9 @@ export default function CheckoutButton({
 
       console.log('[CHECKOUT BUTTON] Checkout session created:', {
         sessionId,
-        customerId,
-        hasUrl: !!url
+        customerId: customerId || 'guest',
+        hasUrl: !!url,
+        isGuest: !user
       });
 
       if (url) {
@@ -101,6 +125,7 @@ export default function CheckoutButton({
       setError(err instanceof Error ? err.message : 'Failed to start checkout');
     } finally {
       setIsLoading(false);
+      setCheckingAuth(false);
     }
   };
 
@@ -110,6 +135,42 @@ export default function CheckoutButton({
       : 'bg-gray-900 hover:bg-gray-800'
   } text-white`;
 
+  // Show different text and icons based on loading state
+  const getButtonContent = () => {
+    if (isLoading) {
+      if (checkingAuth) {
+        return (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            Checking account...
+          </>
+        );
+      }
+      return (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin mr-2" />
+          Starting checkout...
+        </>
+      );
+    }
+
+    if (children) {
+      return children;
+    }
+
+    // Default button content with guest checkout indication
+    if (enableGuestCheckout) {
+      return (
+        <div className="flex items-center justify-center">
+          <UserPlus className="w-4 h-4 mr-2" />
+          Start Free Trial
+        </div>
+      );
+    }
+
+    return `Subscribe to ${planName}`;
+  };
+
   return (
     <div className="space-y-2">
       <Button 
@@ -118,15 +179,14 @@ export default function CheckoutButton({
         className={className || defaultClassName}
         size="lg"
       >
-        {isLoading ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin mr-2" />
-            Starting checkout...
-          </>
-        ) : (
-          children || `Subscribe to ${planName}`
-        )}
+        {getButtonContent()}
       </Button>
+      
+      {enableGuestCheckout && !isLoading && (
+        <p className="text-xs text-gray-500 text-center">
+          No account required • Create account after payment
+        </p>
+      )}
       
       {error && (
         <p className="text-sm text-red-600 text-center">

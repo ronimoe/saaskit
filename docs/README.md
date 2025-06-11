@@ -8,6 +8,11 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 - **[Authentication Overview](./authentication-overview.md)** - Quick reference guide to our auth implementation
 - **[Complete Authentication Guide](./authentication.md)** - Comprehensive documentation of the entire auth system
 
+### Payment & Subscription System
+- **[Guest Checkout System](./guest-checkout-system.md)** - "Payment First, Account Later" implementation guide
+- **[Subscription Management](./subscription.md)** - Complete subscription system documentation
+- **[Stripe Setup Guide](./stripe-setup.md)** - Stripe integration and configuration
+
 ## 🏗️ Architecture Overview
 
 This SaaS Kit is built with:

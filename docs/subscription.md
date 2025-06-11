@@ -23,6 +23,8 @@ The SaaS Kit subscription system provides a complete, production-ready implement
 - ✅ **Atomic database operations** preventing data inconsistencies
 - ✅ **Idempotent functions** safe for retries and concurrent access
 - ✅ **Complete Stripe integration** with webhooks and checkout
+- ✅ **Guest checkout system** - "Payment First, Account Later" workflow
+- ✅ **Account reconciliation** - Secure payment-to-account linking
 - ✅ **Comprehensive error handling** with fallback strategies
 - ✅ **Type-safe** TypeScript implementation throughout
 - ✅ **Extensive logging** for debugging and monitoring
@@ -69,10 +71,20 @@ The subscription system follows a layered architecture with clear separation of 
 
 ### Data Flow
 
+**Traditional Authenticated Flow:**
 1. **User Registration** → Profile creation with customer setup
 2. **Checkout Initiation** → Customer verification/creation → Stripe session
 3. **Payment Completion** → Webhook processing → Database sync
 4. **Subscription Management** → Real-time status updates
+
+**New Guest Checkout Flow:**
+1. **Guest Checkout** → Stripe session without authentication
+2. **Payment Completion** → Guest session storage → Webhook processing
+3. **Account Creation/Login** → Email-based account detection
+4. **Payment Reconciliation** → Link payment to user account
+5. **Subscription Management** → Full access to subscription features
+
+> **Note:** For detailed information about the guest checkout system, see the [Guest Checkout System Guide](./guest-checkout-system.md).
 
 ## Database Schema
 
