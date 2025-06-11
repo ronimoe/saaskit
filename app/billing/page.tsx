@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { UnifiedHeader } from '@/components/layout/unified-header'
+import { DashboardLayout } from '@/components/layout'
 import { BillingPortalButton } from '@/components/billing-portal-button'
 import { SyncSubscriptionButton } from '@/components/sync-subscription-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -124,9 +125,10 @@ function getSubscriptionStatusInfo(subscription: Subscription | null) {
 
 function BillingSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <UnifiedHeader variant="app" />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <UnifiedHeader variant="app" />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-8">
           {/* Header Skeleton */}
           <div className="space-y-2">
@@ -160,6 +162,7 @@ function BillingSkeleton() {
         </div>
       </div>
     </div>
+    </DashboardLayout>
   )
 }
 
@@ -180,7 +183,9 @@ async function BillingContent() {
   const statusInfo = getSubscriptionStatusInfo(subscription)
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <UnifiedHeader variant="app" />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="space-y-8">
         {/* Header */}
         <div className="space-y-2">
@@ -378,16 +383,16 @@ async function BillingContent() {
         </Card>
       </div>
     </div>
+    </div>
   )
 }
 
 export default function BillingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <UnifiedHeader variant="app" />
+    <DashboardLayout>
       <Suspense fallback={<BillingSkeleton />}>
         <BillingContent />
       </Suspense>
-    </div>
+    </DashboardLayout>
   )
 } 

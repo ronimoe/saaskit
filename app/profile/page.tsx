@@ -6,6 +6,7 @@ import { ProfileStats } from '@/components/profile-stats'
 import { Card } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UnifiedHeader } from '@/components/layout/unified-header'
+import { DashboardLayout } from '@/components/layout'
 import { redirect } from 'next/navigation'
 import type { Profile, Subscription } from '@/types/database'
 
@@ -43,47 +44,49 @@ async function getProfileData(userId: string) {
 
 function ProfileSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <UnifiedHeader variant="app" />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="grid gap-6">
-        {/* Header Skeleton */}
-        <Card className="p-6">
-          <div className="flex items-start space-x-4">
-            <Skeleton className="h-20 w-20 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-          </div>
-        </Card>
-
-        {/* Stats Skeleton */}
-        <div className="grid gap-4 md:grid-cols-3">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i} className="p-4">
-              <Skeleton className="h-4 w-24 mb-2" />
-              <Skeleton className="h-8 w-16" />
-            </Card>
-          ))}
-        </div>
-
-        {/* Form Skeleton */}
-        <Card className="p-6">
-          <Skeleton className="h-6 w-48 mb-6" />
-          <div className="grid gap-4 md:grid-cols-2">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-10 w-full" />
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <UnifiedHeader variant="app" />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
+          <div className="grid gap-6">
+            {/* Header Skeleton */}
+            <Card className="p-6">
+              <div className="flex items-start space-x-4">
+                <Skeleton className="h-20 w-20 rounded-full" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-8 w-64" />
+                  <Skeleton className="h-4 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
               </div>
-            ))}
+            </Card>
+
+            {/* Stats Skeleton */}
+            <div className="grid gap-4 md:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <Card key={i} className="p-4">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16" />
+                </Card>
+              ))}
+            </div>
+
+            {/* Form Skeleton */}
+            <Card className="p-6">
+              <Skeleton className="h-6 w-48 mb-6" />
+              <div className="grid gap-4 md:grid-cols-2">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ))}
+              </div>
+            </Card>
           </div>
-        </Card>
+        </div>
       </div>
-    </div>
-    </div>
+    </DashboardLayout>
   )
 }
 
@@ -102,26 +105,29 @@ async function ProfileContent() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="grid gap-6">
-        {/* Profile Header */}
-        <ProfileHeader profile={profile} />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <UnifiedHeader variant="app" />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="grid gap-6">
+          {/* Profile Header */}
+          <ProfileHeader profile={profile} />
 
-        {/* Profile Stats */}
-        <ProfileStats profile={profile} subscriptions={subscriptions} />
+          {/* Profile Stats */}
+          <ProfileStats profile={profile} subscriptions={subscriptions} />
 
-        {/* Profile Form */}
-        <Card className="p-6">
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">Profile Settings</h2>
-              <p className="text-muted-foreground">
-                Manage your account settings and preferences.
-              </p>
+          {/* Profile Form */}
+          <Card className="p-6">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-2xl font-semibold tracking-tight">Profile Settings</h2>
+                <p className="text-muted-foreground">
+                  Manage your account settings and preferences.
+                </p>
+              </div>
+              <ProfileForm profile={profile} />
             </div>
-            <ProfileForm profile={profile} />
-          </div>
-        </Card>
+          </Card>
+        </div>
       </div>
     </div>
   )
@@ -129,11 +135,13 @@ async function ProfileContent() {
 
 export default function ProfilePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <UnifiedHeader variant="app" />
-      <Suspense fallback={<ProfileSkeleton />}>
-        <ProfileContent />
-      </Suspense>
-    </div>
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <UnifiedHeader variant="app" />
+        <Suspense fallback={<ProfileSkeleton />}>
+          <ProfileContent />
+        </Suspense>
+      </div>
+    </DashboardLayout>
   )
 } 
