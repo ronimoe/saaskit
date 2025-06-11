@@ -1,7 +1,11 @@
+'use client'
+
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { GlassCard } from '@/components/ui/glass-card'
-import { MagneticGlassCard } from '@/components/ui/magnetic-glass-card'
+import { UnfoldableFeatureCard } from '@/components/ui/unfoldable-feature-card'
+import { FeatureConnections } from '@/components/ui/feature-connections'
+import { AnimatedProductMockup } from '@/components/ui/animated-product-mockup'
 import { ParticleBackground } from '@/components/ui/particle-background'
 import { Button } from '@/components/ui/button'
 import { UnifiedHeader } from '@/components/layout/unified-header'
@@ -27,7 +31,11 @@ import {
   Settings,
   Settings2,
   Eye,
-  CreditCard
+  CreditCard,
+  RefreshCw,
+  Maximize,
+  Server,
+  FileText
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -40,7 +48,39 @@ const features = [
     color: 'from-blue-500 to-cyan-500',
     category: 'Security',
     highlights: ['Multi-provider OAuth', 'Magic link auth', 'Session management', 'Password reset'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Our authentication system provides enterprise-grade security with support for multiple authentication methods including social providers, magic links, and traditional email/password flows.',
+    featureHighlights: [
+      {
+        title: 'Social Authentication',
+        description: 'Google, GitHub, Twitter, and more OAuth providers',
+        icon: Users
+      },
+      {
+        title: 'Magic Links',
+        description: 'Passwordless authentication via secure email links',
+        icon: Zap
+      },
+      {
+        title: 'Session Management',
+        description: 'Secure JWT tokens with automatic refresh',
+        icon: RefreshCw
+      }
+    ],
+    interactivePreview: {
+      type: 'auth' as const,
+      title: 'Live Authentication Demo',
+      description: 'See how our authentication system works in real-time'
+    },
+    codeExample: `// Simple authentication setup
+import { auth } from '@/lib/supabase'
+
+await auth.signInWithOAuth({
+  provider: 'google',
+  options: {
+    redirectTo: '/dashboard'
+  }
+})`
   },
   {
     id: 'payments',
@@ -50,7 +90,41 @@ const features = [
     color: 'from-green-500 to-emerald-500',
     category: 'Payments',
     highlights: ['Subscription billing', 'Customer portal', 'Webhook handling', 'Invoice generation'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Complete Stripe integration with subscription management, automatic billing, webhook handling, and a customer portal for self-service billing management.',
+    featureHighlights: [
+      {
+        title: 'Subscription Management',
+        description: 'Automatic billing cycles and plan changes',
+        icon: RefreshCw
+      },
+      {
+        title: 'Customer Portal',
+        description: 'Self-service billing and subscription management',
+        icon: Settings
+      },
+      {
+        title: 'Webhook Security',
+        description: 'Secure webhook endpoints with signature verification',
+        icon: Shield
+      }
+    ],
+    interactivePreview: {
+      type: 'payment' as const,
+      title: 'Payment Processing Demo',
+      description: 'Experience our seamless payment flow'
+    },
+    codeExample: `// Create checkout session
+const session = await stripe.checkout.sessions.create({
+  payment_method_types: ['card'],
+  line_items: [{
+    price: 'price_1234567890',
+    quantity: 1,
+  }],
+  mode: 'subscription',
+  success_url: '/success',
+  cancel_url: '/cancel',
+})`
   },
   {
     id: 'database',
@@ -60,7 +134,40 @@ const features = [
     color: 'from-purple-500 to-pink-500',
     category: 'Backend',
     highlights: ['Real-time updates', 'Row-level security', 'Auto-generated APIs', 'Type safety'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Powered by PostgreSQL with real-time capabilities, automatic API generation, and built-in security through Row Level Security policies.',
+    featureHighlights: [
+      {
+        title: 'Real-time Subscriptions',
+        description: 'Live data updates across all connected clients',
+        icon: Zap
+      },
+      {
+        title: 'Auto-generated APIs',
+        description: 'RESTful APIs generated automatically from your schema',
+        icon: Code
+      },
+      {
+        title: 'Type Safety',
+        description: 'Generated TypeScript types for your database schema',
+        icon: FileText
+      }
+    ],
+    interactivePreview: {
+      type: 'api' as const,
+      title: 'Database API Demo',
+      description: 'See live API responses from your database'
+    },
+    codeExample: `// Real-time subscription
+const subscription = supabase
+  .channel('public:profiles')
+  .on('postgres_changes', 
+    { event: '*', schema: 'public', table: 'profiles' },
+    (payload) => {
+      console.log('Change received!', payload)
+    }
+  )
+  .subscribe()`
   },
   {
     id: 'ui',
@@ -70,7 +177,39 @@ const features = [
     color: 'from-orange-500 to-red-500',
     category: 'Design',
     highlights: ['Dark mode support', 'Responsive design', 'Accessibility first', 'Custom themes'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'A comprehensive design system built on shadcn/ui with full customization capabilities, accessibility features, and responsive design patterns.',
+    featureHighlights: [
+      {
+        title: 'Design System',
+        description: 'Consistent, reusable components across your app',
+        icon: Layers
+      },
+      {
+        title: 'Accessibility',
+        description: 'WCAG compliant with keyboard navigation support',
+        icon: Eye
+      },
+      {
+        title: 'Customization',
+        description: 'Easy theming with CSS variables and Tailwind',
+        icon: Palette
+      }
+    ],
+    interactivePreview: {
+      type: 'dashboard' as const,
+      title: 'UI Components Showcase',
+      description: 'Explore our beautiful component library'
+    },
+    codeExample: `// Using our UI components
+import { Button, Card, Badge } from '@/components/ui'
+
+<Card className="p-6">
+  <Badge variant="success">New Feature</Badge>
+  <Button size="lg" variant="primary">
+    Get Started
+  </Button>
+</Card>`
   },
   {
     id: 'performance',
@@ -80,7 +219,41 @@ const features = [
     color: 'from-yellow-500 to-orange-500',
     category: 'Performance',
     highlights: ['Server components', 'Edge deployment', 'Image optimization', 'Code splitting'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Built with performance in mind using Next.js 15, server components, edge deployment, and automatic optimizations for the fastest possible user experience.',
+    featureHighlights: [
+      {
+        title: 'Server Components',
+        description: 'Zero JavaScript for static content delivery',
+        icon: Server
+      },
+      {
+        title: 'Edge Deployment',
+        description: 'Global edge network for minimal latency',
+        icon: Globe
+      },
+      {
+        title: 'Code Splitting',
+        description: 'Automatic bundle optimization and lazy loading',
+        icon: Maximize
+      }
+    ],
+    interactivePreview: {
+      type: 'dashboard' as const,
+      title: 'Performance Metrics',
+      description: 'See real-time performance analytics'
+    },
+    codeExample: `// Server component example
+import { Suspense } from 'react'
+import { Analytics } from './analytics'
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<AnalyticsSkeleton />}>
+      <Analytics />
+    </Suspense>
+  )
+}`
   },
   {
     id: 'analytics',
@@ -90,7 +263,38 @@ const features = [
     color: 'from-indigo-500 to-purple-500',
     category: 'Analytics',
     highlights: ['User tracking', 'Revenue metrics', 'Custom events', 'Real-time dashboards'],
-    status: 'Coming Soon'
+    status: 'Coming Soon',
+    extendedDescription: 'Powerful analytics platform with real-time data visualization, custom event tracking, and comprehensive business intelligence features.',
+    featureHighlights: [
+      {
+        title: 'Real-time Analytics',
+        description: 'Live data updates with beautiful visualizations',
+        icon: BarChart3
+      },
+      {
+        title: 'Custom Events',
+        description: 'Track any user interaction or business metric',
+        icon: Target
+      },
+      {
+        title: 'Revenue Tracking',
+        description: 'Monitor MRR, churn, and customer lifetime value',
+        icon: CreditCard
+      }
+    ],
+    interactivePreview: {
+      type: 'dashboard' as const,
+      title: 'Analytics Dashboard Preview',
+      description: 'Preview of our upcoming analytics features'
+    },
+    codeExample: `// Track custom events
+import { analytics } from '@/lib/analytics'
+
+analytics.track('feature_used', {
+  feature: 'advanced_search',
+  user_id: user.id,
+  timestamp: new Date()
+})`
   },
   {
     id: 'mobile',
@@ -100,7 +304,36 @@ const features = [
     color: 'from-teal-500 to-cyan-500',
     category: 'Mobile',
     highlights: ['Progressive Web App', 'Touch optimized', 'Offline support', 'Native feel'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Mobile-first design approach with progressive web app capabilities, touch-optimized interactions, and offline functionality for a native app experience.',
+    featureHighlights: [
+      {
+        title: 'Progressive Web App',
+        description: 'Install on mobile devices like a native app',
+        icon: Smartphone
+      },
+      {
+        title: 'Touch Gestures',
+        description: 'Swipe, pinch, and touch interactions',
+        icon: Zap
+      },
+      {
+        title: 'Offline Mode',
+        description: 'Core functionality works without internet',
+        icon: Cloud
+      }
+    ],
+    interactivePreview: {
+      type: 'mobile' as const,
+      title: 'Mobile Experience',
+      description: 'See how your app looks and feels on mobile'
+    },
+    codeExample: `// Service worker for offline support
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js')
+    .then(() => console.log('SW registered'))
+    .catch(() => console.log('SW registration failed'))
+}`
   },
   {
     id: 'api',
@@ -110,7 +343,46 @@ const features = [
     color: 'from-slate-500 to-gray-500',
     category: 'Development',
     highlights: ['OpenAPI docs', 'Type validation', 'Rate limiting', 'Error handling'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Comprehensive API system with automatic documentation generation, request validation, rate limiting, and standardized error handling.',
+    featureHighlights: [
+      {
+        title: 'Type Validation',
+        description: 'Automatic request/response validation with Zod',
+        icon: Shield
+      },
+      {
+        title: 'Auto Documentation',
+        description: 'OpenAPI specs generated from your code',
+        icon: FileText
+      },
+      {
+        title: 'Rate Limiting',
+        description: 'Built-in protection against API abuse',
+        icon: Settings
+      }
+    ],
+    interactivePreview: {
+      type: 'api' as const,
+      title: 'API Explorer',
+      description: 'Test API endpoints in real-time'
+    },
+    codeExample: `// Type-safe API route
+import { z } from 'zod'
+import { NextRequest } from 'next/server'
+
+const schema = z.object({
+  name: z.string(),
+  email: z.string().email()
+})
+
+export async function POST(req: NextRequest) {
+  const body = await req.json()
+  const validated = schema.parse(body)
+  
+  // Process validated data
+  return Response.json({ success: true })
+}`
   },
   {
     id: 'security',
@@ -120,7 +392,39 @@ const features = [
     color: 'from-red-500 to-pink-500',
     category: 'Security',
     highlights: ['Data encryption', 'GDPR compliance', 'Security headers', 'Audit logging'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Enterprise-grade security features including end-to-end encryption, GDPR compliance tools, security headers, and comprehensive audit logging.',
+    featureHighlights: [
+      {
+        title: 'Data Encryption',
+        description: 'End-to-end encryption for sensitive data',
+        icon: Lock
+      },
+      {
+        title: 'GDPR Compliance',
+        description: 'Built-in tools for data privacy compliance',
+        icon: Shield
+      },
+      {
+        title: 'Audit Logs',
+        description: 'Comprehensive logging for security analysis',
+        icon: FileText
+      }
+    ],
+    interactivePreview: {
+      type: 'auth' as const,
+      title: 'Security Features Demo',
+      description: 'Experience our security measures in action'
+    },
+    codeExample: `// Secure data handling
+import { encrypt, decrypt } from '@/lib/crypto'
+
+// Encrypt sensitive data before storage
+const encryptedData = await encrypt(sensitiveData)
+await db.users.update({
+  where: { id: userId },
+  data: { encrypted_field: encryptedData }
+})`
   },
   {
     id: 'scaling',
@@ -130,7 +434,40 @@ const features = [
     color: 'from-emerald-500 to-teal-500',
     category: 'Infrastructure',
     highlights: ['Global CDN', 'Auto scaling', 'Load balancing', 'Edge computing'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Built-in auto-scaling capabilities with global CDN distribution, intelligent load balancing, and edge computing for optimal performance worldwide.',
+    featureHighlights: [
+      {
+        title: 'Global CDN',
+        description: 'Content delivery from 300+ edge locations',
+        icon: Globe
+      },
+      {
+        title: 'Auto Scaling',
+        description: 'Automatic resource scaling based on demand',
+        icon: Maximize
+      },
+      {
+        title: 'Load Balancing',
+        description: 'Intelligent traffic distribution across servers',
+        icon: Server
+      }
+    ],
+    interactivePreview: {
+      type: 'dashboard' as const,
+      title: 'Infrastructure Monitoring',
+      description: 'Monitor your app\'s global performance'
+    },
+    codeExample: `// Edge function example
+export const config = {
+  runtime: 'edge',
+  regions: ['iad1', 'sfo1', 'fra1']
+}
+
+export default async function handler(req) {
+  // This runs at the edge, closest to your users
+  return new Response('Hello from the edge!')
+}`
   },
   {
     id: 'collaboration',
@@ -140,7 +477,38 @@ const features = [
     color: 'from-blue-500 to-indigo-500',
     category: 'Collaboration',
     highlights: ['Role management', 'Team invites', 'Shared workspaces', 'Activity feeds'],
-    status: 'Coming Soon'
+    status: 'Coming Soon',
+    extendedDescription: 'Comprehensive team collaboration features with role-based access control, team invitations, shared workspaces, and real-time activity feeds.',
+    featureHighlights: [
+      {
+        title: 'Role Management',
+        description: 'Fine-grained permissions and access control',
+        icon: Shield
+      },
+      {
+        title: 'Team Invites',
+        description: 'Easy team member onboarding and management',
+        icon: Users
+      },
+      {
+        title: 'Activity Feeds',
+        description: 'Real-time updates on team activities',
+        icon: BarChart3
+      }
+    ],
+    interactivePreview: {
+      type: 'dashboard' as const,
+      title: 'Team Dashboard Preview',
+      description: 'See how teams collaborate in your app'
+    },
+    codeExample: `// Team management
+import { teams } from '@/lib/teams'
+
+await teams.invite({
+  email: 'colleague@company.com',
+  role: 'editor',
+  workspace: 'main'
+})`
   },
   {
     id: 'customization',
@@ -150,19 +518,70 @@ const features = [
     color: 'from-violet-500 to-purple-500',
     category: 'Customization',
     highlights: ['Custom branding', 'White labeling', 'Feature flags', 'Environment configs'],
-    status: 'Available'
+    status: 'Available',
+    extendedDescription: 'Complete customization capabilities including custom branding, white-label options, feature flags, and environment-specific configurations.',
+    featureHighlights: [
+      {
+        title: 'Brand Customization',
+        description: 'Colors, logos, and styling to match your brand',
+        icon: Palette
+      },
+      {
+        title: 'Feature Flags',
+        description: 'Control feature rollouts and A/B testing',
+        icon: Settings2
+      },
+      {
+        title: 'White Labeling',
+        description: 'Complete brand removal for reseller partners',
+        icon: Eye
+      }
+    ],
+    interactivePreview: {
+      type: 'dashboard' as const,
+      title: 'Customization Options',
+      description: 'See how you can customize your app'
+    },
+    codeExample: `// Feature flags
+import { featureFlags } from '@/lib/config'
+
+if (featureFlags.advancedAnalytics) {
+  return <AdvancedAnalytics />
+}
+
+return <BasicAnalytics />`
   }
 ]
 
-const categories = ['All', 'Security', 'Payments', 'Backend', 'Design', 'Performance', 'Analytics', 'Mobile', 'Development', 'Infrastructure', 'Collaboration', 'Customization']
+// Define feature connections for the animation system
+const featureConnections = [
+  { from: 'auth', to: 'database', type: 'integration' as const, delay: 0 },
+  { from: 'database', to: 'api', type: 'flow' as const, delay: 0.3 },
+  { from: 'api', to: 'ui', type: 'dependency' as const, delay: 0.6 },
+  { from: 'auth', to: 'payments', type: 'integration' as const, delay: 0.9 },
+  { from: 'payments', to: 'analytics', type: 'flow' as const, delay: 1.2 },
+  { from: 'ui', to: 'mobile', type: 'dependency' as const, delay: 1.5 },
+  { from: 'database', to: 'security', type: 'integration' as const, delay: 1.8 },
+  { from: 'api', to: 'scaling', type: 'dependency' as const, delay: 2.1 },
+  { from: 'collaboration', to: 'customization', type: 'flow' as const, delay: 2.4 }
+]
 
 export default function FeaturesPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
       <UnifiedHeader variant="landing" />
       
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      {/* Enhanced Hero Section with Animated Mockups */}
+      <section className="relative overflow-hidden py-24">
+        {/* Particle Background */}
+        <ParticleBackground 
+          particleCount={50}
+          speed={0.3}
+          interactive={true}
+          colors={['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B']}
+          className="opacity-20"
+        />
+        
         {/* Floating Elements */}
         <div className="floating-element top-20 left-10 w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-full blur-xl float-animation" />
         <div className="floating-element top-40 right-20 w-16 h-16 bg-gradient-to-br from-pink-500/20 to-orange-500/20 rounded-full blur-lg float-slow" />
@@ -174,10 +593,10 @@ export default function FeaturesPage() {
           <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-pink-500/10 to-orange-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
         </div>
         
-        <div className="relative container mx-auto px-4 py-24 text-center">
+        <div className="relative container mx-auto px-4 text-center">
           <Badge className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
             <Sparkles className="w-4 h-4 mr-2" />
-            Next-Generation Features
+            Interactive Feature Experience
           </Badge>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-slate-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
@@ -186,288 +605,61 @@ export default function FeaturesPage() {
             <span className="text-4xl md:text-6xl">And More</span>
           </h1>
           
-          <p className="text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Discover the comprehensive feature set that makes our SaaS kit the most complete solution for modern web applications.
+          <p className="text-xl text-slate-600 dark:text-slate-300 mb-12 max-w-2xl mx-auto leading-relaxed">
+            Discover the comprehensive feature set with interactive demos, unfoldable details, and live previews.
           </p>
+          
+          {/* Animated Product Mockup */}
+          <AnimatedProductMockup className="my-16" />
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300">
               <Star className="w-5 h-5 mr-2" />
-              Start Building
+              Explore Features
             </Button>
             <Button size="lg" variant="outline" className="border-2 hover:bg-slate-50 dark:hover:bg-slate-800">
-              View Demo
+              View Live Demo
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Features Grid with Modern Layout */}
-      <section className="container mx-auto px-4 py-16">
+      {/* Interactive Features Grid with Connections */}
+      <section className="relative container mx-auto px-4 py-16">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Powerful Features
+            Interactive Feature Showcase
           </h2>
           <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-            Every feature is crafted with attention to detail and modern best practices
+            Click any feature card to unfold detailed information, interactive previews, and code examples
           </p>
         </div>
 
-                {/* Particle Background */}
-        <ParticleBackground 
-          particleCount={30}
-          speed={0.5}
-          interactive={true}
-          colors={['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B']}
-          className="opacity-30"
-        />
-        
-        {/* Interactive Feature Grid with Non-Traditional Layout */}
-        <div className="asymmetric-grid staggered-grid relative z-10">
-          {features.map((feature, index) => {
-            const Icon = feature.icon
-            const gridClass = `grid-cell-${(index % 9) + 1}` // Cycle through 9 different cell types
-            return (
-              <MagneticGlassCard 
-                key={feature.id}
-                variant="primary"
-                size="md" 
-                depth="medium"
-                glow="medium"
-                interactive="hover"
-                magnetic={true}
-                magneticStrength={0.2}
-                magneticGlow={index % 3 === 0} // Add glow to every third card
-                className={`group relative staggered-item ${gridClass} card-3d hover-float`}
-              >
-                {/* Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-                
-                {/* Status Badge */}
-                <div className="absolute top-4 right-4">
-                  <Badge 
-                    variant={feature.status === 'Available' ? 'default' : 'secondary'}
-                    className={`text-xs ${
-                      feature.status === 'Available' 
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                        : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
-                    }`}
-                  >
-                    {feature.status}
-                  </Badge>
-                </div>
-                
-                <div className="relative p-6">
-                  {/* Icon with Gradient */}
-                  <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-br ${feature.color} mb-4 shadow-lg`}>
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                  
-                  {/* Category */}
-                  <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">
-                    {feature.category}
-                  </div>
-                  
-                  {/* Title */}
-                  <h3 className="text-lg font-semibold mb-3 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
-                    {feature.title}
-                  </h3>
-                  
-                  {/* Description */}
-                  <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
-                    {feature.description}
-                  </p>
-                  
-                  {/* Highlights */}
-                  <div className="space-y-2">
-                    {feature.highlights.slice(0, 2).map((highlight, idx) => (
-                      <div key={idx} className="flex items-center text-xs text-slate-500 dark:text-slate-400">
-                        <Check className="w-3 h-3 mr-2 text-green-500" />
-                        {highlight}
-                      </div>
-                    ))}
-                    {feature.highlights.length > 2 && (
-                      <div className="text-xs text-slate-400">
-                        +{feature.highlights.length - 2} more features
-                      </div>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Hover Effect Border */}
-                <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none`} />
-              </MagneticGlassCard>
-            )
-          })}
-        </div>
-      </section>
-
-      {/* Dynamic Theme Showcase Section */}
-      <section className="relative container mx-auto px-4 py-20 diagonal-section diagonal-top diagonal-bottom bg-gradient-to-br from-slate-100/50 to-blue-50/30 dark:from-slate-800/50 dark:to-blue-900/30">
-        <div className="diagonal-content">
-        <div className="text-center mb-16">
-          <Badge className="mb-6 bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0">
-            <Palette className="w-4 h-4 mr-2" />
-            Dynamic Theming
-          </Badge>
+        {/* Feature Grid Container */}
+        <div className="relative">
+          {/* Connecting Lines Layer */}
+          <FeatureConnections 
+            connections={featureConnections}
+            features={features.map(f => ({ id: f.id, title: f.title }))}
+            animated={true}
+          />
           
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Adaptive Color System
-          </h2>
-          
-          <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">
-            Experience real-time color adaptation, interactive themes, and seamless transitions that respond to user preferences and interactions.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Interactive Demo */}
-          <div className="space-y-6">
-            <GlassCard variant="primary" size="lg" depth="medium" glow="medium" className="interactive-colors">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-brand-primary rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold">Dynamic Primary Colors</h3>
-                    <p className="text-sm text-muted-foreground">Hover to see real-time adaptation</p>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="h-16 bg-brand-primary rounded-lg border-2 border-brand-primary/20 interactive-colors"></div>
-                  <div className="h-16 bg-brand-secondary rounded-lg border-2 border-brand-secondary/20 interactive-colors"></div>
-                  <div className="h-16 bg-brand-accent rounded-lg border-2 border-brand-accent/20 interactive-colors"></div>
-                </div>
-                
-                <div className="text-xs text-muted-foreground">
-                  Colors automatically adapt based on your theme selection and user interactions
-                </div>
-              </div>
-            </GlassCard>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <GlassCard variant="subtle" size="md" glow="subtle" className="conditional-glassmorphism">
-                <div className="text-center">
-                  <Layers className="w-8 h-8 mx-auto mb-2 text-primary" />
-                  <div className="font-medium">Glassmorphism</div>
-                  <div className="text-xs text-muted-foreground">Adaptive transparency</div>
-                </div>
-              </GlassCard>
-              
-              <GlassCard variant="subtle" size="md" glow="subtle" className="conditional-animation">
-                <div className="text-center">
-                  <Zap className="w-8 h-8 mx-auto mb-2 text-primary animate-pulse" />
-                  <div className="font-medium">Smart Animations</div>
-                  <div className="text-xs text-muted-foreground">Performance aware</div>
-                </div>
-              </GlassCard>
-            </div>
-          </div>
-          
-          {/* Features List */}
-          <div className="space-y-6">
-            <GlassCard variant="secondary" size="lg" depth="medium" glow="subtle">
-              <div className="space-y-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Palette className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Real-time Color Adaptation</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Colors dynamically adjust based on user interactions, creating a responsive and engaging visual experience.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Settings2 className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Intelligent Theme Switching</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Seamless transitions between light, dark, and custom themes with smooth animations and perfect color consistency.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Eye className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Accessibility First</h3>
-                    <p className="text-sm text-muted-foreground">
-                      High contrast modes, reduced motion support, and WCAG compliance ensure accessibility for all users.
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold mb-2">Brand Integration</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Customize colors to match your brand with automatic generation of complementary palettes and color schemes.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </GlassCard>
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
+            {features.map((feature, index) => {
+              return (
+                <UnfoldableFeatureCard
+                  key={feature.id}
+                  {...feature}
+                  id={`feature-${feature.id}`}
+                  magneticGlow={index % 3 === 0}
+                  className="relative z-20"
+                />
+              )
+            })}
           </div>
         </div>
-        </div>
-      </section>
-
-      {/* Interactive Data Visualization Section */}
-      <section className="container mx-auto px-4 py-20">
-        <div className="text-center mb-16">
-          <Badge className="mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Interactive Analytics
-          </Badge>
-          
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Real-Time Data Visualizations
-          </h2>
-          
-          <p className="text-slate-600 dark:text-slate-300 max-w-2xl mx-auto mb-8">
-            Experience our advanced charting system with D3.js-powered interactive visualizations, real-time data updates, and responsive design.
-          </p>
-        </div>
-
-                 {/* Demo with curved layout */}
-         <div className="curved-grid max-w-6xl mx-auto">
-           <div className="perspective-container">
-             <div className="transform-3d tilt-left">
-               <GlassCard variant="primary" size="xl" depth="floating" glow="strong">
-                 <div className="h-[400px] flex items-center justify-center">
-                   <div className="text-center space-y-4">
-                     <BarChart3 className="w-16 h-16 mx-auto text-indigo-500" />
-                     <div>
-                       <h3 className="text-xl font-semibold mb-2">Interactive Data Visualizations</h3>
-                       <p className="text-muted-foreground">
-                         Advanced D3.js charts with real-time data, smooth animations, and interactive tooltips
-                       </p>
-                     </div>
-                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                       <div className="h-16 bg-gradient-to-t from-blue-500 to-cyan-400 rounded opacity-80"></div>
-                       <div className="h-20 bg-gradient-to-t from-purple-500 to-pink-400 rounded opacity-80"></div>
-                       <div className="h-12 bg-gradient-to-t from-green-500 to-emerald-400 rounded opacity-80"></div>
-                       <div className="h-16 bg-gradient-to-t from-orange-500 to-yellow-400 rounded opacity-80"></div>
-                     </div>
-                   </div>
-                 </div>
-               </GlassCard>
-             </div>
-           </div>
-         </div>
       </section>
 
       {/* Stats Section */}
@@ -476,7 +668,7 @@ export default function FeaturesPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-3xl md:text-4xl font-bold text-white mb-2">12+</div>
-              <div className="text-slate-300">Core Features</div>
+              <div className="text-slate-300">Interactive Features</div>
             </div>
             <div>
               <div className="text-3xl md:text-4xl font-bold text-white mb-2">99.9%</div>
@@ -514,7 +706,7 @@ export default function FeaturesPage() {
             </h2>
             
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
-              Join thousands of developers who are building amazing SaaS applications with our comprehensive feature set.
+              Join thousands of developers who are building amazing SaaS applications with our comprehensive, interactive feature set.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -534,8 +726,6 @@ export default function FeaturesPage() {
           </div>
         </GlassCard>
       </section>
-
-
     </div>
   )
 } 

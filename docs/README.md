@@ -24,6 +24,9 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 ### Next-Generation UI System
 - **[UI System Overview](./ui-system-overview.md)** - Complete overview of the advanced UI components and systems
 - **[Glass Components](./glass-components.md)** - Detailed guide to glassmorphism effects and glass card components
+- **[Interactive Features System](./interactive-features-system.md)** - Unfoldable cards, animated connections, and interactive previews
+- **[Interactive Components API](./interactive-components-api.md)** - Complete API reference for all interactive components
+- **[Interactive Features Quick Start](./interactive-features-quick-start.md)** - 15-minute implementation guide
 - **[Theme System](./theme-system.md)** - Advanced theming with dynamic colors and brand integration
 - **[Animation System](./animations-system.md)** - Magnetic effects, particle backgrounds, and micro-interactions
 - **[Non-Traditional Layouts](./non-traditional-layouts.md)** - Asymmetrical grids, 3D effects, and floating elements
