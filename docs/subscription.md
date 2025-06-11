@@ -1676,6 +1676,103 @@ async function createCustomer(userId: string, email: string) {
 }
 ```
 
+### 3. Subscription Plan Updates Not Reflecting in Database
+
+**Symptoms:**
+- User successfully changes subscription in Stripe Customer Portal
+- Stripe shows updated subscription with new plan
+- Application database still shows old subscription plan
+- Plan benefits don't update in the application UI
+
+**Cause:**
+When users update their subscription through the Stripe Customer Portal, Stripe creates a new price ID for the updated plan instead of using the exact price ID defined in your environment variables. The `getPlanByPriceId` function in `lib/stripe-plans.ts` couldn't match this new price ID to the correct plan.
+
+**Solution:**
+The system has been enhanced to handle this scenario with a more robust price identification strategy:
+
+1. **Enhanced Price Matching:** The `getPlanByPriceId` function now tries multiple strategies to identify the correct plan:
+   ```typescript
+   export function getPlanByPriceId(priceId: string, priceDetails?: any): keyof typeof SUBSCRIPTION_PLANS | null {
+     // Direct match with our price IDs
+     for (const [planKey, plan] of Object.entries(SUBSCRIPTION_PLANS)) {
+       if (plan.priceId === priceId) {
+         return planKey as keyof typeof SUBSCRIPTION_PLANS;
+       }
+     }
+     
+     // If we have price details, try to match based on metadata, amount, or product
+     if (priceDetails) {
+       // Check metadata for plan identifier
+       if (priceDetails.metadata && priceDetails.metadata.plan) {
+         const planKey = priceDetails.metadata.plan.toUpperCase();
+         if (planKey in SUBSCRIPTION_PLANS) {
+           return planKey as keyof typeof SUBSCRIPTION_PLANS;
+         }
+       }
+       
+       // Try to match by price amount
+       if (priceDetails.unit_amount) {
+         for (const [planKey, plan] of Object.entries(SUBSCRIPTION_PLANS)) {
+           const planAmount = Math.round(plan.price * 100); // Convert to cents
+           if (planAmount === priceDetails.unit_amount) {
+             return planKey as keyof typeof SUBSCRIPTION_PLANS;
+           }
+         }
+       }
+       
+       // Try to match by product name
+       if (priceDetails.product && typeof priceDetails.product === 'object' && priceDetails.product.name) {
+         const productName = priceDetails.product.name.toUpperCase();
+         for (const [planKey, plan] of Object.entries(SUBSCRIPTION_PLANS)) {
+           if (productName.includes(planKey) || plan.name.toUpperCase() === productName) {
+             return planKey as keyof typeof SUBSCRIPTION_PLANS;
+           }
+         }
+       }
+     }
+     
+     return null;
+   }
+   ```
+
+2. **Improved Synchronization:** The webhook handler and sync functions now pass detailed price information:
+   ```typescript
+   // In webhook handler when processing subscription events
+   const priceData = subscription.items.data[0]?.price;
+   const priceDetails = {
+     metadata: priceData.metadata,
+     unit_amount: priceData.unit_amount,
+     product: priceData.product
+   };
+   const planKey = getPlanByPriceId(priceData.id, priceDetails);
+   ```
+
+3. **Manual Sync Capability:** A new API endpoint and UI button have been added to manually trigger synchronization:
+   - API: `POST /api/stripe/sync` with user ID in the request body
+   - UI: "Sync with Stripe" button on the billing page
+
+**Using the Manual Sync:**
+If users report that their subscription updates aren't reflected in the application:
+
+1. Direct them to the billing page
+2. Have them click the "Sync with Stripe" button
+3. The system will fetch the latest subscription data directly from Stripe
+4. Database records will be updated to match the current Stripe subscription
+
+**Prevention:**
+To prevent this issue for new subscriptions:
+
+1. Add plan metadata when creating products in Stripe:
+   ```
+   plan: starter
+   ```
+   or
+   ```
+   plan: pro
+   ```
+
+2. Ensure product names in Stripe match the plan keys in your application
+
 ---
 
 ## Conclusion

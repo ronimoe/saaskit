@@ -73,6 +73,7 @@ If you prefer to set up plans manually in the Stripe Dashboard:
   project_limit: 3
   storage_gb: 5
   support_type: email
+  plan: starter
   ```
 
 #### Pro Plan
@@ -86,6 +87,7 @@ If you prefer to set up plans manually in the Stripe Dashboard:
   storage_gb: 50
   support_type: priority
   team_collaboration: true
+  plan: pro
   ```
 
 #### Enterprise Plan
@@ -100,6 +102,7 @@ If you prefer to set up plans manually in the Stripe Dashboard:
   support_type: phone_24_7
   team_collaboration: true
   custom_integrations: true
+  plan: enterprise
   ```
 
 ### Step 2: Copy Price IDs
@@ -364,5 +367,41 @@ if (storageUsed >= storageLimit) {
   throw new Error('Storage limit reached. Upgrade your plan.');
 }
 ```
+
+## Important: Plan Identification
+
+When users manage their subscriptions through the Stripe Customer Portal, it's critical that your application can correctly identify which plan they're subscribed to, even when Stripe generates new price IDs during plan changes.
+
+### Setting Critical Metadata
+
+For each product/price in Stripe, add these essential metadata fields to ensure reliable plan identification:
+
+1. **Add `plan` metadata**:
+   - Go to [Stripe Dashboard > Products](https://dashboard.stripe.com/products)
+   - For each product, click "Edit"
+   - In the "Metadata" section, add:
+     - Key: `plan`
+     - Value: `starter` (or `pro` or `enterprise` to match your application plan keys)
+   - This is critical for subscription changes through the Customer Portal
+
+2. **Ensure consistent naming**:
+   - Product names should match your application plan names (Starter, Pro, Enterprise)
+   - Price amounts should exactly match your defined plan prices
+
+### Why This Matters
+
+When users change plans through the Customer Portal:
+
+1. Stripe creates a new price ID different from your environment variable price IDs
+2. Without proper metadata, your app can't determine which plan the user switched to
+3. This results in subscription data inconsistencies between Stripe and your database
+
+### Advanced: Manual Sync Feature
+
+If subscription changes still don't reflect in your application:
+
+1. A "Sync with Stripe" button is available on the billing page
+2. This forces a direct sync between Stripe and your database
+3. The endpoint is at `POST /api/stripe/sync` with the user ID in the request body
 
 This setup provides a flexible foundation for your subscription-based SaaS application! 
