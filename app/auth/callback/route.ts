@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerComponentClient } from '@/lib/supabase';
+import { ensureCustomerExists } from '@/lib/customer-service';
 
 /**
  * Auth callback handler for Supabase authentication flows
  * Handles email confirmations, password resets, and other auth callbacks
+ * Uses atomic customer creation to prevent race conditions
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -50,26 +52,25 @@ export async function GET(request: NextRequest) {
           if (user?.id && user?.email) {
             console.log(`[AUTH CALLBACK] Creating customer for new user: ${user.id}`);
             
-            // Call our customer creation API
-            const createCustomerResponse = await fetch(new URL('/api/auth/create-customer', requestUrl.origin), {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                email: user.email,
-              }),
-            });
+            // Use our race-condition-safe customer service directly
+            const customerResult = await ensureCustomerExists(
+              user.id,
+              user.email,
+              user.user_metadata?.full_name
+            );
 
-            if (!createCustomerResponse.ok) {
-              const errorData = await createCustomerResponse.json();
-              console.error('[AUTH CALLBACK] Customer creation failed:', errorData);
+            if (!customerResult.success) {
+              console.error('[AUTH CALLBACK] Customer creation failed:', customerResult.error);
               
               // Don't fail the auth flow, but log the error
               // User can still access the app, customer can be created later
             } else {
-              console.log('[AUTH CALLBACK] Customer and profile created successfully');
+              console.log('[AUTH CALLBACK] Customer and profile created successfully', {
+                profileId: customerResult.profile?.id,
+                stripeCustomerId: customerResult.stripeCustomerId,
+                isNewCustomer: customerResult.isNewCustomer,
+                isNewProfile: customerResult.isNewProfile
+              });
             }
           }
         } catch (customerError) {

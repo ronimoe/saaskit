@@ -4,7 +4,7 @@
  * This file contains TypeScript types for the Supabase database schema.
  * Generated automatically using Supabase MCP tools.
  * 
- * Last updated: 2025-06-09
+ * Last updated: 2025-01-21
  * Project ID: yuiddiwrqbswtgdyvzsf
  * 
  * To regenerate:
@@ -34,6 +34,7 @@ export type Database = {
           id: string
           marketing_emails: boolean | null
           phone: string | null
+          stripe_customer_id: string | null
           timezone: string | null
           updated_at: string | null
           user_id: string
@@ -50,6 +51,7 @@ export type Database = {
           id?: string
           marketing_emails?: boolean | null
           phone?: string | null
+          stripe_customer_id?: string | null
           timezone?: string | null
           updated_at?: string | null
           user_id: string
@@ -66,6 +68,7 @@ export type Database = {
           id?: string
           marketing_emails?: boolean | null
           phone?: string | null
+          stripe_customer_id?: string | null
           timezone?: string | null
           updated_at?: string | null
           user_id?: string
@@ -164,7 +167,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_customer_and_profile_atomic: {
+        Args: {
+          p_user_id: string
+          p_email: string
+          p_stripe_customer_id: string
+          p_full_name?: string
+        }
+        Returns: {
+          profile_id: string
+          created_customer: boolean
+          created_profile: boolean
+        }[]
+      }
+      ensure_stripe_customer_atomic: {
+        Args: { p_user_id: string; p_email: string }
+        Returns: {
+          stripe_customer_id: string
+          profile_id: string
+          was_created: boolean
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
@@ -287,25 +310,25 @@ export const Constants = {
 } as const
 
 // ==================================================
-// CONVENIENCE TYPES FOR APPLICATION USE
+// EXTENDED TYPES FOR APPLICATION USE
 // ==================================================
 
-// Core table row types
-export type Profile = Database['public']['Tables']['profiles']['Row']
-export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
-export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
+// Core table types
+export type Profile = Tables<"profiles">
+export type ProfileInsert = TablesInsert<"profiles">
+export type ProfileUpdate = TablesUpdate<"profiles">
+export type Subscription = Tables<"subscriptions">
+export type SubscriptionInsert = TablesInsert<"subscriptions">
+export type SubscriptionUpdate = TablesUpdate<"subscriptions">
 
-export type Subscription = Database['public']['Tables']['subscriptions']['Row']
-export type SubscriptionInsert = Database['public']['Tables']['subscriptions']['Insert']
-export type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update']
+// Atomic function return types
+export type CustomerProfileResult = Database['public']['Functions']['create_customer_and_profile_atomic']['Returns'][0]
+export type EnsureCustomerResult = Database['public']['Functions']['ensure_stripe_customer_atomic']['Returns'][0]
 
-// ==================================================
-// SUBSCRIPTION STATUS TYPES
-// ==================================================
-
+// Subscription status types
 export type SubscriptionStatus = 
   | 'incomplete'
-  | 'incomplete_expired'
+  | 'incomplete_expired' 
   | 'trialing'
   | 'active'
   | 'past_due'
@@ -316,72 +339,112 @@ export type SubscriptionStatus =
 export type SubscriptionInterval = 'month' | 'year'
 export type SupportedCurrency = 'usd' | 'eur' | 'gbp' | 'cad'
 
-// ==================================================
-// BILLING ADDRESS TYPE
-// ==================================================
+// Form and API types
+export type ProfileFormData = {
+  full_name?: string | null
+  phone?: string | null
+  company_name?: string | null
+  website_url?: string | null
+  timezone?: string
+  email_notifications?: boolean
+  marketing_emails?: boolean
+  billing_address?: BillingAddress | null
+}
 
-export interface BillingAddress {
+export type BillingAddress = {
   line1: string
-  line2?: string
+  line2?: string | null
   city: string
-  state?: string
+  state?: string | null
   postal_code: string
   country: string
+}
+
+// Extended subscription types
+export type ActiveSubscription = Subscription & {
+  status: 'active' | 'trialing'
+}
+
+export type SubscriptionWithProfile = Subscription & {
+  profile: Profile
+}
+
+export type SubscriptionSummary = {
+  total_subscriptions: number
+  active_subscriptions: number
+  canceled_subscriptions: number
+  total_revenue: number
+  monthly_recurring_revenue: number
+}
+
+export type SubscriptionDisplay = {
+  id: string
+  plan_name: string
+  status: SubscriptionStatus
+  current_period_end: string
+  unit_amount: number
+  currency: SupportedCurrency
+}
+
+// Filter types for queries
+export type ProfileFilters = {
+  user_id?: string
+  email?: string
+  stripe_customer_id?: string
+  has_stripe_customer?: boolean
+  company_name?: string
+  created_after?: string
+  created_before?: string
+}
+
+export type SubscriptionFilters = {
+  user_id?: string
+  profile_id?: string
+  status?: SubscriptionStatus | SubscriptionStatus[]
+  stripe_customer_id?: string
+  plan_name?: string
+  interval?: SubscriptionInterval
+  active_only?: boolean
+  currency?: SupportedCurrency
+  expiring_soon?: boolean
+}
+
+// Stripe integration types
+export type StripeSubscriptionData = {
+  stripe_customer_id: string
+  stripe_subscription_id: string
+  stripe_price_id: string
+  status: SubscriptionStatus
+  current_period_start: string
+  current_period_end: string
+  trial_start?: string | null
+  trial_end?: string | null
+  cancel_at_period_end: boolean
+  canceled_at?: string | null
+  cancel_at?: string | null
+}
+
+// Database function parameter types
+export type CreateCustomerAndProfileParams = {
+  p_user_id: string
+  p_email: string
+  p_stripe_customer_id: string
+  p_full_name?: string
+}
+
+export type EnsureStripeCustomerParams = {
+  p_user_id: string
+  p_email: string
 }
 
 // ==================================================
 // UTILITY TYPES FOR FORM HANDLING
 // ==================================================
 
-// Profile form data (subset of Profile for user editing)
-export type ProfileFormData = {
-  full_name: string | null
-  phone: string | null
-  company_name: string | null
-  website_url: string | null
-  timezone: string | null
-  email_notifications: boolean | null
-  marketing_emails: boolean | null
-  billing_address?: BillingAddress
-}
-
 // Profile creation data (required fields only)
 export type ProfileCreateData = Pick<ProfileInsert, 'user_id' | 'email'> & {
   full_name?: string
   timezone?: string
-}
-
-// ==================================================
-// SUBSCRIPTION UTILITIES
-// ==================================================
-
-// Active subscription check
-export type ActiveSubscription = Subscription & {
-  status: 'active' | 'trialing'
-}
-
-// Subscription with profile relationship
-export type SubscriptionWithProfile = Subscription & {
-  profile: Profile
-}
-
-// ==================================================
-// QUERY FILTER TYPES
-// ==================================================
-
-export interface ProfileFilters {
-  email?: string
-  company_name?: string
-  created_after?: string
-  created_before?: string
-}
-
-export interface SubscriptionFilters {
-  status?: SubscriptionStatus | SubscriptionStatus[]
-  interval?: SubscriptionInterval
-  currency?: SupportedCurrency
-  active_only?: boolean
-  expiring_soon?: boolean // within 7 days
 }
 
 // ==================================================
@@ -391,33 +454,6 @@ export interface SubscriptionFilters {
 export interface ProfileWithUser {
   profile: Profile
   auth_user_id: string
-}
-
-export interface SubscriptionSummary {
-  id: string
-  plan_name: string
-  status: SubscriptionStatus
-  current_period_end: string
-  unit_amount: number
-  currency: SupportedCurrency
-}
-
-// ==================================================
-// STRIPE INTEGRATION TYPES
-// ==================================================
-
-export interface StripeSubscriptionData {
-  stripe_customer_id: string
-  stripe_subscription_id: string
-  stripe_price_id: string
-  status: SubscriptionStatus
-  current_period_start: string
-  current_period_end: string
-  trial_start?: string
-  trial_end?: string
-  cancel_at_period_end: boolean
-  canceled_at?: string
-  cancel_at?: string
 }
 
 // ==================================================

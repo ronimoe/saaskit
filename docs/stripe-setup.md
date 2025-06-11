@@ -141,17 +141,33 @@ STRIPE_ENTERPRISE_PRICE_ID=price_your_enterprise_price_id
 
 ## Webhook Configuration
 
-For subscription events to work properly, you'll need to set up webhooks:
+For subscription events and payment processing to work properly, you'll need to set up webhooks. 
+
+**Quick Setup**: Run `npm run stripe:webhooks` for guided setup instructions.
 
 ### Development Webhooks
 
-1. Install Stripe CLI: [https://stripe.com/docs/stripe-cli](https://stripe.com/docs/stripe-cli)
-2. Login to Stripe CLI: `stripe login`
-3. Forward events to your local app:
+1. **Install Stripe CLI**: [https://stripe.com/docs/stripe-cli](https://stripe.com/docs/stripe-cli)
    ```bash
-   stripe listen --forward-to localhost:3000/api/webhooks/stripe
+   # macOS
+   brew install stripe/stripe-cli/stripe
+   
+   # Windows (with Scoop)
+   scoop bucket add stripe https://github.com/stripe/scoop-stripe-cli.git
+   scoop install stripe
    ```
-4. Copy the webhook signing secret to `.env.local`:
+
+2. **Login to Stripe CLI**: 
+   ```bash
+   stripe login
+   ```
+
+3. **Forward events to your local app**:
+   ```bash
+   stripe listen --forward-to localhost:3000/api/stripe/webhook
+   ```
+
+4. **Copy the webhook signing secret** from the CLI output to `.env.local`:
    ```bash
    STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
    ```
@@ -160,15 +176,36 @@ For subscription events to work properly, you'll need to set up webhooks:
 
 1. Go to [Stripe Dashboard > Webhooks](https://dashboard.stripe.com/webhooks)
 2. Click **"Add endpoint"**
-3. Set endpoint URL: `https://yourdomain.com/api/webhooks/stripe`
-4. Select these events:
-   - `customer.subscription.created`
-   - `customer.subscription.updated`
-   - `customer.subscription.deleted`
-   - `payment_method.attached`
-   - `invoice.payment_succeeded`
-   - `invoice.payment_failed`
+3. Set endpoint URL: `https://yourdomain.com/api/stripe/webhook`
+4. **Select these events** (all are handled by our webhook endpoint):
+   - `customer.subscription.created` - New subscription created
+   - `customer.subscription.updated` - Subscription changes (plan, status, etc.)
+   - `customer.subscription.deleted` - Subscription cancelled
+   - `checkout.session.completed` - Checkout session completed successfully
+   - `invoice.payment_succeeded` - Subscription payment succeeded
+   - `invoice.payment_failed` - Subscription payment failed
 5. Copy the webhook signing secret to your production environment variables
+
+### Testing Webhooks
+
+Once configured, test your webhook setup:
+
+```bash
+# Start your development server
+npm run dev
+
+# In another terminal, trigger test events
+stripe trigger customer.subscription.created
+stripe trigger checkout.session.completed
+stripe trigger invoice.payment_succeeded
+stripe trigger invoice.payment_failed
+```
+
+Your webhook endpoint at `/api/stripe/webhook` will:
+- ✅ Verify webhook signatures for security
+- ✅ Process subscription and payment events
+- ✅ Sync data between Stripe and Supabase
+- ✅ Handle errors gracefully with proper logging
 
 ## Troubleshooting
 

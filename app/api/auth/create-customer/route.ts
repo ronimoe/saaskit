@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerComponentClient } from '@/lib/supabase';
-import { ensureStripeCustomer } from '@/lib/stripe-sync';
-import { createProfileData } from '@/lib/database-utils';
+import { ensureCustomerExists } from '@/lib/customer-service';
 
 /**
  * API route to create Stripe customer and user profile after successful signup
- * Called from auth callback after email confirmation
+ * Uses atomic database functions to prevent race conditions
+ * Called from auth callback after email confirmation or directly from client
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, email } = await request.json();
+    const { userId, email, fullName } = await request.json();
 
     if (!userId || !email) {
       return NextResponse.json(
@@ -18,75 +17,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = await createServerComponentClient();
+    console.log(`[CREATE CUSTOMER API] Starting customer creation for user: ${userId}`);
 
-    // Check if profile already exists (idempotency)
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
+    // Use our race-condition-safe customer service
+    const result = await ensureCustomerExists(userId, email, fullName);
 
-    if (existingProfile) {
-      console.log(`[CREATE CUSTOMER] Profile already exists for user: ${userId}`);
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Customer and profile already exist' 
-      });
-    }
-
-    // Create Stripe customer (this handles idempotency internally)
-    let stripeCustomerId: string;
-    try {
-      stripeCustomerId = await ensureStripeCustomer(userId, email);
-      console.log(`[CREATE CUSTOMER] Stripe customer created/found: ${stripeCustomerId}`);
-    } catch (stripeError) {
-      console.error('[CREATE CUSTOMER] Stripe customer creation failed:', stripeError);
+    if (!result.success) {
+      console.error('[CREATE CUSTOMER API] Customer creation failed:', result.error);
       return NextResponse.json(
-        { error: 'Failed to create Stripe customer' },
+        { error: result.error || 'Failed to create customer and profile' },
         { status: 500 }
       );
     }
 
-    // Create user profile
-    try {
-      const profileData = createProfileData(userId, email);
-      
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .insert(profileData)
-        .select()
-        .single();
+    console.log(`[CREATE CUSTOMER API] Customer creation successful:`, {
+      userId,
+      profileId: result.profile?.id,
+      stripeCustomerId: result.stripeCustomerId,
+      isNewCustomer: result.isNewCustomer,
+      isNewProfile: result.isNewProfile
+    });
 
-      if (profileError) {
-        console.error('[CREATE CUSTOMER] Profile creation failed:', profileError);
-        return NextResponse.json(
-          { error: 'Failed to create user profile' },
-          { status: 500 }
-        );
+    return NextResponse.json({
+      success: true,
+      message: result.isNewProfile ? 'Customer and profile created successfully' : 'Customer and profile already exist',
+      data: {
+        stripeCustomerId: result.stripeCustomerId,
+        profileId: result.profile?.id,
+        isNewCustomer: result.isNewCustomer,
+        isNewProfile: result.isNewProfile
       }
-
-      console.log(`[CREATE CUSTOMER] Profile created successfully for user: ${userId}`);
-      
-      return NextResponse.json({
-        success: true,
-        message: 'Customer and profile created successfully',
-        data: {
-          stripeCustomerId,
-          profileId: profile.id
-        }
-      });
-
-    } catch (profileError) {
-      console.error('[CREATE CUSTOMER] Profile creation error:', profileError);
-      return NextResponse.json(
-        { error: 'Failed to create user profile' },
-        { status: 500 }
-      );
-    }
+    });
 
   } catch (error) {
-    console.error('[CREATE CUSTOMER] Unexpected error:', error);
+    console.error('[CREATE CUSTOMER API] Unexpected error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

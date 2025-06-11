@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SUBSCRIPTION_PLANS, formatPrice } from '@/lib/stripe';
+import CheckoutButton from '@/components/checkout-button';
 
 export const metadata: Metadata = {
   title: 'Pricing | SaaS Kit',
@@ -82,16 +83,13 @@ export default function PricingPage() {
                 </CardContent>
 
                 <CardFooter>
-                  <Button 
-                    className={`w-full ${
-                      isPopular 
-                        ? 'bg-purple-600 hover:bg-purple-700' 
-                        : 'bg-gray-900 hover:bg-gray-800'
-                    } text-white`}
-                    size="lg"
+                  <CheckoutButton
+                    priceId={plan.priceId}
+                    planName={plan.name}
+                    isPopular={isPopular}
                   >
                     Start Free Trial
-                  </Button>
+                  </CheckoutButton>
                 </CardFooter>
               </Card>
             );
@@ -255,10 +253,14 @@ export default function PricingPage() {
             Join thousands of teams already using our platform to build amazing products.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="bg-white text-purple-600 hover:bg-gray-100">
+            <CheckoutButton
+              priceId={SUBSCRIPTION_PLANS.PRO.priceId}
+              planName={SUBSCRIPTION_PLANS.PRO.name}
+              className="bg-white text-purple-600 hover:bg-gray-100 w-auto px-8"
+            >
               Start Free Trial
-            </Button>
-            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-purple-600">
+            </CheckoutButton>
+            <Button size="lg" variant="secondary" className="bg-white text-purple-600 hover:bg-gray-100">
               Contact Sales
             </Button>
           </div>

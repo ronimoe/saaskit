@@ -8,6 +8,9 @@ const relevantEvents = new Set([
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
+  'checkout.session.completed',
+  'invoice.payment_succeeded',
+  'invoice.payment_failed',
 ]);
 
 export async function POST(request: NextRequest) {
@@ -65,6 +68,45 @@ export async function POST(request: NextRequest) {
         
         console.log(`Syncing subscription data for customer: ${customerId}`);
         await syncStripeCustomerData(customerId);
+        break;
+      }
+
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        if (session.customer && session.mode === 'subscription') {
+          const customerId = typeof session.customer === 'string' 
+            ? session.customer 
+            : session.customer.id;
+          
+          console.log(`Checkout completed for subscription, syncing customer: ${customerId}`);
+          await syncStripeCustomerData(customerId);
+        }
+        break;
+      }
+
+      case 'invoice.payment_succeeded': {
+        const invoice = event.data.object as Stripe.Invoice;
+        if (invoice.customer) {
+          const customerId = typeof invoice.customer === 'string' 
+            ? invoice.customer 
+            : invoice.customer.id;
+          
+          console.log(`Payment succeeded for customer: ${customerId}`);
+          await syncStripeCustomerData(customerId);
+        }
+        break;
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        if (invoice.customer) {
+          const customerId = typeof invoice.customer === 'string' 
+            ? invoice.customer 
+            : invoice.customer.id;
+          
+          console.log(`Payment failed for customer: ${customerId}, syncing status`);
+          await syncStripeCustomerData(customerId);
+        }
         break;
       }
       

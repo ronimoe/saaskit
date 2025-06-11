@@ -5,6 +5,19 @@ process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key';
 process.env.SUPABASE_JWT_SECRET = 'test-jwt-secret';
+process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+process.env.STRIPE_PUBLISHABLE_KEY = 'pk_test_123';
+process.env.NEXT_PUBLIC_APP_URL = 'https://test.com';
+
+// Mock fetch globally for Stripe and other HTTP requests
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({}),
+    text: () => Promise.resolve(''),
+  })
+) as jest.Mock;
 
 // Suppress console output during tests
 const originalConsole = global.console;
@@ -26,16 +39,97 @@ jest.mock('@supabase/ssr', () => ({
   createServerClient: jest.fn(),
 }));
 
+// Mock Next.js server components
+jest.mock('next/server', () => {
+  const mockJsonResponse = jest.fn((data, init) => {
+    const response = {
+      status: init?.status || 200,
+      headers: new Map(),
+      json: jest.fn().mockResolvedValue(data),
+    };
+    return response;
+  });
+
+  return {
+    NextRequest: jest.fn(),
+    NextResponse: {
+      json: mockJsonResponse,
+      redirect: jest.fn(),
+      next: jest.fn(),
+    },
+  };
+});
+
+// Mock custom modules for testing
+jest.mock('@/lib/stripe', () => ({
+  stripe: {
+    checkout: {
+      sessions: {
+        retrieve: jest.fn()
+      }
+    },
+    customers: {
+      create: jest.fn(),
+      retrieve: jest.fn(),
+      update: jest.fn()
+    },
+    subscriptions: {
+      retrieve: jest.fn(),
+      update: jest.fn(),
+      del: jest.fn()
+    }
+  }
+}));
+
+jest.mock('@/lib/stripe-sync', () => ({
+  syncStripeCustomerData: jest.fn().mockResolvedValue({
+    planName: 'Mock Plan',
+    status: 'active',
+    priceId: 'price_mock',
+    currentPeriodEnd: 1735689600, // 2025-01-01
+    subscriptionId: 'sub_mock'
+  })
+}));
+
+// Mock Stripe
+jest.mock('stripe', () => {
+  return jest.fn().mockImplementation(() => ({
+    customers: {
+      create: jest.fn(),
+      retrieve: jest.fn(),
+      update: jest.fn(),
+      list: jest.fn(),
+    },
+    subscriptions: {
+      create: jest.fn(),
+      retrieve: jest.fn(),
+      update: jest.fn(),
+      cancel: jest.fn(),
+      list: jest.fn(),
+    },
+    checkout: {
+      sessions: {
+        create: jest.fn(),
+        retrieve: jest.fn(),
+      },
+    },
+    webhooks: {
+      constructEvent: jest.fn(),
+    },
+    prices: {
+      list: jest.fn(),
+      retrieve: jest.fn(),
+    },
+    products: {
+      list: jest.fn(),
+      retrieve: jest.fn(),
+    },
+  }));
+});
+
 // Mock Next.js server imports
 jest.mock('next/headers', () => ({
   cookies: jest.fn(),
-}));
-
-jest.mock('next/server', () => ({
-  NextRequest: jest.fn(),
-  NextResponse: {
-    next: jest.fn(),
-  },
 }));
 
 // Mock ResizeObserver for Radix UI components

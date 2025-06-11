@@ -7,7 +7,7 @@
 
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database';
+import type { Database } from '../types/database';
 
 // Initialize Stripe
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -127,19 +127,37 @@ async function updateDatabaseSubscription(
   data: SubscriptionData
 ): Promise<void> {
   try {
-    // Get the user associated with this customer from existing subscription
-    const { data: existingSubscription, error: customerError } = await supabase
+    // First try to find user from existing subscription
+    let userId: string | null = null;
+    let profileId: string | null = null;
+
+    const { data: existingSubscription } = await supabase
       .from('subscriptions')
       .select('user_id, profile_id')
       .eq('stripe_customer_id', stripeCustomerId)
       .single();
 
-    if (customerError || !existingSubscription) {
-      console.warn(`[STRIPE SYNC] No existing subscription found for customer: ${stripeCustomerId}`);
-      return;
+    if (existingSubscription) {
+      userId = existingSubscription.user_id;
+      profileId = existingSubscription.profile_id;
+    } else {
+      // If no subscription exists, try to find user by stripe_customer_id in profiles
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('user_id, id')
+        .eq('stripe_customer_id', stripeCustomerId)
+        .single();
+
+      if (profileData) {
+        userId = profileData.user_id;
+        profileId = profileData.id;
+      }
     }
 
-    const userId = existingSubscription.user_id;
+    if (!userId || !profileId) {
+      console.warn(`[STRIPE SYNC] No user found for customer: ${stripeCustomerId}`);
+      return;
+    }
 
     if (data.status === 'none' || !data.subscriptionId) {
       // No active subscription - delete existing subscription record if any
@@ -152,24 +170,6 @@ async function updateDatabaseSubscription(
         console.error('[STRIPE SYNC] Error deleting subscription:', deleteError);
       }
       return;
-    }
-
-    // Use profile_id from existing subscription or get it from profiles table
-    let profileId = existingSubscription.profile_id;
-    
-    if (!profileId) {
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('user_id', userId)
-        .single();
-
-      if (profileError || !profileData) {
-        console.error(`[STRIPE SYNC] Profile not found for user: ${userId}`);
-        return;
-      }
-      
-      profileId = profileData.id;
     }
 
     // Upsert subscription data

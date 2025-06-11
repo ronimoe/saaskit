@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import { loadStripe, Stripe as StripeClient } from '@stripe/stripe-js';
 
 // Server-side Stripe configuration
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-05-28.basil',
   typescript: true,
 });
@@ -10,7 +10,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 // Client-side Stripe configuration
 let stripePromise: Promise<StripeClient | null>;
 
-const getStripe = (): Promise<StripeClient | null> => {
+export const getStripe = (): Promise<StripeClient | null> => {
   if (!stripePromise) {
     stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
   }
@@ -115,6 +115,4 @@ export const verifyWebhookSignature = (
   return stripe.webhooks.constructEvent(payload, signature, secret);
 };
 
-// Export instances
-export { stripe, getStripe };
-export default stripe; 
+// Instances already exported above 
