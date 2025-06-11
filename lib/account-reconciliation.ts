@@ -203,6 +203,31 @@ async function linkGuestCustomerToAccount(
       }
     }
 
+    // Ensure we track this customer in the stripe_customers table
+    try {
+      const { error } = await supabase.from('profiles')
+        .update({ stripe_customer_id: paymentInfo.stripeCustomerId })
+        .eq('user_id', request.userId);
+      
+      if (error) {
+        console.warn(`[RECONCILIATION] Error updating profile stripe_customer_id: ${error.message}`);
+      }
+      
+      // Also update the stripe_customers tracking table
+      const { error: customerError } = await supabase.rpc('create_stripe_customer_record', {
+        p_user_id: request.userId,
+        p_stripe_customer_id: paymentInfo.stripeCustomerId,
+        p_email: request.userEmail
+      });
+        
+      if (customerError) {
+        console.warn(`[RECONCILIATION] Error updating stripe_customers table: ${customerError.message}`);
+      }
+    } catch (err) {
+      console.warn(`[RECONCILIATION] Error updating customer records: ${err}`);
+      // Continue with the process anyway
+    }
+
     // Sync subscription data to our database
     if (paymentInfo.subscriptionId) {
       await syncStripeCustomerData(paymentInfo.stripeCustomerId)
@@ -296,6 +321,31 @@ async function transferSubscriptionToExistingCustomer(
         account_type: 'converted_from_guest'
       }
     })
+
+    // Make sure the guest customer is properly linked in the database
+    try {
+      const { error } = await supabase.from('profiles')
+        .update({ stripe_customer_id: paymentInfo.stripeCustomerId })
+        .eq('user_id', request.userId);
+      
+      if (error) {
+        console.warn(`[RECONCILIATION] Error updating profile stripe_customer_id: ${error.message}`);
+      }
+      
+      // Also update the stripe_customers tracking table
+      const { error: customerError } = await supabase.rpc('create_stripe_customer_record', {
+        p_user_id: request.userId,
+        p_stripe_customer_id: paymentInfo.stripeCustomerId,
+        p_email: request.userEmail
+      });
+        
+      if (customerError) {
+        console.warn(`[RECONCILIATION] Error updating stripe_customers table: ${customerError.message}`);
+      }
+    } catch (err) {
+      console.warn(`[RECONCILIATION] Error updating customer records: ${err}`);
+      // Continue with the process anyway
+    }
 
     // Sync the guest customer data (which is now the user's main customer)
     await syncStripeCustomerData(paymentInfo.stripeCustomerId)

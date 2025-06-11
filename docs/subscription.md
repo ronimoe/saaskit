@@ -88,109 +88,196 @@ The subscription system follows a layered architecture with clear separation of 
 
 ## Database Schema
 
-### Profiles Table
+### Database Tables for Subscription Management
 
-The profiles table is the central hub for user information and links users to their Stripe customers.
+The subscription system utilizes three main tables to track customer and subscription data:
+
+#### 1. `profiles` Table
+
+Stores user profile information including their Stripe customer ID.
 
 ```sql
 CREATE TABLE public.profiles (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID UNIQUE NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    email TEXT NOT NULL,
-    full_name TEXT,
-    avatar_url TEXT,
-    company_name TEXT,
-    billing_address JSONB,
-    stripe_customer_id TEXT UNIQUE, -- Links to Stripe customer
-    email_notifications BOOLEAN DEFAULT true,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  email TEXT NOT NULL,
+  avatar_url TEXT,
+  stripe_customer_id TEXT,  -- Links to Stripe customer
+  -- Other profile fields...
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Performance and integrity indexes
-CREATE INDEX idx_profiles_user_id ON public.profiles(user_id);
-CREATE INDEX idx_profiles_stripe_customer_id ON public.profiles(stripe_customer_id);
-CREATE UNIQUE INDEX idx_profiles_email ON public.profiles(email);
 ```
 
-### Subscriptions Table
+**Key subscription-related fields:**
+- `stripe_customer_id`: The Stripe customer ID associated with this user
 
-Stores detailed subscription information synchronized with Stripe.
+#### 2. `stripe_customers` Table
+
+Provides a dedicated mapping between users and Stripe customers, especially useful when handling guest checkouts and account linking.
+
+```sql
+CREATE TABLE public.stripe_customers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  stripe_customer_id TEXT NOT NULL,
+  email TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Constraints
+  CONSTRAINT stripe_customers_user_id_unique UNIQUE (user_id),
+  CONSTRAINT stripe_customers_stripe_customer_id_unique UNIQUE (stripe_customer_id)
+);
+```
+
+**Purpose:**
+- Provides a robust way to track Stripe customers
+- Ensures consistent lookups between user IDs and Stripe customer IDs
+- Critical for handling guest checkout reconciliation
+- Maintains a clean record even if multiple Stripe customers exist for one user
+
+#### 3. `subscriptions` Table
+
+Stores detailed subscription information for each user.
 
 ```sql
 CREATE TABLE public.subscriptions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    stripe_customer_id TEXT NOT NULL,
-    stripe_subscription_id TEXT UNIQUE NOT NULL,
-    stripe_price_id TEXT NOT NULL,
-    status TEXT NOT NULL, -- active, canceled, incomplete, etc.
-    plan_name TEXT,
-    currency TEXT DEFAULT 'usd',
-    unit_amount INTEGER, -- in cents
-    interval TEXT, -- month, year
-    interval_count INTEGER DEFAULT 1,
-    current_period_start TIMESTAMPTZ,
-    current_period_end TIMESTAMPTZ,
-    cancel_at_period_end BOOLEAN DEFAULT FALSE,
-    canceled_at TIMESTAMPTZ,
-    trial_start TIMESTAMPTZ,
-    trial_end TIMESTAMPTZ,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  profile_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  
+  -- Stripe IDs
+  stripe_customer_id TEXT NOT NULL,
+  stripe_subscription_id TEXT NOT NULL UNIQUE,
+  
+  -- Plan details
+  plan_id TEXT NOT NULL,
+  plan_name TEXT NOT NULL,
+  plan_amount BIGINT NOT NULL,
+  plan_currency TEXT NOT NULL,
+  
+  -- Subscription status
+  status TEXT NOT NULL,
+  cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+  
+  -- Billing cycle
+  current_period_start TIMESTAMPTZ NOT NULL,
+  current_period_end TIMESTAMPTZ NOT NULL,
+  
+  -- Trial period
+  trial_start TIMESTAMPTZ,
+  trial_end TIMESTAMPTZ,
+  
+  -- Timestamps
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  
+  -- Constraints
+  CONSTRAINT valid_period CHECK (current_period_end > current_period_start)
 );
-
--- Performance indexes
-CREATE INDEX idx_subscriptions_user_id ON public.subscriptions(user_id);
-CREATE INDEX idx_subscriptions_stripe_customer_id ON public.subscriptions(stripe_customer_id);
-CREATE INDEX idx_subscriptions_stripe_subscription_id ON public.subscriptions(stripe_subscription_id);
-CREATE INDEX idx_subscriptions_status ON public.subscriptions(status);
 ```
+
+**Key fields:**
+- `stripe_subscription_id`: Unique ID from Stripe for this subscription
+- `plan_id`, `plan_name`, `plan_amount`: Details about the subscription plan
+- `status`: Current state of the subscription (active, canceled, past_due, etc.)
+- `current_period_start/end`: The current billing cycle period
+- `cancel_at_period_end`: Indicates if subscription will cancel at the end of the current period
 
 ### Database Functions
 
-#### create_customer_and_profile_atomic()
+The application includes several database functions to maintain data integrity:
 
-Atomically creates or updates a user profile with Stripe customer information.
+#### 1. `create_customer_and_profile_atomic`
 
-```sql
-CREATE OR REPLACE FUNCTION create_customer_and_profile_atomic(
-    p_user_id UUID,
-    p_email TEXT,
-    p_stripe_customer_id TEXT,
-    p_full_name TEXT DEFAULT NULL
-) RETURNS JSONB
-```
-
-**Returns:**
-```json
-{
-  "profile_id": "uuid",
-  "created_customer": boolean,
-  "created_profile": boolean
-}
-```
-
-#### ensure_stripe_customer_atomic()
-
-Safely checks for existing Stripe customer or prepares for creation.
+Atomically creates both a profile and links a Stripe customer ID to avoid race conditions.
 
 ```sql
-CREATE OR REPLACE FUNCTION ensure_stripe_customer_atomic(
-    p_user_id UUID,
-    p_email TEXT
-) RETURNS JSONB
+CREATE OR REPLACE FUNCTION public.create_customer_and_profile_atomic(
+  p_user_id UUID,
+  p_email TEXT,
+  p_stripe_customer_id TEXT,
+  p_full_name TEXT DEFAULT NULL
+) RETURNS TABLE(profile_id UUID, created_customer BOOLEAN, created_profile BOOLEAN)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+-- Function implementation details...
+$$;
 ```
 
-**Returns:**
-```json
-{
-  "stripe_customer_id": "cus_xxx" | null,
-  "profile_id": "uuid",
-  "was_created": boolean
-}
+#### 2. `create_stripe_customer_record`
+
+Safely creates or updates a record in the stripe_customers table.
+
+```sql
+CREATE OR REPLACE FUNCTION public.create_stripe_customer_record(
+  p_user_id UUID,
+  p_stripe_customer_id TEXT,
+  p_email TEXT
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  -- Upsert into stripe_customers table
+  INSERT INTO public.stripe_customers (
+    user_id,
+    stripe_customer_id,
+    email,
+    updated_at
+  ) VALUES (
+    p_user_id,
+    p_stripe_customer_id,
+    p_email,
+    NOW()
+  )
+  ON CONFLICT (user_id)
+  DO UPDATE SET
+    stripe_customer_id = p_stripe_customer_id,
+    email = p_email,
+    updated_at = NOW();
+END;
+$$;
 ```
+
+### Subscription Data Flow
+
+When a customer subscribes, the following data flow ensures all tables are properly updated:
+
+1. **New Subscription Creation:**
+   - Create/update record in `profiles` with Stripe customer ID
+   - Create/update record in `stripe_customers` table
+   - Create record in `subscriptions` table with detailed subscription data
+
+2. **Guest Checkout Reconciliation:**
+   - When a guest subscribes and later creates an account (or logs in)
+   - System links the guest's Stripe customer to their user account
+   - Updates `profiles` and `stripe_customers` tables
+   - Ensures proper data relationships across all tables
+
+3. **Subscription Updates:**
+   - When subscription details change (plan, status, billing dates)
+   - System updates the `subscriptions` table with new information
+   - Webhook events from Stripe trigger these updates automatically
+
+### Database Constraints and Validation
+
+Key constraints ensure data integrity:
+
+1. **Unique Constraints:**
+   - `stripe_customers_user_id_unique`: Ensures each user has only one primary customer record
+   - `stripe_customers_stripe_customer_id_unique`: Ensures each Stripe customer ID appears only once
+   - `subscriptions.stripe_subscription_id`: Ensures each Stripe subscription is tracked only once
+
+2. **Referential Integrity:**
+   - Foreign key constraints ensure profile/subscription records link to valid users
+   - Cascade deletion protects against orphaned records
+
+3. **Data Validation:**
+   - `valid_period` constraint on `subscriptions` ensures that billing periods are valid (end date > start date)
 
 ## Customer Lifecycle
 
@@ -1339,6 +1426,148 @@ npm start
 - [ ] Review and rotate secrets
 - [ ] Analyze customer feedback
 - [ ] Plan feature improvements
+
+## Troubleshooting Common Subscription Issues
+
+### Database-Related Issues
+
+#### 1. Missing Customer Records
+
+**Symptoms:**
+- Console log shows: `[STRIPE SYNC] No user found for customer: cus_xxx`
+- Subscription data not appearing in database after successful payment
+- Webhook events process but don't update the database
+
+**Cause:**
+The system needs to store Stripe customer IDs in both the `profiles` table and the `stripe_customers` table to ensure robust customer tracking, especially with guest checkouts.
+
+**Solution:**
+- Ensure the account reconciliation process properly updates both tables
+- Use the `create_stripe_customer_record` function to safely update the `stripe_customers` table
+- Check the webhook handler for proper error handling
+- Verify customer linking logic in the reconciliation process
+
+#### 2. Invalid Period Constraint Errors
+
+**Symptoms:**
+- Console error: `new row for relation "subscriptions" violates check constraint "valid_period"`
+- Error message about `current_period_start` and `current_period_end` being equal
+
+**Cause:**
+The `subscriptions` table has a constraint requiring `current_period_end > current_period_start`. When default values are used for both fields, they can end up with identical timestamps.
+
+**Solution:**
+- When setting default values for period fields, ensure the end date is always in the future:
+  ```typescript
+  current_period_start: data.currentPeriodStart ? new Date(data.currentPeriodStart * 1000).toISOString() : new Date().toISOString(),
+  current_period_end: data.currentPeriodEnd 
+    ? new Date(data.currentPeriodEnd * 1000).toISOString() 
+    : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days later if no end date
+  ```
+- Verify all code paths that update subscription data properly handle the period fields
+
+#### 3. Missing Subscriptions After Login
+
+**Symptoms:**
+- User completes guest checkout successfully but subscriptions don't appear after login
+- Customer created in Stripe but not properly linked to the user
+
+**Cause:**
+Guest checkout flow might not be properly reconciling accounts when users log in.
+
+**Solution:**
+- Ensure the `linkGuestCustomerToAccount` function properly updates both database tables
+- Verify webhook handlers are correctly processing customer metadata
+- Check for proper error handling in the reconciliation process
+- Monitor guest session tracking for data integrity
+
+### Stripe Customer Portal Issues
+
+#### 1. Failed to Create Billing Portal Session
+
+**Symptoms:**
+- Error: `Failed to create billing portal session`
+- Console shows: `No configuration provided and your test mode default configuration has not been created`
+
+**Cause:**
+The Stripe Customer Portal must be configured in the Stripe Dashboard before it can be used.
+
+**Solution:**
+- Configure the Customer Portal in the [Stripe Dashboard](https://dashboard.stripe.com/test/settings/billing/portal)
+- Set up business information, return URLs, and enabled features
+- If needed, provide a fallback for users when portal isn't configured:
+  ```typescript
+  // Client-side fallback example
+  if (errorMessage.includes('Stripe Customer Portal is not configured')) {
+    toast.error('Redirecting to Stripe dashboard instead');
+    // Redirect to Stripe dashboard customer view as fallback
+  }
+  ```
+
+#### 2. Customer Portal Navigation Issues
+
+**Symptoms:**
+- Users not returning to the correct page after using the portal
+- Unexpected behavior when switching plans
+
+**Cause:**
+Incorrect return URL configuration or missing handling of specific events.
+
+**Solution:**
+- Verify the return URL is set correctly in the portal configuration
+- Ensure webhook handlers process all relevant subscription update events
+- Add proper error handling and user feedback for all portal actions
+
+#### 3. Missing Subscription Options in Portal
+
+**Symptoms:**
+- Not all subscription plans appear as upgrade options
+- Users unable to switch between certain plans
+
+**Cause:**
+Product configuration in the Customer Portal settings is incomplete.
+
+**Solution:**
+- In Stripe Dashboard > Customer Portal settings, ensure all products are enabled
+- Configure proper upgrade/downgrade paths between subscription tiers
+- Set appropriate proration behavior for plan changes
+
+### Webhook Processing Issues
+
+#### 1. Events Not Processing
+
+**Symptoms:**
+- Stripe shows events sent but application doesn't respond
+- Database not updating after subscription events
+
+**Cause:**
+Webhook verification might be failing or event handlers might not be processing all event types.
+
+**Solution:**
+- Verify webhook secret is correctly set in environment variables
+- Check webhook handler is properly verifying signatures
+- Ensure all relevant event types are being handled
+- Add comprehensive logging for webhook events
+- Use the Stripe CLI to test webhooks locally:
+  ```bash
+  stripe listen --forward-to localhost:3000/api/stripe/webhook
+  stripe trigger checkout.session.completed
+  ```
+
+#### 2. Duplicate Subscription Records
+
+**Symptoms:**
+- Multiple subscription records for the same user
+- Inconsistent subscription data
+
+**Cause:**
+Race conditions or lack of proper transaction handling when creating subscriptions.
+
+**Solution:**
+- Use database constraints to prevent duplicates
+- Implement idempotent event handling in webhooks
+- Use atomic database operations when updating subscription data
+- Ensure proper error handling and logging for troubleshooting
 
 ## Best Practices Summary
 

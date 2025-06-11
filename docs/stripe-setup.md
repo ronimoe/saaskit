@@ -207,6 +207,89 @@ Your webhook endpoint at `/api/stripe/webhook` will:
 - ✅ Sync data between Stripe and Supabase
 - ✅ Handle errors gracefully with proper logging
 
+## Stripe Customer Portal Setup
+
+The Customer Portal allows subscribers to manage their subscription, payment methods, and billing information without leaving your application.
+
+### Configure the Customer Portal
+
+1. **Access Portal Settings**:
+   - Go to [Stripe Dashboard > Settings > Customer Portal](https://dashboard.stripe.com/test/settings/billing/portal)
+   - Click **"Configure"** to set up the portal
+
+2. **Basic Configuration**:
+   - **Business Name**: Enter your business name
+   - **Logo**: Upload your brand logo
+   - **Accent Color**: Set your brand color
+   - **Privacy Policy URL**: `https://yourdomain.com/privacy-policy`
+   - **Terms of Service URL**: `https://yourdomain.com/terms`
+   
+3. **Enabled Features**:
+   - **Customer Update Permissions**:
+     - [x] Allow customers to update email
+     - [x] Allow customers to update address
+     - [x] Allow customers to update payment method
+   - **Subscription Management**:
+     - [x] Allow customers to cancel subscriptions
+     - [x] Allow customers to pause subscriptions (optional)
+     - [x] Allow customers to switch plans
+     - Proration behavior: `Create prorations` (recommended)
+   - **Products**:
+     - Select which products/prices can be switched to
+     - For testing, enable all test mode products
+
+4. **Return URL**:
+   - Set to `https://yourdomain.com/billing` (or your equivalent billing page)
+
+5. **Save Changes**:
+   - Click **"Save"** to apply your configuration
+
+### Integrating Customer Portal with Your App
+
+The application already has the `/api/stripe/portal` endpoint and the `BillingPortalButton` component configured.
+
+When a user clicks "Manage Billing" in your application:
+1. The app calls the `/api/stripe/portal` endpoint
+2. The endpoint creates a Stripe Portal session using the customer's Stripe ID
+3. The user is redirected to the Stripe-hosted Portal to manage their subscription
+4. When finished, the user is returned to your application's billing page
+
+### Testing the Customer Portal
+
+1. **Create a Test Subscription**:
+   - Subscribe to a plan using a Stripe test card
+   
+2. **Access the Portal**:
+   - Go to your app's billing page
+   - Click "Manage Billing" button
+   - Verify you're redirected to the Stripe Customer Portal
+   
+3. **Test Portal Features**:
+   - Update payment method
+   - Change subscription plan
+   - Cancel subscription
+   - Update billing information
+   
+4. **Verify Return Flow**:
+   - After completing actions, click "Return to [Your App Name]"
+   - Verify you're redirected back to your billing page
+
+### Advanced Portal Configuration
+
+For more advanced use cases, consider these optional configurations:
+
+1. **Custom Email Templates**:
+   - Customize email notifications sent when customers make changes
+   
+2. **Custom Branding**:
+   - Apply your brand colors and logo across the portal
+   
+3. **Product Upgrade Rules**:
+   - Configure specific upgrade/downgrade paths between plans
+   
+4. **Localization**:
+   - Set up language preferences for international customers
+
 ## Troubleshooting
 
 ### Common Issues
@@ -222,6 +305,18 @@ Your webhook endpoint at `/api/stripe/webhook` will:
 3. **Products Not Appearing**:
    - Run the setup script again: `node scripts/setup-stripe.js`
    - Check for existing products in Stripe Dashboard
+
+4. **"Failed to create billing portal session" Error**:
+   - Verify the Customer Portal is configured in your Stripe Dashboard
+   - Navigate to [Stripe Dashboard > Settings > Customer Portal](https://dashboard.stripe.com/test/settings/billing/portal)
+   - Complete the configuration steps outlined in the "Stripe Customer Portal Setup" section
+   - Ensure you're using the correct Stripe environment (test vs production)
+   - Check that the customer has a valid subscription
+
+5. **"No configuration provided" Error**:
+   - This specific error means you haven't configured the Customer Portal in your Stripe Dashboard
+   - Go to [Stripe Dashboard > Settings > Customer Portal](https://dashboard.stripe.com/test/settings/billing/portal)
+   - Follow the configuration steps to enable the Customer Portal
 
 ### Getting Help
 

@@ -44,6 +44,14 @@ export const SUBSCRIPTION_PLANS = {
 // Type definitions
 export type SubscriptionPlan = keyof typeof SUBSCRIPTION_PLANS;
 
+export type SubscriptionPlanPrice = {
+  id: string;
+  currency: string;
+  unitAmount: number;
+  interval: 'month' | 'year';
+  active: boolean;
+};
+
 // Helper functions
 export const formatPrice = (price: number): string => {
   return new Intl.NumberFormat('en-US', {
@@ -52,11 +60,52 @@ export const formatPrice = (price: number): string => {
   }).format(price);
 };
 
-export const getPlanByPriceId = (priceId: string): SubscriptionPlan | null => {
+export const getPlanByPriceId = (priceId: string, priceDetails?: { metadata?: Record<string, string>, unit_amount?: number, product?: string | { name?: string } }): SubscriptionPlan | null => {
+  // First check for direct match with configured price IDs
   for (const [planKey, plan] of Object.entries(SUBSCRIPTION_PLANS)) {
     if (plan.priceId === priceId) {
       return planKey as SubscriptionPlan;
     }
   }
+  
+  // If price details are provided, check metadata or price amount
+  if (priceDetails) {
+    // Check metadata for plan_type
+    if (priceDetails.metadata?.plan_type) {
+      const planType = priceDetails.metadata.plan_type.toUpperCase();
+      if (planType === 'STARTER' || planType === 'PRO' || planType === 'ENTERPRISE') {
+        return planType as SubscriptionPlan;
+      }
+    }
+    
+    // Fall back to matching by price amount
+    if (priceDetails.unit_amount) {
+      // Convert cents to dollars for comparison
+      const priceAmount = priceDetails.unit_amount / 100;
+      
+      // Match price amounts with a small tolerance for rounding
+      if (Math.abs(priceAmount - SUBSCRIPTION_PLANS.STARTER.price) < 0.01) {
+        return 'STARTER';
+      } else if (Math.abs(priceAmount - SUBSCRIPTION_PLANS.PRO.price) < 0.01) {
+        return 'PRO';
+      } else if (Math.abs(priceAmount - SUBSCRIPTION_PLANS.ENTERPRISE.price) < 0.01) {
+        return 'ENTERPRISE';
+      }
+    }
+    
+    // Check product name if available
+    if (priceDetails.product && typeof priceDetails.product === 'object' && priceDetails.product.name) {
+      const productName = priceDetails.product.name.toUpperCase();
+      if (productName.includes('STARTER')) {
+        return 'STARTER';
+      } else if (productName.includes('PRO')) {
+        return 'PRO';
+      } else if (productName.includes('ENTERPRISE')) {
+        return 'ENTERPRISE';
+      }
+    }
+  }
+  
+  console.warn(`Could not determine plan for price ID: ${priceId}. Metadata:`, priceDetails?.metadata);
   return null;
 }; 

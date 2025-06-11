@@ -13,6 +13,11 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 - **[Subscription Management](./subscription.md)** - Complete subscription system documentation
 - **[Stripe Setup Guide](./stripe-setup.md)** - Stripe integration and configuration
 
+### Database & Schema
+- **[Database Schema Overview](./database-schema.md)** - Overview of the database structure
+- **[Database Tables Reference](./database-tables.md)** - Detailed reference for all database tables
+- **[Race Condition Fixes](./RACE_CONDITION_FIXES.md)** - Solutions to database race conditions
+
 ## 🏗️ Architecture Overview
 
 This SaaS Kit is built with:
@@ -222,5 +227,5 @@ This documentation is maintained alongside the codebase. When making changes:
 
 ---
 
-*Last updated: [Current Date]*
-*Documentation version: 1.0* 
+*Last updated: 2025-06-11*
+*Documentation version: 1.1* 

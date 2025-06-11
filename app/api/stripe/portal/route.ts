@@ -54,6 +54,26 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('[PORTAL] Error creating portal session:', error);
+    
+    // Provide more specific error messages based on the error type
+    if (error instanceof Error) {
+      // Check for configuration error specifically
+      if (error.message.includes('No configuration provided') || 
+          error.message.includes('default configuration has not been created')) {
+        return NextResponse.json(
+          { 
+            error: 'Stripe Customer Portal is not configured', 
+            details: 'Please configure the Customer Portal in the Stripe Dashboard at https://dashboard.stripe.com/test/settings/billing/portal',
+            type: 'configuration_error'
+          },
+          { status: 500 }
+        );
+      }
+      
+      // Other specific error types can be added here
+    }
+    
+    // Default error response
     return NextResponse.json(
       { error: 'Failed to create billing portal session' },
       { status: 500 }

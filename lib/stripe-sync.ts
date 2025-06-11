@@ -8,6 +8,7 @@
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { stripe } from '@/lib/stripe-server';
+import { getPlanByPriceId, SUBSCRIPTION_PLANS } from '@/lib/stripe-plans';
 import type { Database } from '../types/database';
 
 // Initialize Supabase for server-side operations
@@ -81,19 +82,35 @@ export async function syncStripeCustomerData(stripeCustomerId: string): Promise<
       
       // Fetch product name separately if needed
       let productName = null;
-      if (priceData && typeof priceData === 'object' && priceData.product) {
-        // If product is just an ID, fetch it
-        if (typeof priceData.product === 'string') {
-          try {
-            const product = await stripe.products.retrieve(priceData.product);
-            productName = product.name;
-          } catch (error) {
-            console.warn(`[STRIPE SYNC] Could not fetch product: ${error}`);
-            productName = 'Subscription Plan';
+      if (priceData && typeof priceData === 'object') {
+        // Try to determine plan from price details
+        const priceDetails = {
+          metadata: priceData.metadata || {},
+          unit_amount: priceData.unit_amount || undefined,
+          product: typeof priceData.product === 'string' 
+            ? priceData.product 
+            : { name: priceData.product && typeof priceData.product === 'object' && 'name' in priceData.product 
+                ? (priceData.product as any).name 
+                : undefined 
+              }
+        };
+        
+        const planKey = getPlanByPriceId(priceData.id, priceDetails);
+        if (planKey) {
+          productName = SUBSCRIPTION_PLANS[planKey].name;
+        } else if (priceData.product) {
+          // Fall back to product name if plan key not found
+          if (typeof priceData.product === 'string') {
+            try {
+              const product = await stripe.products.retrieve(priceData.product);
+              productName = product.name;
+            } catch (error) {
+              console.warn(`[STRIPE SYNC] Could not fetch product: ${error}`);
+              productName = 'Subscription Plan';
+            }
+          } else if (typeof priceData.product === 'object' && 'name' in priceData.product) {
+            productName = priceData.product.name;
           }
-        } else if (typeof priceData.product === 'object' && 'name' in priceData.product) {
-          // If product is expanded object (should not happen with current settings)
-          productName = priceData.product.name;
         }
       }
 
@@ -164,6 +181,34 @@ async function updateDatabaseSubscription(
       if (profileData) {
         userId = profileData.user_id;
         profileId = profileData.id;
+      } else {
+        // As a last resort, check stripe_customers table
+        const { data: customerData } = await supabase
+          .from('stripe_customers')
+          .select('user_id')
+          .eq('stripe_customer_id', stripeCustomerId)
+          .single();
+        
+        if (customerData) {
+          userId = customerData.user_id;
+          
+          // Fetch the profile ID for this user
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('user_id', userId)
+            .single();
+            
+          if (userProfile) {
+            profileId = userProfile.id;
+            
+            // Update the profile with the stripe customer ID since it's missing
+            await supabase
+              .from('profiles')
+              .update({ stripe_customer_id: stripeCustomerId })
+              .eq('user_id', userId);
+          }
+        }
       }
     }
 
@@ -200,7 +245,9 @@ async function updateDatabaseSubscription(
       unit_amount: data.unitAmount || 0,
       currency: (data.currency as 'usd' | 'eur' | 'gbp' | 'cad') || 'usd',
       current_period_start: data.currentPeriodStart ? new Date(data.currentPeriodStart * 1000).toISOString() : new Date().toISOString(),
-      current_period_end: data.currentPeriodEnd ? new Date(data.currentPeriodEnd * 1000).toISOString() : new Date().toISOString(),
+      current_period_end: data.currentPeriodEnd 
+        ? new Date(data.currentPeriodEnd * 1000).toISOString() 
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // Default to 30 days later if no end date
       trial_start: null,
       trial_end: data.trialEnd ? new Date(data.trialEnd * 1000).toISOString() : null,
       cancel_at_period_end: data.cancelAtPeriodEnd,
@@ -247,6 +294,34 @@ export async function ensureStripeCustomer(userId: string, email: string): Promi
       return existingSubscription.stripe_customer_id;
     }
 
+    // Check if customer exists in profiles table
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('stripe_customer_id')
+      .eq('user_id', userId)
+      .single();
+    
+    if (existingProfile?.stripe_customer_id) {
+      return existingProfile.stripe_customer_id;
+    }
+    
+    // Check if customer exists in stripe_customers table
+    const { data: existingCustomer } = await supabase
+      .from('stripe_customers')
+      .select('stripe_customer_id')
+      .eq('user_id', userId)
+      .single();
+    
+    if (existingCustomer?.stripe_customer_id) {
+      // Update profile with this customer ID
+      await supabase
+        .from('profiles')
+        .update({ stripe_customer_id: existingCustomer.stripe_customer_id })
+        .eq('user_id', userId);
+        
+      return existingCustomer.stripe_customer_id;
+    }
+
     // Create new Stripe customer
     const customer = await stripe.customers.create({
       email,
@@ -256,6 +331,23 @@ export async function ensureStripeCustomer(userId: string, email: string): Promi
     });
 
     console.log(`[STRIPE SYNC] Created new customer: ${customer.id} for user: ${userId}`);
+    
+    // Update stripe_customers table
+    try {
+      const { error } = await supabase.rpc('create_stripe_customer_record', {
+        p_user_id: userId,
+        p_stripe_customer_id: customer.id,
+        p_email: email
+      });
+      
+      if (error) {
+        console.warn(`[STRIPE SYNC] Error updating stripe_customers table: ${error.message}`);
+      }
+    } catch (error) {
+      console.warn(`[STRIPE SYNC] Error updating stripe_customers table: ${error}`);
+      // Continue anyway
+    }
+    
     return customer.id;
 
   } catch (error) {

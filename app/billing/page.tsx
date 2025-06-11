@@ -2,6 +2,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { UnifiedHeader } from '@/components/layout/unified-header'
 import { BillingPortalButton } from '@/components/billing-portal-button'
+import { SyncSubscriptionButton } from '@/components/sync-subscription-button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,7 +15,8 @@ import {
   CheckCircle, 
   Clock,
   ArrowUpRight,
-  Settings
+  Settings,
+  RefreshCw
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -346,7 +348,10 @@ async function BillingContent() {
                         Update payment methods, download invoices, or change your plan.
                       </p>
                     </div>
-                    <BillingPortalButton />
+                    <div className="flex flex-row gap-2">
+                      <SyncSubscriptionButton userId={user.id} />
+                      <BillingPortalButton />
+                    </div>
                   </div>
                 </div>
               </div>

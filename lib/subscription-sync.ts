@@ -96,7 +96,17 @@ async function handleSubscriptionCreated(
   }
 
   // Get plan information from price ID
-  const planKey = getPlanByPriceId(firstItem.price.id);
+  const priceDetails = {
+    metadata: firstItem.price.metadata || {},
+    unit_amount: firstItem.price.unit_amount || undefined,
+    product: typeof firstItem.price.product === 'string' 
+      ? firstItem.price.product 
+      : { name: firstItem.price.product && typeof firstItem.price.product === 'object' && 'name' in firstItem.price.product 
+          ? (firstItem.price.product as any).name 
+          : undefined 
+        }
+  };
+  const planKey = getPlanByPriceId(firstItem.price.id, priceDetails);
   const planData = planKey ? SUBSCRIPTION_PLANS[planKey] : null;
 
   if (!planData) {
@@ -163,8 +173,23 @@ async function handleSubscriptionUpdated(
   }
 
   // Get plan information from price ID
-  const planKey = getPlanByPriceId(firstItem.price.id);
+  const priceDetails = {
+    metadata: firstItem.price.metadata || {},
+    unit_amount: firstItem.price.unit_amount || undefined,
+    product: typeof firstItem.price.product === 'string' 
+      ? firstItem.price.product 
+      : { name: firstItem.price.product && typeof firstItem.price.product === 'object' && 'name' in firstItem.price.product 
+          ? (firstItem.price.product as any).name 
+          : undefined 
+        }
+  };
+  const planKey = getPlanByPriceId(firstItem.price.id, priceDetails);
   const planData = planKey ? SUBSCRIPTION_PLANS[planKey] : null;
+
+  if (!planData) {
+    console.warn(`Unknown price ID: ${firstItem.price.id}, metadata:`, firstItem.price.metadata);
+    console.warn(`Price amount: ${firstItem.price.unit_amount}, product:`, firstItem.price.product);
+  }
 
   // Prepare update data
   const updateData: SubscriptionUpdate = {

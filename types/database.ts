@@ -76,6 +76,41 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_customers: {
+        Row: {
+          id: string
+          user_id: string
+          stripe_customer_id: string
+          email: string
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          stripe_customer_id: string
+          email: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          stripe_customer_id?: string
+          email?: string
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_customers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       subscriptions: {
         Row: {
           cancel_at: string | null
@@ -187,6 +222,14 @@ export type Database = {
           profile_id: string
           was_created: boolean
         }[]
+      }
+      create_stripe_customer_record: {
+        Args: {
+          p_user_id: string
+          p_stripe_customer_id: string
+          p_email: string
+        }
+        Returns: void
       }
     }
     Enums: {
@@ -473,4 +516,8 @@ export type DatabaseResult<T> = {
 } | {
   data: null
   error: DatabaseError
-} 
+}
+
+export type StripeCustomer = Tables<"stripe_customers">
+export type StripeCustomerInsert = TablesInsert<"stripe_customers">
+export type StripeCustomerUpdate = TablesUpdate<"stripe_customers"> 

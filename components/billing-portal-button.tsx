@@ -55,6 +55,9 @@ export function BillingPortalButton({
       const data = await response.json();
 
       if (!response.ok) {
+        if (data.type === 'configuration_error') {
+          throw new Error(`${data.error}. ${data.details || ''}`);
+        }
         throw new Error(data.error || 'Failed to access billing portal');
       }
 
@@ -75,6 +78,40 @@ export function BillingPortalButton({
       if (errorMessage.includes('No billing account found')) {
         toast.error('No billing account found. Please create a subscription first.');
         router.push('/pricing');
+      } else if (errorMessage.includes('Stripe Customer Portal is not configured')) {
+        // Handle configuration error specifically
+        toast.error('Stripe Customer Portal is not configured. Redirecting to Stripe dashboard instead.');
+        
+        // Optionally, if you're in development mode, show more details
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('Developer Note: Configure the Stripe Customer Portal at https://dashboard.stripe.com/test/settings/billing/portal');
+        }
+        
+        // Get user again for the fallback
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
+        if (!currentUser) return;
+        
+        // Try to get the Stripe customer ID and redirect to Stripe dashboard as fallback
+        try {
+          const customerResponse = await fetch('/api/stripe/get-customer-id', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.id }),
+          });
+          
+          const customerData = await customerResponse.json();
+          
+          if (customerResponse.ok && customerData.stripeCustomerId) {
+            // Redirect to Stripe dashboard for this customer
+            window.open(`https://dashboard.stripe.com/test/customers/${customerData.stripeCustomerId}`, '_blank');
+          } else {
+            // If we can't get customer ID, just redirect to Stripe dashboard
+            window.open('https://dashboard.stripe.com/test/customers', '_blank');
+          }
+        } catch (fallbackError) {
+          console.error('Error with fallback redirect:', fallbackError);
+          window.open('https://dashboard.stripe.com/test', '_blank');
+        }
       } else {
         toast.error(errorMessage);
       }
