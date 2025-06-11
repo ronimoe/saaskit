@@ -7,12 +7,8 @@
 
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { stripe } from '@/lib/stripe-server';
 import type { Database } from '../types/database';
-
-// Initialize Stripe
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-05-28.basil'
-});
 
 // Initialize Supabase for server-side operations
 const supabase = createClient<Database>(

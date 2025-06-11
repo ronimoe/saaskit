@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { getStripe } from '@/lib/stripe';
+import { getStripe } from '@/lib/stripe-client';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe } from '@/lib/stripe';
+import { stripe } from '@/lib/stripe-server';
 import { ensureCustomerExists, getCustomerByUserId } from '@/lib/customer-service';
 
 export async function POST(request: NextRequest) {

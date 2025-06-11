@@ -7,7 +7,7 @@
 
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import { getPlanByPriceId, SUBSCRIPTION_PLANS } from '@/lib/stripe';
+import { getPlanByPriceId, SUBSCRIPTION_PLANS } from '@/lib/stripe-plans';
 import { createSubscriptionFromStripe } from '@/lib/database-utils';
 import type { Database, SubscriptionInsert, SubscriptionUpdate } from '@/types/database';
 
