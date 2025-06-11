@@ -260,7 +260,7 @@ async function transferSubscriptionToExistingCustomer(
   existingCustomerId: string
 ): Promise<ReconciliationResult> {
   try {
-    console.log(`[RECONCILIATION] Transferring subscription from ${paymentInfo.stripeCustomerId} to ${existingCustomerId}`)
+    console.log(`[RECONCILIATION] Linking guest customer ${paymentInfo.stripeCustomerId} to existing customer ${existingCustomerId}`)
 
     if (!paymentInfo.subscriptionId) {
       return {
@@ -270,81 +270,81 @@ async function transferSubscriptionToExistingCustomer(
       }
     }
 
-    // Update the subscription to use the existing customer
-    await stripe.subscriptions.update(paymentInfo.subscriptionId, {
-      metadata: {
-        transferred_from: paymentInfo.stripeCustomerId,
-        transfer_date: new Date().toISOString(),
-        original_session: request.sessionId
-      }
-    })
+    // Approach: Instead of transferring, we'll use the guest customer and subscription as-is
+    // and just update our database to link the guest customer to the authenticated user
     
-    // To transfer subscription customer, we need to use a different approach
-    // Create a new subscription for the existing customer and cancel the old one
     const currentSubscription = await stripe.subscriptions.retrieve(paymentInfo.subscriptionId)
     
-    // Create new subscription for existing customer
-    const newSubscription = await stripe.subscriptions.create({
-      customer: existingCustomerId,
-      items: currentSubscription.items.data.map(item => ({
-        price: item.price.id,
-        quantity: item.quantity
-      })),
+    // Update the guest customer with the authenticated user's information
+    await stripe.customers.update(paymentInfo.stripeCustomerId, {
+      email: request.userEmail,
       metadata: {
-        ...currentSubscription.metadata,
-        transferred_from: paymentInfo.stripeCustomerId,
-        transfer_date: new Date().toISOString(),
+        user_id: request.userId,
+        reconciled_at: new Date().toISOString(),
         original_session: request.sessionId,
-        original_subscription: paymentInfo.subscriptionId
+        account_type: 'converted_from_guest'
       }
     })
     
-    // Cancel the old subscription
-    await stripe.subscriptions.cancel(paymentInfo.subscriptionId)
-
-    // Sync the updated subscription data
-    await syncStripeCustomerData(existingCustomerId)
-
-    // Optionally, delete or archive the guest customer
-    // Note: We'll keep it for audit purposes but mark it as transferred
-    await stripe.customers.update(paymentInfo.stripeCustomerId, {
+    // Update the subscription metadata to reflect the reconciliation
+    await stripe.subscriptions.update(paymentInfo.subscriptionId, {
       metadata: {
-        status: 'transferred',
-        transferred_to: existingCustomerId,
-        transfer_date: new Date().toISOString()
+        ...currentSubscription.metadata,
+        user_id: request.userId,
+        reconciled_at: new Date().toISOString(),
+        original_session: request.sessionId,
+        account_type: 'converted_from_guest'
       }
     })
+
+    // Sync the guest customer data (which is now the user's main customer)
+    await syncStripeCustomerData(paymentInfo.stripeCustomerId)
+
+    console.log(`[RECONCILIATION] Successfully linked guest customer ${paymentInfo.stripeCustomerId} to user ${request.userId}`)
+
+    // If there was an existing customer, we need to decide what to do with it
+    // For now, we'll keep both and mark the existing one as secondary
+    if (existingCustomerId !== paymentInfo.stripeCustomerId) {
+      console.log(`[RECONCILIATION] User had existing customer ${existingCustomerId}, marking as secondary`)
+      
+      await stripe.customers.update(existingCustomerId, {
+        metadata: {
+          status: 'secondary_customer',
+          primary_customer: paymentInfo.stripeCustomerId,
+          reconciled_at: new Date().toISOString()
+        }
+      })
+    }
 
     // Log the reconciliation operation
     await logReconciliationOperation({
-      operation_type: 'transfer_subscription',
+      operation_type: 'link_guest_customer',
       user_id: request.userId,
       session_id: request.sessionId,
-      stripe_customer_id: existingCustomerId,
+      stripe_customer_id: paymentInfo.stripeCustomerId,
       subscription_id: paymentInfo.subscriptionId,
       email: request.userEmail,
       status: 'success',
       additional_data: {
-        from_customer: paymentInfo.stripeCustomerId,
-        to_customer: existingCustomerId
+        guest_customer: paymentInfo.stripeCustomerId,
+        existing_customer: existingCustomerId,
+        method: 'customer_linking'
       }
     })
 
-    console.log(`[RECONCILIATION] Successfully transferred subscription`)
-
     return {
       success: true,
-      message: 'Successfully transferred subscription to your existing account',
+      message: 'Successfully linked your subscription to your account',
       subscriptionLinked: true,
-      operation: 'updated_existing'
+      operation: 'linked_existing'
     }
 
   } catch (error) {
-    console.error('[RECONCILIATION] Error transferring subscription:', error)
+    console.error('[RECONCILIATION] Error linking guest customer:', error)
     
     // Log failed operation
     await logReconciliationOperation({
-      operation_type: 'transfer_subscription',
+      operation_type: 'link_guest_customer',
       user_id: request.userId,
       session_id: request.sessionId,
       stripe_customer_id: existingCustomerId,
@@ -356,7 +356,7 @@ async function transferSubscriptionToExistingCustomer(
 
     return {
       success: false,
-      message: 'Failed to transfer subscription',
+      message: 'Failed to link subscription to your account',
       error: error instanceof Error ? error.message : 'Unknown error'
     }
   }

@@ -66,7 +66,7 @@ graph TD
     
     J --> L[Account Reconciliation]
     K --> L
-    L --> M[Payment Linked to Account]
+    L --> M[Guest Customer Linked to Account]
     M --> N[User Dashboard]
     
     D --> O[Standard Checkout Flow]
@@ -133,25 +133,56 @@ cleanupExpiredSessions(): Promise<number>
 
 **Core Purpose:** Links guest payments to user accounts securely
 
-**Reconciliation Strategies:**
-- **New User**: Link payment to new account
-- **Existing User**: Transfer subscription to existing customer
-- **Duplicate Email**: Handle edge cases with conflicts
+**Key Concepts:**
+- **Customer Linking**: Instead of transferring payment methods, we link the guest customer to the authenticated user
+- **Metadata Update**: Update guest customer with authenticated user information
+- **Existing Customer Handling**: Mark any pre-existing customer as secondary
+- **Simple & Reliable**: No complex payment method transfers or subscription migrations
 
-**Key Functions:**
+**Implementation Details:**
 ```typescript
-// Main reconciliation function
-reconcileGuestPayment(request: ReconciliationRequest): Promise<ReconciliationResult>
-
-// Extract payment info from Stripe session
-extractGuestPaymentInfo(sessionId: string): Promise<GuestPaymentInfo>
-
-// Link payment to newly created account
-linkGuestCustomerToAccount(paymentInfo: GuestPaymentInfo, userId: string): Promise<LinkResult>
-
-// Transfer subscription between customers
-transferSubscriptionToExistingCustomer(paymentInfo: GuestPaymentInfo, existingCustomerId: string): Promise<TransferResult>
+// Link guest customer to authenticated user
+async function transferSubscriptionToExistingCustomer(
+  request: ReconciliationRequest,
+  paymentInfo: GuestPaymentInfo,
+  existingCustomerId: string
+): Promise<ReconciliationResult> {
+  // Update the guest customer with the authenticated user's information
+  await stripe.customers.update(paymentInfo.stripeCustomerId, {
+    email: request.userEmail,
+    metadata: {
+      user_id: request.userId,
+      reconciled_at: new Date().toISOString(),
+      original_session: request.sessionId,
+      account_type: 'converted_from_guest'
+    }
+  });
+  
+  // Update subscription metadata
+  await stripe.subscriptions.update(paymentInfo.subscriptionId, {
+    metadata: {
+      user_id: request.userId,
+      reconciled_at: new Date().toISOString()
+    }
+  });
+  
+  // Sync customer data to database
+  await syncStripeCustomerData(paymentInfo.stripeCustomerId);
+  
+  return {
+    success: true,
+    message: 'Successfully linked subscription to your account',
+    subscriptionLinked: true
+  };
+}
 ```
+
+**Benefits of This Approach:**
+- ✅ **No Complex Transfers**: Avoids all payment method transfer issues
+- ✅ **Preserves Payment Methods**: Guest's payment method stays intact
+- ✅ **Maintains Subscription**: No cancellation/recreation needed
+- ✅ **Simple & Reliable**: Just metadata updates
+- ✅ **Handles Edge Cases**: Works even if user had existing customer
 
 ### 4. Enhanced Success Page (`app/checkout/success/checkout-success.tsx`)
 
@@ -360,6 +391,125 @@ console.log('[GUEST_CHECKOUT] Session created:', {
 - [ ] Tests cover new functionality
 - [ ] Documentation updated
 - [ ] Performance impact assessed
+
+### Adding New Features
+```typescript
+// Example: Extending the guest checkout system with new features
+// 1. Update the reconciliation service if needed
+import { reconcileGuestPayment } from '@/lib/account-reconciliation';
+
+// 2. Add new endpoint or enhance existing one
+export async function POST(request: Request) {
+  // Implementation with proper error handling
+}
+```
+
+### Common Pitfalls
+- **Session Expiry**: Guest sessions expire after 24 hours; handle gracefully
+- **Duplicate Reconciliation**: Implement idempotency to prevent double-processing
+- **Payment Method Handling**: Ensure proper customer management with Stripe
+- **Race Conditions**: Use atomic operations for guest-to-account transitions
+
+## 🐛 Bug Fixes and Improvements
+
+### Critical Issues Addressed
+
+#### 1. Checkout Verification Date Handling
+**Issue:** `RangeError: Invalid time value` occurred when `current_period_end` was null/undefined
+**Fix:** Added null/undefined checks and fallback logic for both guest and authenticated verification flows
+
+```typescript
+// Handle null/undefined period_end with fallback
+const periodEnd = subscription?.current_period_end 
+  ? new Date(subscription.current_period_end * 1000).toISOString()
+  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days from now
+```
+
+#### 2. Guest Customer Reconciliation Approach
+**Issue:** Attempting to transfer payment methods between customers caused multiple errors
+**Evolution of Solution:**
+
+1. **Initial Approach (Failed):** 
+   - Detaching payment method from guest customer
+   - Attaching to existing customer
+   - Creating new subscription
+   - ❌ Failed due to "payment method previously used" security restriction
+
+2. **Revised Approach (Failed):**
+   - Trying to clone payment methods between customers
+   - ❌ Failed because Payment Method Cloning API is for Stripe Connect only
+
+3. **Final Solution (Successful):**
+   - **Simple Customer Linking**
+   - Update guest customer with authenticated user information
+   - Keep payment methods and subscription intact
+   - Update metadata for proper tracking
+   - ✅ Simple, reliable, and maintains all payment data
+
+```typescript
+// Final implementation (simplified)
+async function transferSubscriptionToExistingCustomer(
+  request: ReconciliationRequest,
+  paymentInfo: GuestPaymentInfo,
+  existingCustomerId: string
+): Promise<ReconciliationResult> {
+  // Update the guest customer with user information
+  await stripe.customers.update(paymentInfo.stripeCustomerId, {
+    email: request.userEmail,
+    metadata: {
+      user_id: request.userId,
+      reconciled_at: new Date().toISOString(),
+      original_session: request.sessionId
+    }
+  });
+  
+  // Update subscription metadata
+  await stripe.subscriptions.update(paymentInfo.subscriptionId, {
+    metadata: {
+      user_id: request.userId,
+      reconciled_at: new Date().toISOString()
+    }
+  });
+  
+  return { success: true, message: 'Successfully linked subscription' };
+}
+```
+
+#### 3. Stripe API Expansion Limit
+**Issue:** Error in customer data sync: `You cannot expand more than 4 levels of a property`
+**Fix:** Reduced expansion depth and implemented product fetching separately
+
+```typescript
+// Before (causing error)
+const subscriptions = await stripe.subscriptions.list({
+  customer: stripeCustomerId,
+  expand: ['data.default_payment_method', 'data.items.data.price.product']
+});
+
+// After (fixed)
+const subscriptions = await stripe.subscriptions.list({
+  customer: stripeCustomerId,
+  expand: ['data.default_payment_method', 'data.items.data.price']
+});
+
+// Fetch product separately if needed
+if (priceData && typeof priceData === 'object' && priceData.product) {
+  if (typeof priceData.product === 'string') {
+    const product = await stripe.products.retrieve(priceData.product);
+    productName = product.name;
+  }
+}
+```
+
+### Lessons Learned
+
+1. **Simplicity Wins**: Simple metadata updates are more reliable than complex transfers
+2. **Stripe Security Constraints**: Payment methods have strict security rules
+3. **API Expansion Limits**: Stripe has a maximum of 4 levels for expanded properties
+4. **Error Handling**: Robust error handling is essential for payment flows
+5. **Fallback Values**: Always provide fallbacks for nullable date/time fields
+
+These fixes ensure the guest checkout system is robust, reliable, and production-ready.
 
 ## 📞 Support and Resources
 

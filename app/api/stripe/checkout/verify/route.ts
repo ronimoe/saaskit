@@ -111,15 +111,30 @@ async function handleAuthenticatedVerification(session: any, customerId: string,
   const subscriptionData = await syncStripeCustomerData(customerId);
 
   // Format response data
+  let currentPeriodEndISO: string;
+  if (subscriptionData.currentPeriodEnd !== null && subscriptionData.currentPeriodEnd !== undefined) {
+    // Handle potential invalid timestamps
+    try {
+      currentPeriodEndISO = new Date(subscriptionData.currentPeriodEnd * 1000).toISOString();
+    } catch (error) {
+      console.warn('Invalid currentPeriodEnd timestamp, using fallback:', subscriptionData.currentPeriodEnd);
+      const fallbackDate = new Date();
+      fallbackDate.setDate(fallbackDate.getDate() + 30);
+      currentPeriodEndISO = fallbackDate.toISOString();
+    }
+  } else {
+    const fallbackDate = new Date();
+    fallbackDate.setDate(fallbackDate.getDate() + 30);
+    currentPeriodEndISO = fallbackDate.toISOString();
+  }
+
   const response = {
     sessionId: session.id,
     subscription: {
       planName: subscriptionData.planName || 'Unknown Plan',
       status: subscriptionData.status,
       priceId: subscriptionData.priceId,
-      currentPeriodEnd: subscriptionData.currentPeriodEnd !== null && subscriptionData.currentPeriodEnd !== undefined
-        ? new Date(subscriptionData.currentPeriodEnd * 1000).toISOString()
-        : new Date().toISOString(),
+      currentPeriodEnd: currentPeriodEndISO,
       subscriptionId: subscriptionData.subscriptionId,
     },
     customer: {
@@ -160,11 +175,24 @@ async function handleGuestVerification(session: any, customerId: string, custome
          const price = await stripe.prices.retrieve(priceItem.price.id);
          const product = await stripe.products.retrieve(price.product as string);
          
+         // Handle current_period_end safely - it might be null or undefined
+         const currentPeriodEnd = (subscription as any).current_period_end;
+         let currentPeriodEndISO: string;
+         
+         if (currentPeriodEnd && typeof currentPeriodEnd === 'number') {
+           currentPeriodEndISO = new Date(currentPeriodEnd * 1000).toISOString();
+         } else {
+           // Fallback: set to 30 days from now for new subscriptions
+           const fallbackDate = new Date();
+           fallbackDate.setDate(fallbackDate.getDate() + 30);
+           currentPeriodEndISO = fallbackDate.toISOString();
+         }
+         
          subscriptionData = {
            planName: product.name || session.metadata?.planName || 'Unknown Plan',
            status: subscription.status,
            priceId: price.id,
-           currentPeriodEnd: new Date((subscription as any).current_period_end * 1000).toISOString(),
+           currentPeriodEnd: currentPeriodEndISO,
            subscriptionId: subscription.id,
          };
        }

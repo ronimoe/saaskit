@@ -53,7 +53,7 @@ export async function syncStripeCustomerData(stripeCustomerId: string): Promise<
       customer: stripeCustomerId,
       limit: 1,
       status: 'all',
-      expand: ['data.default_payment_method', 'data.items.data.price.product']
+      expand: ['data.default_payment_method', 'data.items.data.price']
     });
 
     let subscriptionData: SubscriptionData;
@@ -78,13 +78,30 @@ export async function syncStripeCustomerData(stripeCustomerId: string): Promise<
       // Extract subscription data
       const subscription = subscriptions.data[0]!;
       const priceData = subscription.items.data[0]?.price;
-      const product = priceData?.product;
+      
+      // Fetch product name separately if needed
+      let productName = null;
+      if (priceData && typeof priceData === 'object' && priceData.product) {
+        // If product is just an ID, fetch it
+        if (typeof priceData.product === 'string') {
+          try {
+            const product = await stripe.products.retrieve(priceData.product);
+            productName = product.name;
+          } catch (error) {
+            console.warn(`[STRIPE SYNC] Could not fetch product: ${error}`);
+            productName = 'Subscription Plan';
+          }
+        } else if (typeof priceData.product === 'object' && 'name' in priceData.product) {
+          // If product is expanded object (should not happen with current settings)
+          productName = priceData.product.name;
+        }
+      }
 
       subscriptionData = {
         subscriptionId: subscription.id,
         status: subscription.status,
         priceId: priceData?.id || null,
-        planName: typeof product === 'object' && 'name' in product ? product.name : null,
+        planName: productName,
         currentPeriodStart: (subscription as any).current_period_start || null,
         currentPeriodEnd: (subscription as any).current_period_end || null,
         cancelAtPeriodEnd: (subscription as any).cancel_at_period_end || false,
