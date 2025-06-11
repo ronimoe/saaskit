@@ -1,9 +1,10 @@
 import { Suspense } from 'react'
 import { createClient } from '@/utils/supabase/server'
 import { UnifiedHeader } from '@/components/layout/unified-header'
+import { DashboardLayout } from '@/components/layout'
 import { BillingPortalButton } from '@/components/billing-portal-button'
 import { SyncSubscriptionButton } from '@/components/sync-subscription-button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -15,8 +16,7 @@ import {
   CheckCircle, 
   Clock,
   ArrowUpRight,
-  Settings,
-  RefreshCw
+  Settings
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -68,7 +68,7 @@ function getSubscriptionStatusInfo(subscription: Subscription | null) {
       status: 'none',
       statusColor: 'bg-gray-100 text-gray-800',
       statusText: 'No Subscription',
-      description: 'You don\'t have an active subscription'
+      description: 'You don&apos;t have an active subscription'
     }
   }
 
@@ -124,9 +124,10 @@ function getSubscriptionStatusInfo(subscription: Subscription | null) {
 
 function BillingSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <UnifiedHeader variant="app" />
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+        <UnifiedHeader variant="app" />
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-8">
           {/* Header Skeleton */}
           <div className="space-y-2">
@@ -137,16 +138,16 @@ function BillingSkeleton() {
           {/* Cards Skeleton */}
           <div className="grid gap-6 md:grid-cols-2">
             {[...Array(4)].map((_, i) => (
-              <Card key={i} className="p-6">
+              <GlassCard key={i} variant="secondary" size="md" depth="medium" glow="subtle">
                 <Skeleton className="h-6 w-32 mb-4" />
                 <Skeleton className="h-4 w-24 mb-2" />
                 <Skeleton className="h-8 w-16" />
-              </Card>
+              </GlassCard>
             ))}
           </div>
 
           {/* Billing Details Skeleton */}
-          <Card className="p-6">
+          <GlassCard variant="primary" size="lg" depth="medium" glow="medium">
             <Skeleton className="h-6 w-48 mb-6" />
             <div className="space-y-4">
               {[...Array(4)].map((_, i) => (
@@ -156,10 +157,11 @@ function BillingSkeleton() {
                 </div>
               ))}
             </div>
-          </Card>
+          </GlassCard>
         </div>
       </div>
     </div>
+    </DashboardLayout>
   )
 }
 
@@ -180,202 +182,258 @@ async function BillingContent() {
   const statusInfo = getSubscriptionStatusInfo(subscription)
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Billing & Subscription</h1>
-          <p className="text-muted-foreground">
-            Manage your subscription, billing details, and payment methods.
-          </p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <UnifiedHeader variant="app" />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="space-y-8">
+          {/* Header */}
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight">Billing & Subscription</h1>
+            <p className="text-muted-foreground">
+              Manage your subscription, billing details, and payment methods.
+            </p>
+          </div>
 
-        {/* Status Overview Cards */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Subscription Status */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Subscription Status</CardTitle>
-              {statusInfo.status === 'active' ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              ) : statusInfo.status === 'trial' ? (
-                <Clock className="h-4 w-4 text-blue-600" />
-              ) : statusInfo.status === 'past_due' ? (
-                <AlertCircle className="h-4 w-4 text-red-600" />
-              ) : (
-                <CreditCard className="h-4 w-4 text-gray-600" />
-              )}
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <Badge className={statusInfo.statusColor}>
-                  {statusInfo.statusText}
-                </Badge>
-                <p className="text-sm text-muted-foreground">
-                  {statusInfo.description}
-                </p>
+          {/* Status Overview Cards */}
+          <div className="grid gap-6 md:grid-cols-2">
+                      {/* Subscription Status */}
+          <GlassCard variant="secondary" size="md" depth="medium" glow="subtle" interactive="hover">
+            <div className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <h3 className="text-sm font-medium">Subscription Status</h3>
+              <div className={`relative p-3 rounded-xl ${
+                statusInfo.status === 'active' ? 'bg-gradient-to-br from-green-400 to-emerald-600 shadow-lg shadow-green-500/25' :
+                statusInfo.status === 'trial' ? 'bg-gradient-to-br from-blue-400 to-cyan-600 shadow-lg shadow-blue-500/25' :
+                statusInfo.status === 'past_due' ? 'bg-gradient-to-br from-red-400 to-rose-600 shadow-lg shadow-red-500/25' :
+                'bg-gradient-to-br from-gray-400 to-slate-600 shadow-lg shadow-gray-500/25'
+              }`}>
+                {statusInfo.status === 'active' && (
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 animate-pulse opacity-75"></div>
+                )}
+                <div className="relative">
+                  {statusInfo.status === 'active' ? (
+                    <CheckCircle className="h-5 w-5 text-white drop-shadow-sm" />
+                  ) : statusInfo.status === 'trial' ? (
+                    <Clock className="h-5 w-5 text-white drop-shadow-sm" />
+                  ) : statusInfo.status === 'past_due' ? (
+                    <AlertCircle className="h-5 w-5 text-white drop-shadow-sm" />
+                  ) : (
+                    <CreditCard className="h-5 w-5 text-white drop-shadow-sm" />
+                  )}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            <div className="space-y-3 pt-2">
+              {statusInfo.status === 'active' ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                        Active
+                      </div>
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-sm shadow-green-500/50"></div>
+                    </div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Your subscription is active and up to date
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <Badge className={`${statusInfo.statusColor} text-sm px-3 py-1`}>
+                    {statusInfo.statusText}
+                  </Badge>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {statusInfo.description}
+                  </p>
+                </div>
+              )}
+            </div>
+          </GlassCard>
 
-          {/* Current Plan */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Plan</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold">
+                      {/* Current Plan */}
+          <GlassCard variant="secondary" size="md" depth="medium" glow="subtle" interactive="hover">
+            <div className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <h3 className="text-sm font-medium">Current Plan</h3>
+              <div className="relative p-3 rounded-xl bg-gradient-to-br from-blue-400 to-purple-600 shadow-lg shadow-blue-500/25">
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-blue-400 to-purple-600 animate-pulse opacity-75"></div>
+                <div className="relative">
+                  <DollarSign className="h-5 w-5 text-white drop-shadow-sm" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-2">
+                <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {subscription?.plan_name || 'Free Plan'}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {subscription ? formatSubscriptionPrice(
-                    subscription.unit_amount,
-                    subscription.currency as 'usd' | 'eur' | 'gbp' | 'cad',
-                    subscription.interval as 'month' | 'year'
-                  ) : 'No charge'}
-                </p>
+                {subscription && (
+                  <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-sm shadow-blue-500/50"></div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {subscription ? formatSubscriptionPrice(
+                  subscription.unit_amount,
+                  subscription.currency as 'usd' | 'eur' | 'gbp' | 'cad',
+                  subscription.interval as 'month' | 'year'
+                ) : 'No charge'}
+              </p>
+            </div>
+          </GlassCard>
 
-          {/* Next Billing */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Next Billing</CardTitle>
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="text-2xl font-bold">
+                      {/* Next Billing */}
+          <GlassCard variant="secondary" size="md" depth="medium" glow="subtle" interactive="hover">
+            <div className="flex flex-row items-center justify-between space-y-0 pb-3">
+              <h3 className="text-sm font-medium">Next Billing</h3>
+              <div className="relative p-3 rounded-xl bg-gradient-to-br from-orange-400 to-pink-600 shadow-lg shadow-orange-500/25">
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-orange-400 to-pink-600 animate-pulse opacity-75"></div>
+                <div className="relative">
+                  <Calendar className="h-5 w-5 text-white drop-shadow-sm" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center gap-2">
+                <div className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-pink-600 bg-clip-text text-transparent">
                   {subscription ? (
                     `${getDaysUntilExpiry(subscription)} days`
                   ) : (
                     'N/A'
                   )}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  {subscription 
-                    ? new Date(subscription.current_period_end).toLocaleDateString()
-                    : 'No upcoming billing'
-                  }
-                </p>
+                {subscription && (
+                  <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse shadow-sm shadow-orange-500/50"></div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {subscription 
+                  ? new Date(subscription.current_period_end).toLocaleDateString()
+                  : 'No upcoming billing'
+                }
+              </p>
+            </div>
+          </GlassCard>
 
-          {/* Quick Actions */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Quick Actions</CardTitle>
-              <Settings className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            {/* Quick Actions */}
+            <GlassCard variant="secondary" size="md" depth="medium" glow="subtle" interactive="hover">
+              <div className="flex flex-row items-center justify-between space-y-0 pb-3">
+                <h3 className="text-sm font-medium">Quick Actions</h3>
+                <div className="relative p-3 rounded-xl bg-gradient-to-br from-purple-400 to-indigo-600 shadow-lg shadow-purple-500/25">
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-purple-400 to-indigo-600 animate-pulse opacity-75"></div>
+                  <div className="relative">
+                    <Settings className="h-5 w-5 text-white drop-shadow-sm" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                    {subscription ? 'Manage' : 'Get Started'}
+                  </div>
+                  <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse shadow-sm shadow-purple-500/50"></div>
+                </div>
                 {subscription ? (
-                  <BillingPortalButton size="sm" className="w-full" />
+                  <BillingPortalButton size="sm" className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 shadow-lg shadow-purple-500/25" />
                 ) : (
-                  <Button asChild size="sm" className="w-full">
+                  <Button asChild size="sm" className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 shadow-lg shadow-purple-500/25">
                     <Link href="/pricing">
                       View Plans <ArrowUpRight className="h-4 w-4 ml-2" />
                     </Link>
                   </Button>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </GlassCard>
+          </div>
 
-        {/* Detailed Billing Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Billing Details</CardTitle>
-            <CardDescription>
-              Your current subscription and billing information.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {subscription ? (
-              <div className="space-y-6">
-                {/* Subscription Details */}
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">Plan Details</h4>
-                    <div className="space-y-1">
-                      <p className="text-sm">
-                        <span className="font-medium">Plan:</span> {subscription.plan_name}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Billing:</span> {subscription.interval}ly
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Price:</span> {formatSubscriptionPrice(
-                          subscription.unit_amount,
-                          subscription.currency as 'usd' | 'eur' | 'gbp' | 'cad',
-                          subscription.interval as 'month' | 'year'
-                        )}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">Billing Period</h4>
-                    <div className="space-y-1">
-                      <p className="text-sm">
-                        <span className="font-medium">Started:</span> {' '}
-                        {new Date(subscription.current_period_start).toLocaleDateString()}
-                      </p>
-                      <p className="text-sm">
-                        <span className="font-medium">Ends:</span> {' '}
-                        {new Date(subscription.current_period_end).toLocaleDateString()}
-                      </p>
-                      {subscription.cancel_at_period_end && (
-                        <p className="text-sm text-orange-600">
-                          <span className="font-medium">Note:</span> Subscription will end at period end
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Portal Access */}
-                <div className="border-t pt-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <h4 className="text-sm font-medium">Manage Subscription</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Update payment methods, download invoices, or change your plan.
-                      </p>
-                    </div>
-                    <div className="flex flex-row gap-2">
-                      <SyncSubscriptionButton userId={user.id} />
-                      <BillingPortalButton />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">No Active Subscription</h3>
-                <p className="text-muted-foreground mb-6">
-                  You don't have an active subscription. Choose a plan to get started.
+          {/* Detailed Billing Information */}
+          <GlassCard variant="primary" size="lg" depth="medium" glow="medium">
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight">Billing Details</h2>
+                <p className="text-muted-foreground">
+                  Your current subscription and billing information.
                 </p>
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button asChild>
-                    <Link href="/pricing">
-                      View Plans <ArrowUpRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                  <Button variant="outline" asChild>
-                    <Link href="/profile">Back to Profile</Link>
-                  </Button>
-                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+              {subscription ? (
+                <div className="space-y-6">
+                  {/* Subscription Details */}
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">Plan Details</h4>
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <span className="font-medium">Plan:</span> {subscription.plan_name}
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-medium">Billing:</span> {subscription.interval}ly
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-medium">Price:</span> {formatSubscriptionPrice(
+                            subscription.unit_amount,
+                            subscription.currency as 'usd' | 'eur' | 'gbp' | 'cad',
+                            subscription.interval as 'month' | 'year'
+                          )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">Billing Period</h4>
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <span className="font-medium">Started:</span> {' '}
+                          {new Date(subscription.current_period_start).toLocaleDateString()}
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-medium">Ends:</span> {' '}
+                          {new Date(subscription.current_period_end).toLocaleDateString()}
+                        </p>
+                        {subscription.cancel_at_period_end && (
+                          <p className="text-sm text-orange-600">
+                            <span className="font-medium">Note:</span> Subscription will end at period end
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Portal Access */}
+                  <div className="border-t pt-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div>
+                        <h4 className="text-sm font-medium">Manage Subscription</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Update payment methods, download invoices, or change your plan.
+                        </p>
+                      </div>
+                      <div className="flex flex-row gap-2">
+                        <SyncSubscriptionButton userId={user.id} />
+                        <BillingPortalButton />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No Active Subscription</h3>
+                  <p className="text-muted-foreground mb-6">
+                    You don&apos;t have an active subscription. Choose a plan to get started.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Button asChild className="bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90">
+                      <Link href="/pricing">
+                        View Plans <ArrowUpRight className="h-4 w-4 ml-2" />
+                      </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
+                      <Link href="/profile">Back to Profile</Link>
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </GlassCard>
+        </div>
       </div>
     </div>
   )
@@ -383,11 +441,10 @@ async function BillingContent() {
 
 export default function BillingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-      <UnifiedHeader variant="app" />
+    <DashboardLayout>
       <Suspense fallback={<BillingSkeleton />}>
         <BillingContent />
       </Suspense>
-    </div>
+    </DashboardLayout>
   )
 } 

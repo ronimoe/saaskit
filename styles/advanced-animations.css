@@ -1,0 +1,505 @@
+/* Advanced Animations and Micro-Interactions */
+
+/* CSS Custom Properties for Dynamic Animations */
+:root {
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --scroll-progress: 0;
+  --particle-count: 20;
+  --magnetic-strength: 0.3;
+  --animation-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --animation-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* ===== MAGNETIC HOVER EFFECTS ===== */
+
+.magnetic {
+  position: relative;
+  transition: transform 0.3s var(--animation-smooth);
+  will-change: transform;
+}
+
+.magnetic:hover {
+  transform: translate(
+    calc((var(--mouse-x) - 50%) * var(--magnetic-strength) * 1px),
+    calc((var(--mouse-y) - 50%) * var(--magnetic-strength) * 1px)
+  );
+}
+
+.magnetic-strong {
+  --magnetic-strength: 0.5;
+}
+
+.magnetic-subtle {
+  --magnetic-strength: 0.15;
+}
+
+/* Magnetic glow effect */
+.magnetic-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.magnetic-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+  border-radius: 50%;
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  transition: all 0.6s var(--animation-smooth);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.magnetic-glow:hover::before {
+  width: 300px;
+  height: 300px;
+  opacity: 0.1;
+}
+
+.magnetic-glow > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== RIPPLE EFFECTS ===== */
+
+.ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.ripple::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  transform: scale(0);
+  animation: ripple-animation 0.6s linear;
+  top: var(--ripple-y, 50%);
+  left: var(--ripple-x, 50%);
+  width: var(--ripple-size, 100px);
+  height: var(--ripple-size, 100px);
+  margin-left: calc(var(--ripple-size, 100px) / -2);
+  margin-top: calc(var(--ripple-size, 100px) / -2);
+  pointer-events: none;
+}
+
+@keyframes ripple-animation {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* ===== SCROLL-DRIVEN ANIMATIONS ===== */
+
+@supports (animation-timeline: scroll()) {
+  .scroll-reveal {
+    animation: scroll-reveal-animation linear;
+    animation-timeline: scroll();
+    animation-range: entry 0% cover 40%;
+  }
+  
+  .scroll-fade-in {
+    animation: scroll-fade-in-animation linear;
+    animation-timeline: scroll();
+    animation-range: entry 0% cover 30%;
+  }
+  
+  .scroll-slide-up {
+    animation: scroll-slide-up-animation linear;
+    animation-timeline: scroll();
+    animation-range: entry 0% cover 50%;
+  }
+  
+  .scroll-rotate {
+    animation: scroll-rotate-animation linear;
+    animation-timeline: scroll();
+    animation-range: entry 0% exit 100%;
+  }
+  
+  .scroll-parallax {
+    animation: scroll-parallax-animation linear;
+    animation-timeline: scroll();
+    animation-range: entry 0% exit 100%;
+  }
+}
+
+/* Fallback for browsers without scroll-timeline support */
+@supports not (animation-timeline: scroll()) {
+  .scroll-reveal,
+  .scroll-fade-in,
+  .scroll-slide-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s var(--animation-smooth);
+  }
+  
+  .scroll-reveal.in-view,
+  .scroll-fade-in.in-view,
+  .scroll-slide-up.in-view {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  .scroll-rotate.in-view {
+    animation: fallback-rotate 2s var(--animation-smooth);
+  }
+}
+
+@keyframes scroll-reveal-animation {
+  from {
+    opacity: 0;
+    transform: translateY(100px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scroll-fade-in-animation {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scroll-slide-up-animation {
+  from {
+    transform: translateY(100px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes scroll-rotate-animation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes scroll-parallax-animation {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-100px);
+  }
+}
+
+@keyframes fallback-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ===== 3D TRANSFORMS AND PERSPECTIVE ===== */
+
+.perspective-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--animation-smooth);
+}
+
+.card-3d:hover {
+  transform: rotateY(10deg) rotateX(5deg) translateZ(20px);
+}
+
+.card-flip {
+  transform-style: preserve-3d;
+  transition: transform 0.8s var(--animation-smooth);
+}
+
+.card-flip.flipped {
+  transform: rotateY(180deg);
+}
+
+.card-flip-front,
+.card-flip-back {
+  backface-visibility: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.card-flip-back {
+  transform: rotateY(180deg);
+}
+
+/* Tilt effect on hover */
+.tilt {
+  transform-style: preserve-3d;
+  transition: transform 0.3s var(--animation-smooth);
+}
+
+.tilt:hover {
+  transform: 
+    rotateX(calc((var(--mouse-y) - 50%) * 0.1deg))
+    rotateY(calc((var(--mouse-x) - 50%) * 0.1deg))
+    translateZ(10px);
+}
+
+/* ===== ENHANCED MICRO-INTERACTIONS ===== */
+
+/* Enhanced button feedback */
+.btn-enhanced {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s var(--animation-smooth);
+  transform-origin: center;
+}
+
+.btn-enhanced:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.btn-enhanced:active {
+  transform: translateY(0) scale(0.98);
+  transition: all 0.1s var(--animation-smooth);
+}
+
+/* Form field focus animations */
+.field-enhanced {
+  position: relative;
+  transition: all 0.3s var(--animation-smooth);
+}
+
+.field-enhanced::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 2px solid var(--primary);
+  border-radius: inherit;
+  opacity: 0;
+  transform: scale(1.1);
+  transition: all 0.3s var(--animation-smooth);
+  pointer-events: none;
+}
+
+.field-enhanced:focus-within::before {
+  opacity: 0.5;
+  transform: scale(1);
+}
+
+.field-enhanced:focus-within {
+  transform: translateY(-1px);
+}
+
+/* Loading skeleton with shimmer */
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    var(--muted) 0%,
+    var(--muted-foreground) 50%,
+    var(--muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===== PARTICLE EFFECTS ===== */
+
+.particle-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.1;
+  animation: float var(--duration) infinite ease-in-out;
+  will-change: transform, opacity;
+}
+
+.particle:nth-child(odd) {
+  animation-direction: reverse;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translateY(-20px) rotate(180deg);
+    opacity: 0.3;
+  }
+}
+
+/* Cursor-reactive particles */
+.particle-reactive {
+  transition: all 0.3s var(--animation-smooth);
+}
+
+/* ===== SPRING PHYSICS ANIMATIONS ===== */
+
+.spring-enter {
+  animation: spring-enter 0.6s var(--animation-spring);
+}
+
+.spring-exit {
+  animation: spring-exit 0.4s var(--animation-smooth);
+}
+
+@keyframes spring-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) translateY(30px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1) translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes spring-exit {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+  }
+}
+
+/* ===== FLOATING ACTION ANIMATIONS ===== */
+
+.floating {
+  animation: floating 3s ease-in-out infinite;
+}
+
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--primary);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--primary);
+    transform: scale(1.05);
+  }
+}
+
+/* ===== PERFORMANCE OPTIMIZATIONS ===== */
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* ===== ACCESSIBILITY SUPPORT ===== */
+
+@media (prefers-reduced-motion: reduce) {
+  .magnetic,
+  .card-3d,
+  .tilt,
+  .btn-enhanced,
+  .field-enhanced,
+  .spring-enter,
+  .spring-exit,
+  .floating,
+  .pulse-glow,
+  .particle {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+  
+  /* Keep essential feedback for usability */
+  .btn-enhanced:hover {
+    background-color: var(--accent);
+    transition: background-color 0.2s ease;
+  }
+  
+  .field-enhanced:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+.animate-delay-100 { animation-delay: 100ms; }
+.animate-delay-200 { animation-delay: 200ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-500 { animation-delay: 500ms; }
+.animate-delay-700 { animation-delay: 700ms; }
+.animate-delay-1000 { animation-delay: 1000ms; }
+
+.duration-fast { --duration: 2s; }
+.duration-normal { --duration: 4s; }
+.duration-slow { --duration: 6s; }
+
+.easing-smooth { transition-timing-function: var(--animation-smooth); }
+.easing-spring { transition-timing-function: var(--animation-spring); }
+.easing-bounce { transition-timing-function: var(--animation-bounce); } 

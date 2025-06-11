@@ -17,7 +17,7 @@ import { createAdminClient } from '@/lib/supabase'
 import { stripe } from '@/lib/stripe-server'
 import { createCustomerAndProfile, getCustomerByUserId } from '@/lib/customer-service'
 import { syncStripeCustomerData } from '@/lib/stripe-sync'
-import type { Database } from '@/types/database'
+
 import type Stripe from 'stripe'
 
 const supabase = createAdminClient()
@@ -500,7 +500,7 @@ async function logReconciliationOperation(operation: {
  * Gets reconciliation history for a user (for debugging/support)
  * TODO: Implement once reconciliation_logs table is created
  */
-export async function getReconciliationHistory(userId: string): Promise<{
+export async function getReconciliationHistory(): Promise<{
   success: boolean
   operations?: Array<Record<string, unknown>>
   error?: string

@@ -1,0 +1,366 @@
+/* Gamification & Personalization CSS Enhancements */
+
+/* Container Query Support for Responsive Gamification Components */
+@container (min-width: 400px) {
+  .achievement-card {
+    flex-direction: row;
+    align-items: center;
+  }
+  
+  .achievement-card .achievement-content {
+    text-align: left;
+  }
+}
+
+@container (min-width: 600px) {
+  .gamification-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Level Progress Animations */
+.level-progress {
+  position: relative;
+  overflow: hidden;
+}
+
+.level-progress::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progressShimmer 2s infinite;
+}
+
+@keyframes progressShimmer {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* Achievement Unlock Animation */
+.achievement-unlock {
+  animation: achievementPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes achievementPop {
+  0% {
+    transform: scale(0) rotate(-180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) rotate(-10deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* XP Counter Animation */
+.xp-counter {
+  animation: xpCount 1s ease-out;
+}
+
+@keyframes xpCount {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Rarity-based glows */
+.rarity-common {
+  box-shadow: 0 0 10px rgba(107, 114, 128, 0.3);
+}
+
+.rarity-rare {
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+}
+
+.rarity-epic {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+  animation: epicGlow 2s infinite alternate;
+}
+
+.rarity-legendary {
+  box-shadow: 0 0 25px rgba(236, 72, 153, 0.6);
+  animation: legendaryGlow 1.5s infinite alternate;
+}
+
+@keyframes epicGlow {
+  from { box-shadow: 0 0 20px rgba(139, 92, 246, 0.5); }
+  to { box-shadow: 0 0 30px rgba(139, 92, 246, 0.8); }
+}
+
+@keyframes legendaryGlow {
+  from { box-shadow: 0 0 25px rgba(236, 72, 153, 0.6); }
+  to { box-shadow: 0 0 35px rgba(236, 72, 153, 0.9); }
+}
+
+/* Scroll-driven Animations */
+@supports (animation-timeline: scroll()) {
+  .scroll-reveal {
+    animation: scrollReveal linear;
+    animation-timeline: scroll();
+    animation-range: entry 0% entry 50%;
+  }
+  
+  @keyframes scrollReveal {
+    from {
+      opacity: 0;
+      transform: translateY(50px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+}
+
+/* Personalized Theme Transitions */
+.theme-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-transition * {
+  transition: 
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Time-based Greeting Animations */
+.greeting-morning {
+  background: linear-gradient(135deg, #fef3c7, #fcd34d);
+  animation: morningGlow 3s infinite alternate;
+}
+
+.greeting-afternoon {
+  background: linear-gradient(135deg, #fef3c7, #f59e0b);
+  animation: afternoonGlow 3s infinite alternate;
+}
+
+.greeting-evening {
+  background: linear-gradient(135deg, #fed7aa, #ea580c);
+  animation: eveningGlow 3s infinite alternate;
+}
+
+.greeting-night {
+  background: linear-gradient(135deg, #e0e7ff, #6366f1);
+  animation: nightGlow 3s infinite alternate;
+}
+
+@keyframes morningGlow {
+  from { filter: brightness(1) hue-rotate(0deg); }
+  to { filter: brightness(1.1) hue-rotate(5deg); }
+}
+
+@keyframes afternoonGlow {
+  from { filter: brightness(1) hue-rotate(0deg); }
+  to { filter: brightness(1.05) hue-rotate(-5deg); }
+}
+
+@keyframes eveningGlow {
+  from { filter: brightness(1) hue-rotate(0deg); }
+  to { filter: brightness(1.1) hue-rotate(10deg); }
+}
+
+@keyframes nightGlow {
+  from { filter: brightness(1) hue-rotate(0deg); }
+  to { filter: brightness(1.2) hue-rotate(-10deg); }
+}
+
+/* Interactive Progress Bars */
+.progress-interactive {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.progress-interactive:hover {
+  transform: scaleY(1.2);
+  filter: brightness(1.1);
+}
+
+.progress-interactive:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* Adaptive Content Layout */
+.adaptive-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+@container (min-width: 768px) {
+  .adaptive-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+
+@container (min-width: 1024px) {
+  .adaptive-grid {
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  }
+}
+
+/* Micro-interactions for Achievement Cards */
+.achievement-card {
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.achievement-card:hover {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.achievement-card:active {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.achievement-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.achievement-card:hover::before {
+  opacity: 1;
+}
+
+/* Recommendation Priority Indicators */
+.priority-high {
+  border-left: 4px solid #ef4444;
+  animation: priorityPulse 2s infinite;
+}
+
+.priority-medium {
+  border-left: 4px solid #f59e0b;
+}
+
+.priority-low {
+  border-left: 4px solid #6b7280;
+}
+
+@keyframes priorityPulse {
+  0%, 100% { border-left-color: #ef4444; }
+  50% { border-left-color: #f87171; }
+}
+
+/* Progressive Enhancement for Modern Features */
+@supports (backdrop-filter: blur(10px)) {
+  .modern-blur {
+    backdrop-filter: blur(10px) saturate(1.5);
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+@supports (color: color(display-p3 1 0 0)) {
+  .modern-colors {
+    --success-p3: color(display-p3 0.2 0.8 0.3);
+    --warning-p3: color(display-p3 0.9 0.7 0.1);
+    --error-p3: color(display-p3 0.9 0.2 0.2);
+    
+    background: var(--success-p3);
+  }
+}
+
+/* View Transitions API Support */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(main),
+  ::view-transition-new(main) {
+    animation-duration: 0.5s;
+  }
+}
+
+/* Custom Properties for Dynamic Theming */
+.personalized-theme {
+  --user-primary: var(--primary);
+  --user-accent: var(--accent);
+  --user-success: var(--success);
+  
+  /* Dynamic theme calculations */
+  --user-primary-hover: color-mix(in srgb, var(--user-primary) 90%, white);
+  --user-primary-active: color-mix(in srgb, var(--user-primary) 80%, black);
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+  .achievement-unlock,
+  .level-progress::before,
+  .epicGlow,
+  .legendaryGlow,
+  .morningGlow,
+  .afternoonGlow,
+  .eveningGlow,
+  .nightGlow {
+    animation: none;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .achievement-card,
+  .gamification-grid,
+  .adaptive-grid {
+    border: 2px solid;
+    background: var(--background);
+  }
+}
+
+/* Focus Management for Keyboard Navigation */
+.achievement-card:focus-visible,
+.progress-interactive:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* CSS Nesting for Component-specific Styles */
+.gamification-dashboard {
+  container-type: inline-size;
+  
+  .level-display {
+    container-name: level-display;
+    
+    @container level-display (max-width: 400px) {
+      .level-info {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  }
+  
+  .achievements-grid {
+    container-name: achievements;
+    
+    @container achievements (min-width: 600px) {
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    }
+  }
+} 

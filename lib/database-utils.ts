@@ -23,7 +23,7 @@ import type {
   SubscriptionWithProfile,
   ProfileFilters,
   SubscriptionFilters,
-  SubscriptionSummary,
+
   SubscriptionDisplay,
   StripeSubscriptionData,
 } from '@/types/database'
