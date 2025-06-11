@@ -4,7 +4,6 @@ import { UnifiedHeader } from '@/components/layout/unified-header'
 import { DashboardLayout } from '@/components/layout'
 import { BillingPortalButton } from '@/components/billing-portal-button'
 import { SyncSubscriptionButton } from '@/components/sync-subscription-button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,8 +16,7 @@ import {
   CheckCircle, 
   Clock,
   ArrowUpRight,
-  Settings,
-  RefreshCw
+  Settings
 } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -70,7 +68,7 @@ function getSubscriptionStatusInfo(subscription: Subscription | null) {
       status: 'none',
       statusColor: 'bg-gray-100 text-gray-800',
       statusText: 'No Subscription',
-      description: 'You don\'t have an active subscription'
+      description: 'You don&apos;t have an active subscription'
     }
   }
 
@@ -419,7 +417,7 @@ async function BillingContent() {
                   <CreditCard className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium mb-2">No Active Subscription</h3>
                   <p className="text-muted-foreground mb-6">
-                    You don't have an active subscription. Choose a plan to get started.
+                    You don&apos;t have an active subscription. Choose a plan to get started.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
                     <Button asChild className="bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90">

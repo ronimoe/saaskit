@@ -5,7 +5,7 @@ import { ProfileHeader } from '@/components/profile-header'
 import { ProfileStats } from '@/components/profile-stats'
 import { GamificationDashboard } from '@/components/gamification-dashboard'
 import { PersonalizedContent } from '@/components/personalized-content'
-import { Card } from '@/components/ui/card'
+
 import { GlassCard } from '@/components/ui/glass-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UnifiedHeader } from '@/components/layout/unified-header'

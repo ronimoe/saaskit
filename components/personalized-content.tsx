@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Card } from '@/components/ui/card'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,7 +9,6 @@ import { Separator } from '@/components/ui/separator'
 import { 
   Sun, 
   Moon, 
-  Coffee, 
   Sunrise, 
   Sunset, 
   Star, 
@@ -104,19 +102,21 @@ function TimeBasedGreeting({ profile }: { profile: Profile }) {
   )
 }
 
-function AdaptiveRecommendations({ profile, subscriptions, userProgress }: { 
-  profile: Profile, 
+function AdaptiveRecommendations({ subscriptions, userProgress }: { 
   subscriptions: Subscription[], 
-  userProgress: any 
+  userProgress: unknown 
 }) {
+  if (!userProgress || typeof userProgress !== 'object') return null;
+  const progress = userProgress as { progress: { profileCompletion: number; activityStreak: number }; userLevel: { level: number } };
+  
   const getPersonalizedRecommendations = () => {
     const recommendations = []
     
     // Profile completion recommendations
-    if (userProgress.progress.profileCompletion < 100) {
+    if (progress.progress.profileCompletion < 100) {
       recommendations.push({
         title: 'Complete Your Profile',
-        description: `You're ${userProgress.progress.profileCompletion}% done! Add missing details to unlock achievements.`,
+        description: `You're ${progress.progress.profileCompletion}% done! Add missing details to unlock achievements.`,
         action: 'Complete Profile',
         priority: 'high',
         icon: Target,
@@ -140,7 +140,7 @@ function AdaptiveRecommendations({ profile, subscriptions, userProgress }: {
     }
 
     // Level-based recommendations
-    if (userProgress.userLevel.level < 3) {
+    if (progress.userLevel.level < 3) {
       recommendations.push({
         title: 'Explore Features',
         description: 'Discover all the amazing tools available to help you grow.',
@@ -153,7 +153,7 @@ function AdaptiveRecommendations({ profile, subscriptions, userProgress }: {
     }
 
     // Activity recommendations
-    if (userProgress.progress.activityStreak < 7) {
+    if (progress.progress.activityStreak < 7) {
       recommendations.push({
         title: 'Build Your Streak',
         description: 'Visit daily to build momentum and earn streak bonuses!',
@@ -176,7 +176,7 @@ function AdaptiveRecommendations({ profile, subscriptions, userProgress }: {
         <div className="text-center py-8">
           <Star className="h-12 w-12 text-amber-500 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
-            You're all set!
+            You&apos;re all set!
           </h3>
           <p className="text-slate-600 dark:text-slate-400">
             No recommendations right now. Keep up the great work!
@@ -340,7 +340,6 @@ export function PersonalizedContent({ profile, subscriptions }: PersonalizedCont
 
       {/* Adaptive recommendations */}
       <AdaptiveRecommendations 
-        profile={profile} 
         subscriptions={subscriptions} 
         userProgress={userProgress} 
       />

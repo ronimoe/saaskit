@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
+
 import { GlassCard } from '@/components/ui/glass-card'
 import { MapPin, Calendar, Globe, Building2, Phone, Mail } from 'lucide-react'
 import { getProfileDisplayName, parseBillingAddress } from '@/lib/database-utils'

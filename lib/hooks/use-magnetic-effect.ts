@@ -8,10 +8,7 @@ interface MagneticOptions {
   respectReducedMotion?: boolean
 }
 
-interface Position {
-  x: number
-  y: number
-}
+
 
 /**
  * Hook for magnetic hover effects that make elements follow the cursor
@@ -63,7 +60,7 @@ export function useMagneticEffect(options: MagneticOptions = {}) {
     animationFrameId.current = requestAnimationFrame(updatePosition)
   }, [strength, disabled, respectReducedMotion])
 
-  const handleMouseLeave = useCallback((_event: MouseEvent) => {
+  const handleMouseLeave = useCallback(() => {
     if (!elementRef.current || disabled) return
     
     // Reset to center position
@@ -163,7 +160,7 @@ export function useMagneticGlow(options: MagneticGlowOptions = {}) {
     animationFrameId.current = requestAnimationFrame(updateEffect)
   }, [strength, glowSize, glowIntensity, disabled, respectReducedMotion])
 
-  const handleMouseLeave = useCallback((_event: MouseEvent) => {
+  const handleMouseLeave = useCallback(() => {
     if (!elementRef.current || disabled) return
     
     // Reset all properties
@@ -253,7 +250,7 @@ export function useTiltEffect(options: TiltOptions = {}) {
     animationFrameId.current = requestAnimationFrame(updateTilt)
   }, [strength, perspective, disabled, respectReducedMotion])
 
-  const handleMouseLeave = useCallback((_event: MouseEvent) => {
+  const handleMouseLeave = useCallback(() => {
     if (!elementRef.current || disabled) return
     
     // Reset tilt

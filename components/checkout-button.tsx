@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { getStripe } from '@/lib/stripe-client';
 import { Button } from '@/components/ui/button';
-import { Loader2, User, UserPlus } from 'lucide-react';
+import { Loader2, UserPlus } from 'lucide-react';
 
 interface CheckoutButtonProps {
   priceId: string;

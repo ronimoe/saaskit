@@ -3,9 +3,6 @@
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { 
-  Monitor, 
-  Smartphone, 
-  Tablet, 
   CheckCircle, 
   CreditCard, 
   Users, 
@@ -90,8 +87,7 @@ const MockupScreen = ({
   device: 'desktop' | 'mobile' | 'tablet'
   isActive: boolean 
 }) => {
-  const DeviceIcon = device === 'desktop' ? Monitor : device === 'mobile' ? Smartphone : Tablet
-  const StateIcon = state.icon
+
 
   const renderContent = () => {
     switch (state.id) {

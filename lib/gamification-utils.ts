@@ -210,7 +210,6 @@ export function checkAchievements(
     : 0
   
   const profileCompletion = calculateProfileCompletion(profile)
-  const hasActiveSubscription = subscriptions.some(sub => sub.status === 'active' || sub.status === 'trialing')
   
   // Calculate subscription duration
   const subscriptionMonths = subscriptions.reduce((total, sub) => {

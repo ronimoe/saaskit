@@ -12,11 +12,9 @@ import {
   Play,
   Code,
   Sparkles,
-  Monitor,
-  Smartphone,
+
   CreditCard,
-  Shield,
-  Database
+  Shield
 } from 'lucide-react'
 
 interface FeatureHighlight {
@@ -51,19 +49,9 @@ interface UnfoldableFeatureCardProps {
   magneticGlow?: boolean
 }
 
-const getPreviewIcon = (type: InteractivePreview['type']) => {
-  const icons = {
-    dashboard: Monitor,
-    auth: Shield,
-    payment: CreditCard,
-    api: Code,
-    mobile: Smartphone
-  }
-  return icons[type] || Monitor
-}
+
 
 const renderInteractivePreview = (preview: InteractivePreview) => {
-  const PreviewIcon = getPreviewIcon(preview.type)
   
   switch (preview.type) {
     case 'dashboard':
@@ -141,10 +129,10 @@ const renderInteractivePreview = (preview: InteractivePreview) => {
           </div>
           <div className="p-3 text-xs font-mono text-green-400 space-y-1">
             <div>{"{"}</div>
-            <div className="ml-2">"status": "success",</div>
-            <div className="ml-2">"data": {"{"}</div>
-            <div className="ml-4">"users": 1247,</div>
-            <div className="ml-4">"active": 892</div>
+            <div className="ml-2">&quot;status&quot;: &quot;success&quot;,</div>
+            <div className="ml-2">&quot;data&quot;: {"{"}</div>
+            <div className="ml-4">&quot;users&quot;: 1247,</div>
+            <div className="ml-4">&quot;active&quot;: 892</div>
             <div className="ml-2">{"}"}</div>
             <div>{"}"}</div>
           </div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { CheckCircle, ArrowRight, Loader2, Mail, UserPlus, LogIn } from 'lucide-react';
+import { CheckCircle, ArrowRight, Loader2, UserPlus, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -255,7 +255,7 @@ export default function CheckoutSuccess() {
         <CardHeader>
           <CardTitle className="text-yellow-600">Subscription Not Found</CardTitle>
           <CardDescription>
-            We couldn't find your subscription details. This might be a temporary issue.
+            We couldn&apos;t find your subscription details. This might be a temporary issue.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -465,7 +465,7 @@ export default function CheckoutSuccess() {
 
         {/* Additional Info */}
         <div className="text-sm text-gray-500 space-y-1">
-          <p>You'll receive an email confirmation shortly.</p>
+          <p>You&apos;ll receive an email confirmation shortly.</p>
           <p>Questions? Contact our support team anytime.</p>
         </div>
       </div>
@@ -532,7 +532,7 @@ export default function CheckoutSuccess() {
 
       {/* Additional Info */}
       <div className="text-sm text-gray-500 space-y-1">
-        <p>You'll receive an email confirmation shortly.</p>
+        <p>You&apos;ll receive an email confirmation shortly.</p>
         <p>Questions? Contact our support team anytime.</p>
       </div>
     </div>

@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handleAuthenticatedVerification(session: any, customerId: string, userId: string) {
+async function handleAuthenticatedVerification(session: Stripe.Checkout.Session, customerId: string, userId: string) {
   // Verify session belongs to the authenticated user
   if (session.metadata?.userId !== userId) {
     return NextResponse.json(
@@ -116,7 +116,7 @@ async function handleAuthenticatedVerification(session: any, customerId: string,
     // Handle potential invalid timestamps
     try {
       currentPeriodEndISO = new Date(subscriptionData.currentPeriodEnd * 1000).toISOString();
-    } catch (error) {
+    } catch {
       console.warn('Invalid currentPeriodEnd timestamp, using fallback:', subscriptionData.currentPeriodEnd);
       const fallbackDate = new Date();
       fallbackDate.setDate(fallbackDate.getDate() + 30);
@@ -146,7 +146,7 @@ async function handleAuthenticatedVerification(session: any, customerId: string,
   return NextResponse.json(response);
 }
 
-async function handleGuestVerification(session: any, customerId: string, customerEmail: string) {
+async function handleGuestVerification(session: Stripe.Checkout.Session, customerId: string, customerEmail: string) {
   try {
     // Check if user with this email already exists
     const { data: existingUser, error: userError } = await supabase.auth.admin.listUsers();
@@ -166,7 +166,7 @@ async function handleGuestVerification(session: any, customerId: string, custome
       ? session.subscription 
       : session.subscription?.id;
 
-    let subscriptionData: any = null;
+    let subscriptionData: unknown = null;
     
          if (subscriptionId) {
        const subscription = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription;
@@ -176,7 +176,8 @@ async function handleGuestVerification(session: any, customerId: string, custome
          const product = await stripe.products.retrieve(price.product as string);
          
          // Handle current_period_end safely - it might be null or undefined
-         const currentPeriodEnd = (subscription as any).current_period_end;
+         // Get current_period_end from the first subscription item
+         const currentPeriodEnd = subscription.items?.data?.[0]?.current_period_end;
          let currentPeriodEndISO: string;
          
          if (currentPeriodEnd && typeof currentPeriodEnd === 'number') {

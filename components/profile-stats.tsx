@@ -1,6 +1,6 @@
 "use client"
 
-import { Card } from '@/components/ui/card'
+
 import { GlassCard } from '@/components/ui/glass-card'
 import { Badge } from '@/components/ui/badge'
 import { CreditCard, Calendar, TrendingUp, Activity } from 'lucide-react'

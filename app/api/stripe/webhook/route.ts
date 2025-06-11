@@ -6,7 +6,6 @@ import { syncStripeCustomerData } from '@/lib/stripe-sync';
 import { 
   createGuestSession, 
   isGuestCustomer, 
-  markSessionConsumed,
   cleanupExpiredSessions
 } from '@/lib/guest-session-manager';
 

@@ -19,7 +19,7 @@ const supabase = createAdminClient()
 
 // Session expires after 24 hours
 const SESSION_EXPIRY_HOURS = 24
-const CLEANUP_BATCH_SIZE = 50
+
 
 export interface GuestSessionData {
   sessionId: string
@@ -312,7 +312,7 @@ export async function cleanupExpiredSessions(): Promise<{
 /**
  * Gets all pending guest sessions for monitoring/admin purposes
  */
-export async function getPendingGuestSessions(limit = 10): Promise<{
+export async function getPendingGuestSessions(): Promise<{
   success: boolean
   sessions?: GuestSessionData[]
   error?: string

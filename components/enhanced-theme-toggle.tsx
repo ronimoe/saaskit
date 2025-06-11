@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { Button } from "@/components/ui/button"
-import { GlassCard } from "@/components/ui/glass-card"
+
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { 
@@ -253,7 +253,7 @@ export function EnhancedThemeToggle() {
 
 // Compact version for smaller spaces
 export function CompactThemeToggle() {
-  const { switchToPredefinedTheme, theme, resolvedTheme } = useThemeConfig()
+  const { switchToPredefinedTheme, resolvedTheme } = useThemeConfig()
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {

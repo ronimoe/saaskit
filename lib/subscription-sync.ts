@@ -5,267 +5,202 @@
  * This service processes Stripe webhook events and ensures data consistency.
  */
 
-import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
-import { getPlanByPriceId, SUBSCRIPTION_PLANS } from '@/lib/stripe-plans';
-import { createSubscriptionFromStripe } from '@/lib/database-utils';
-import type { Database, SubscriptionInsert, SubscriptionUpdate } from '@/types/database';
+import { createSupabaseServerClient } from './supabase';
+import { stripe } from './stripe';
+import type { Database } from '@/types/database';
 
-// Initialize Supabase client for server-side operations
-const supabase = createClient<Database>(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
-export type WebhookEventType = 
-  | 'customer.subscription.created'
-  | 'customer.subscription.updated'
-  | 'customer.subscription.deleted';
-
-/**
- * Main function to sync a Stripe subscription with local database
- */
-export async function syncSubscriptionWithStripe(
-  stripeSubscription: Stripe.Subscription,
-  eventType: WebhookEventType
-): Promise<void> {
-  console.log(`Syncing subscription ${stripeSubscription.id} for event ${eventType}`);
-
+export async function syncSubscriptionWithStripe(userId: string) {
+  const supabase = createSupabaseServerClient();
+  
   try {
-    // Find the user profile by Stripe customer ID
-    const { data: profile, error: profileError } = await supabase
+    // Get the user's profile
+    const { data: userProfile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('stripe_customer_id', stripeSubscription.customer as string)
+      .eq('id', userId)
       .single();
 
-    if (profileError || !profile) {
-      console.error(`Could not find profile for Stripe customer ${stripeSubscription.customer}:`, profileError);
-      throw new Error(`Profile not found for customer ${stripeSubscription.customer}`);
+    if (profileError || !userProfile) {
+      console.error('Error fetching user profile:', profileError);
+      return { success: false, error: 'User profile not found' };
     }
 
-    switch (eventType) {
-      case 'customer.subscription.created':
-        await handleSubscriptionCreated(stripeSubscription, profile);
-        break;
-      
-      case 'customer.subscription.updated':
-        await handleSubscriptionUpdated(stripeSubscription, profile);
-        break;
-      
-      case 'customer.subscription.deleted':
-        await handleSubscriptionDeleted(stripeSubscription, profile);
-        break;
-      
-      default:
-        console.warn(`Unhandled event type: ${eventType}`);
+    // If no Stripe customer ID, nothing to sync
+    if (!userProfile.stripe_customer_id) {
+      return { success: true, message: 'No Stripe customer ID found' };
     }
 
-    console.log(`Successfully synced subscription ${stripeSubscription.id}`);
+    // Get all subscriptions for this customer from Stripe
+    const subscriptions = await stripe.subscriptions.list({
+      customer: userProfile.stripe_customer_id,
+      status: 'all',
+    });
+
+    // Find the most recent active or trialing subscription
+    const activeSubscription = subscriptions.data.find((sub: unknown) => {
+      if (typeof sub === 'object' && sub !== null) {
+        const subscription = sub as { status: string };
+        return subscription.status === 'active' || subscription.status === 'trialing';
+      }
+      return false;
+    });
+
+    let updateData: Partial<Profile> = {};
+
+    if (activeSubscription && typeof activeSubscription === 'object') {
+      const sub = activeSubscription as {
+        id: string;
+        status: string;
+        current_period_start: number;
+        current_period_end: number;
+        items?: { data?: Array<{ price?: { id?: string } }> };
+      };
+
+      updateData = {
+        subscription_status: sub.status,
+        subscription_period_start: new Date(sub.current_period_start * 1000).toISOString(),
+        subscription_period_end: new Date(sub.current_period_end * 1000).toISOString(),
+        stripe_subscription_id: sub.id,
+      };
+
+      // Get the price ID from the subscription
+      if (sub.items?.data?.[0]?.price?.id) {
+        updateData.stripe_price_id = sub.items.data[0].price.id;
+      }
+    } else {
+      // No active subscription found
+      updateData = {
+        subscription_status: null,
+        subscription_period_start: null,
+        subscription_period_end: null,
+        stripe_subscription_id: null,
+        stripe_price_id: null,
+      };
+    }
+
+    // Update the profile
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', userId);
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+      return { success: false, error: 'Failed to update profile' };
+    }
+
+    return { success: true, data: updateData };
   } catch (error) {
-    console.error(`Failed to sync subscription ${stripeSubscription.id}:`, error);
-    throw error; // Re-throw to ensure webhook returns 500 for retry
+    console.error('Error syncing subscription:', error);
+    return { success: false, error: 'Failed to sync subscription' };
   }
 }
 
-/**
- * Handle new subscription creation
- */
-async function handleSubscriptionCreated(
-  stripeSubscription: Stripe.Subscription,
-  profile: any
-): Promise<void> {
-  console.log(`Creating new subscription record for ${stripeSubscription.id}`);
+export async function syncAllSubscriptions() {
+  const supabase = createSupabaseServerClient();
+  
+  try {
+    // Get all profiles with Stripe customer IDs
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, stripe_customer_id')
+      .not('stripe_customer_id', 'is', null);
 
-  // Check if subscription already exists (idempotency)
-  const { data: existingSubscription } = await supabase
-    .from('subscriptions')
-    .select('id')
-    .eq('stripe_subscription_id', stripeSubscription.id)
-    .single();
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      return { success: false, error: 'Failed to fetch profiles' };
+    }
 
-  if (existingSubscription) {
-    console.log(`Subscription ${stripeSubscription.id} already exists, skipping creation`);
-    return;
+    const results = [];
+    
+    for (const profile of profiles) {
+      const result = await syncSubscriptionWithStripe(profile.id);
+      results.push({ userId: profile.id, ...result });
+    }
+
+    return { success: true, results };
+  } catch (error) {
+    console.error('Error syncing all subscriptions:', error);
+    return { success: false, error: 'Failed to sync subscriptions' };
   }
-
-  // Get the first subscription item and price
-  const firstItem = stripeSubscription.items.data[0];
-  if (!firstItem || !firstItem.price) {
-    throw new Error(`Subscription ${stripeSubscription.id} has no valid items or pricing`);
-  }
-
-  // Get plan information from price ID
-  const priceDetails = {
-    metadata: firstItem.price.metadata || {},
-    unit_amount: firstItem.price.unit_amount || undefined,
-    product: typeof firstItem.price.product === 'string' 
-      ? firstItem.price.product 
-      : { name: firstItem.price.product && typeof firstItem.price.product === 'object' && 'name' in firstItem.price.product 
-          ? (firstItem.price.product as any).name 
-          : undefined 
-        }
-  };
-  const planKey = getPlanByPriceId(firstItem.price.id, priceDetails);
-  const planData = planKey ? SUBSCRIPTION_PLANS[planKey] : null;
-
-  if (!planData) {
-    console.warn(`Unknown price ID: ${firstItem.price.id}`);
-  }
-
-  // Create subscription data
-  const subscriptionData: SubscriptionInsert = {
-    user_id: profile.user_id,
-    profile_id: profile.id,
-    stripe_customer_id: stripeSubscription.customer as string,
-    stripe_subscription_id: stripeSubscription.id,
-    stripe_price_id: firstItem.price.id,
-    status: stripeSubscription.status,
-    plan_name: planData?.name || 'Unknown Plan',
-    plan_description: planData?.description || null,
-    interval: firstItem.price.recurring?.interval === 'year' ? 'year' : 'month',
-    interval_count: firstItem.price.recurring?.interval_count || 1,
-    unit_amount: firstItem.price.unit_amount || 0,
-    currency: firstItem.price.currency,
-    current_period_start: new Date((stripeSubscription as any).current_period_start * 1000).toISOString(),
-    current_period_end: new Date((stripeSubscription as any).current_period_end * 1000).toISOString(),
-    trial_start: stripeSubscription.trial_start 
-      ? new Date(stripeSubscription.trial_start * 1000).toISOString() 
-      : null,
-    trial_end: stripeSubscription.trial_end 
-      ? new Date(stripeSubscription.trial_end * 1000).toISOString() 
-      : null,
-    cancel_at_period_end: stripeSubscription.cancel_at_period_end,
-    canceled_at: stripeSubscription.canceled_at 
-      ? new Date(stripeSubscription.canceled_at * 1000).toISOString() 
-      : null,
-    cancel_at: stripeSubscription.cancel_at 
-      ? new Date(stripeSubscription.cancel_at * 1000).toISOString() 
-      : null,
-    metadata: stripeSubscription.metadata || {},
-  };
-
-  const { error } = await supabase
-    .from('subscriptions')
-    .insert(subscriptionData)
-    .select();
-
-  if (error) {
-    throw error;
-  }
-
-  console.log(`Successfully created subscription ${stripeSubscription.id}`);
 }
 
-/**
- * Handle subscription updates
- */
-async function handleSubscriptionUpdated(
-  stripeSubscription: Stripe.Subscription,
-  profile: any
-): Promise<void> {
-  console.log(`Updating subscription record for ${stripeSubscription.id}`);
+export async function handleSubscriptionUpdate(subscriptionData: unknown) {
+  try {
+    if (!subscriptionData || typeof subscriptionData !== 'object') {
+      throw new Error('Invalid subscription data');
+    }
 
-  // Get the first subscription item and price
-  const firstItem = stripeSubscription.items.data[0];
-  if (!firstItem || !firstItem.price) {
-    throw new Error(`Subscription ${stripeSubscription.id} has no valid items or pricing`);
+    const data = subscriptionData as {
+      customer?: string;
+      id?: string;
+      status?: string;
+      current_period_start?: number;
+      current_period_end?: number;
+      items?: { data?: Array<{ price?: { id?: string } }> };
+    };
+
+    const customerId = data.customer;
+    if (!customerId) {
+      throw new Error('No customer ID in subscription data');
+    }
+
+    const supabase = createSupabaseServerClient();
+    
+    // Find the profile with this customer ID
+    const { data: userProfile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('stripe_customer_id', customerId)
+      .single();
+
+    if (profileError || !userProfile) {
+      console.error('Error finding profile for customer:', customerId, profileError);
+      return { success: false, error: 'Profile not found' };
+    }
+
+    // Update the profile with the new subscription data
+    const updateData: Partial<Profile> = {
+      subscription_status: data.status || null,
+      stripe_subscription_id: data.id || null,
+    };
+
+    if (data.current_period_start) {
+      updateData.subscription_period_start = new Date(data.current_period_start * 1000).toISOString();
+    }
+
+    if (data.current_period_end) {
+      updateData.subscription_period_end = new Date(data.current_period_end * 1000).toISOString();
+    }
+
+    if (data.items?.data?.[0]?.price?.id) {
+      updateData.stripe_price_id = data.items.data[0].price.id;
+    }
+
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update(updateData)
+      .eq('id', userProfile.id);
+
+    if (updateError) {
+      console.error('Error updating profile:', updateError);
+      return { success: false, error: 'Failed to update profile' };
+    }
+
+    return { success: true, data: updateData };
+  } catch (error) {
+    console.error('Error handling subscription update:', error);
+    return { success: false, error: 'Failed to handle subscription update' };
   }
-
-  // Get plan information from price ID
-  const priceDetails = {
-    metadata: firstItem.price.metadata || {},
-    unit_amount: firstItem.price.unit_amount || undefined,
-    product: typeof firstItem.price.product === 'string' 
-      ? firstItem.price.product 
-      : { name: firstItem.price.product && typeof firstItem.price.product === 'object' && 'name' in firstItem.price.product 
-          ? (firstItem.price.product as any).name 
-          : undefined 
-        }
-  };
-  const planKey = getPlanByPriceId(firstItem.price.id, priceDetails);
-  const planData = planKey ? SUBSCRIPTION_PLANS[planKey] : null;
-
-  if (!planData) {
-    console.warn(`Unknown price ID: ${firstItem.price.id}, metadata:`, firstItem.price.metadata);
-    console.warn(`Price amount: ${firstItem.price.unit_amount}, product:`, firstItem.price.product);
-  }
-
-  // Prepare update data
-  const updateData: SubscriptionUpdate = {
-    status: stripeSubscription.status,
-    stripe_price_id: firstItem.price.id,
-    plan_name: planData?.name || 'Unknown Plan',
-    plan_description: planData?.description || null,
-    interval: firstItem.price.recurring?.interval === 'year' ? 'year' : 'month',
-    interval_count: firstItem.price.recurring?.interval_count || 1,
-    unit_amount: firstItem.price.unit_amount || 0,
-    currency: firstItem.price.currency,
-    current_period_start: new Date((stripeSubscription as any).current_period_start * 1000).toISOString(),
-    current_period_end: new Date((stripeSubscription as any).current_period_end * 1000).toISOString(),
-    trial_start: stripeSubscription.trial_start 
-      ? new Date(stripeSubscription.trial_start * 1000).toISOString() 
-      : null,
-    trial_end: stripeSubscription.trial_end 
-      ? new Date(stripeSubscription.trial_end * 1000).toISOString() 
-      : null,
-    cancel_at_period_end: stripeSubscription.cancel_at_period_end,
-    canceled_at: stripeSubscription.canceled_at 
-      ? new Date(stripeSubscription.canceled_at * 1000).toISOString() 
-      : null,
-    cancel_at: stripeSubscription.cancel_at 
-      ? new Date(stripeSubscription.cancel_at * 1000).toISOString() 
-      : null,
-    metadata: stripeSubscription.metadata || {},
-    updated_at: new Date().toISOString(),
-  };
-
-  const { error } = await supabase
-    .from('subscriptions')
-    .update(updateData)
-    .eq('stripe_subscription_id', stripeSubscription.id)
-    .select();
-
-  if (error) {
-    throw error;
-  }
-
-  console.log(`Successfully updated subscription ${stripeSubscription.id}`);
-}
-
-/**
- * Handle subscription cancellation/deletion
- */
-async function handleSubscriptionDeleted(
-  stripeSubscription: Stripe.Subscription,
-  profile: any
-): Promise<void> {
-  console.log(`Marking subscription as deleted for ${stripeSubscription.id}`);
-
-  // Update the subscription status to canceled
-  const updateData: SubscriptionUpdate = {
-    status: 'canceled',
-    canceled_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
-
-  const { error } = await supabase
-    .from('subscriptions')
-    .update(updateData)
-    .eq('stripe_subscription_id', stripeSubscription.id)
-    .select();
-
-  if (error) {
-    throw error;
-  }
-
-  console.log(`Successfully marked subscription ${stripeSubscription.id} as canceled`);
 }
 
 /**
  * Utility function to get user profile by Stripe customer ID
  */
 export async function getProfileByStripeCustomerId(customerId: string) {
+  const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -284,6 +219,7 @@ export async function getProfileByStripeCustomerId(customerId: string) {
  * Utility function to get subscription by Stripe subscription ID
  */
 export async function getSubscriptionByStripeId(subscriptionId: string) {
+  const supabase = createSupabaseServerClient();
   const { data, error } = await supabase
     .from('subscriptions')
     .select('*')

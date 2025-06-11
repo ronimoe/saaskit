@@ -90,7 +90,7 @@ export async function syncStripeCustomerData(stripeCustomerId: string): Promise<
           product: typeof priceData.product === 'string' 
             ? priceData.product 
             : { name: priceData.product && typeof priceData.product === 'object' && 'name' in priceData.product 
-                ? (priceData.product as any).name 
+                ? (priceData.product as { name?: string }).name 
                 : undefined 
               }
         };
@@ -119,10 +119,10 @@ export async function syncStripeCustomerData(stripeCustomerId: string): Promise<
         status: subscription.status,
         priceId: priceData?.id || null,
         planName: productName,
-        currentPeriodStart: (subscription as any).current_period_start || null,
-        currentPeriodEnd: (subscription as any).current_period_end || null,
-        cancelAtPeriodEnd: (subscription as any).cancel_at_period_end || false,
-        trialEnd: (subscription as any).trial_end || null,
+        currentPeriodStart: (subscription as { current_period_start?: number }).current_period_start || null,
+        currentPeriodEnd: (subscription as { current_period_end?: number }).current_period_end || null,
+        cancelAtPeriodEnd: (subscription as { cancel_at_period_end?: boolean }).cancel_at_period_end || false,
+        trialEnd: (subscription as { trial_end?: number }).trial_end || null,
         currency: priceData?.currency || null,
         unitAmount: priceData?.unit_amount || null,
         interval: priceData?.recurring?.interval || null,

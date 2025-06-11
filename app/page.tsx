@@ -12,16 +12,13 @@ import { SiteFooter } from "@/components/site-footer"
 import { 
   ArrowRight,
   Check,
-  Star,
   Shield,
   Zap,
-  Users,
   BarChart3,
   Code2,
   Palette,
   Layers,
   Globe,
-  Lock,
   Sparkles,
   Play,
   ChevronRight
@@ -328,7 +325,7 @@ export default function LandingPage() {
                   Ready to ship your SaaS?
                 </h2>
                 <p className="text-xl text-slate-300 max-w-2xl mx-auto">
-                  Join thousands of developers who've launched their SaaS faster with our starter kit.
+                  Join thousands of developers who&apos;ve launched their SaaS faster with our starter kit.
                 </p>
               </div>
 

@@ -9,6 +9,7 @@ import { useUserProgress } from '@/hooks/useUserProgress'
 import type { Profile, Subscription } from '@/types/database'
 import { cn } from '@/lib/utils'
 
+
 interface GamificationDashboardProps {
   profile: Profile
   subscriptions: Subscription[]
@@ -67,7 +68,10 @@ function LevelDisplay({ level, title, progress, totalXp }: { level: number, titl
   )
 }
 
-function AchievementCard({ achievement }: { achievement: any }) {
+function AchievementCard({ achievement }: { achievement: unknown }) {
+  if (!achievement || typeof achievement !== 'object') return null;
+  const ach = achievement as { rarity: string; earned: boolean; icon: string; title: string; description: string; earnedAt?: string };
+  
   const getRarityStyles = (rarity: string) => {
     switch (rarity) {
       case 'legendary':
@@ -99,10 +103,10 @@ function AchievementCard({ achievement }: { achievement: any }) {
   return (
     <div className={cn(
       "relative p-4 rounded-lg border-2 transition-all duration-300",
-      getRarityStyles(achievement.rarity),
-      achievement.earned ? "opacity-100" : "opacity-60"
+      getRarityStyles(ach.rarity),
+      ach.earned ? "opacity-100" : "opacity-60"
     )}>
-      {achievement.earned && (
+      {ach.earned && (
         <div className="absolute -top-2 -right-2">
           <div className="flex items-center justify-center w-6 h-6 bg-green-500 text-white rounded-full">
             <Sparkles className="h-3 w-3" />
@@ -113,23 +117,23 @@ function AchievementCard({ achievement }: { achievement: any }) {
       <div className="space-y-2">
         <div className="flex items-start justify-between">
           <div className="text-2xl">
-            {achievement.icon}
+            {ach.icon}
           </div>
-          {getRarityBadge(achievement.rarity)}
+          {getRarityBadge(ach.rarity)}
         </div>
         
         <div>
           <h4 className="font-semibold text-slate-900 dark:text-slate-100">
-            {achievement.title}
+            {ach.title}
           </h4>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            {achievement.description}
+            {ach.description}
           </p>
         </div>
 
-        {achievement.earned && achievement.earnedAt && (
+        {ach.earned && ach.earnedAt && (
           <p className="text-xs text-green-600 dark:text-green-400">
-            Earned {new Date(achievement.earnedAt).toLocaleDateString()}
+            Earned {new Date(ach.earnedAt).toLocaleDateString()}
           </p>
         )}
       </div>
@@ -137,13 +141,16 @@ function AchievementCard({ achievement }: { achievement: any }) {
   )
 }
 
-function ProgressStats({ progress }: { progress: any }) {
+function ProgressStats({ progress }: { progress: unknown }) {
+  if (!progress || typeof progress !== 'object') return null;
+  const prog = progress as { profileCompletion: number; accountAge: number; activityStreak: number };
+  
   const stats = [
     {
       title: 'Profile Completion',
-      value: `${progress.profileCompletion}%`,
+      value: `${prog.profileCompletion}%`,
       max: 100,
-      current: progress.profileCompletion,
+      current: prog.profileCompletion,
       icon: Target,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -151,16 +158,16 @@ function ProgressStats({ progress }: { progress: any }) {
     },
     {
       title: 'Account Age',
-      value: `${progress.accountAge} days`,
-      subtitle: progress.accountAge > 365 ? `${Math.floor(progress.accountAge / 365)} years` : `${Math.floor(progress.accountAge / 7)} weeks`,
+      value: `${prog.accountAge} days`,
+      subtitle: prog.accountAge > 365 ? `${Math.floor(prog.accountAge / 365)} years` : `${Math.floor(prog.accountAge / 7)} weeks`,
       icon: Star,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50'
     },
     {
       title: 'Activity Streak',
-      value: `${progress.activityStreak} days`,
-      subtitle: progress.activityStreak > 7 ? 'Great momentum!' : 'Keep it up!',
+      value: `${prog.activityStreak} days`,
+      subtitle: prog.activityStreak > 7 ? 'Great momentum!' : 'Keep it up!',
       icon: Zap,
       color: 'text-orange-600',
       bgColor: 'bg-orange-50'
@@ -212,6 +219,8 @@ export function GamificationDashboard({ profile, subscriptions }: GamificationDa
 
   const earnedAchievements = achievements.filter(a => a.earned)
   const unlockedAchievements = achievements.filter(a => !a.earned)
+
+
 
   return (
     <div className="space-y-6">

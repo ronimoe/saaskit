@@ -37,7 +37,7 @@ export function SyncSubscriptionButton({
         throw new Error(errorData.error || 'Failed to sync with Stripe')
       }
       
-      const data = await response.json()
+      await response.json()
       
       toast.success('Subscription synced with Stripe', {
         description: 'Your subscription data has been updated.',

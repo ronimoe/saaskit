@@ -1,7 +1,6 @@
 'use client'
 
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
 import { GlassCard } from '@/components/ui/glass-card'
 import { UnfoldableFeatureCard } from '@/components/ui/unfoldable-feature-card'
 import { FeatureConnections } from '@/components/ui/feature-connections'
@@ -23,7 +22,6 @@ import {
   Code, 
   Star,
   ArrowRight,
-  Check,
   Sparkles,
   Layers,
   Target,
