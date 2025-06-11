@@ -44,49 +44,47 @@ async function getProfileData(userId: string) {
 
 function ProfileSkeleton() {
   return (
-    <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <UnifiedHeader variant="app" />
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <div className="grid gap-6">
-            {/* Header Skeleton */}
-            <Card className="p-6">
-              <div className="flex items-start space-x-4">
-                <Skeleton className="h-20 w-20 rounded-full" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-8 w-64" />
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
+      <UnifiedHeader variant="app" />
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <div className="grid gap-6">
+          {/* Header Skeleton */}
+          <Card className="p-6">
+            <div className="flex items-start space-x-4">
+              <Skeleton className="h-20 w-20 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-8 w-64" />
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-4 w-32" />
               </div>
-            </Card>
+            </div>
+          </Card>
 
-            {/* Stats Skeleton */}
-            <div className="grid gap-4 md:grid-cols-3">
-              {[...Array(3)].map((_, i) => (
-                <Card key={i} className="p-4">
-                  <Skeleton className="h-4 w-24 mb-2" />
-                  <Skeleton className="h-8 w-16" />
-                </Card>
+          {/* Stats Skeleton */}
+          <div className="grid gap-4 md:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i} className="p-4">
+                <Skeleton className="h-4 w-24 mb-2" />
+                <Skeleton className="h-8 w-16" />
+              </Card>
+            ))}
+          </div>
+
+          {/* Form Skeleton */}
+          <Card className="p-6">
+            <Skeleton className="h-6 w-48 mb-6" />
+            <div className="grid gap-4 md:grid-cols-2">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
               ))}
             </div>
-
-            {/* Form Skeleton */}
-            <Card className="p-6">
-              <Skeleton className="h-6 w-48 mb-6" />
-              <div className="grid gap-4 md:grid-cols-2">
-                {[...Array(6)].map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <Skeleton className="h-4 w-24" />
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                ))}
-              </div>
-            </Card>
-          </div>
+          </Card>
         </div>
       </div>
-    </DashboardLayout>
+    </div>
   )
 }
 
@@ -136,12 +134,9 @@ async function ProfileContent() {
 export default function ProfilePage() {
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
-        <UnifiedHeader variant="app" />
-        <Suspense fallback={<ProfileSkeleton />}>
-          <ProfileContent />
-        </Suspense>
-      </div>
+      <Suspense fallback={<ProfileSkeleton />}>
+        <ProfileContent />
+      </Suspense>
     </DashboardLayout>
   )
 } 
