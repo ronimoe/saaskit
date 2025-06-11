@@ -4,6 +4,7 @@ import { ProfileForm } from '@/components/profile-form'
 import { ProfileHeader } from '@/components/profile-header'
 import { ProfileStats } from '@/components/profile-stats'
 import { Card } from '@/components/ui/card'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { UnifiedHeader } from '@/components/layout/unified-header'
 import { DashboardLayout } from '@/components/layout'
@@ -49,7 +50,7 @@ function ProfileSkeleton() {
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="grid gap-6">
           {/* Header Skeleton */}
-          <Card className="p-6">
+          <GlassCard variant="primary" size="lg" depth="medium" glow="subtle">
             <div className="flex items-start space-x-4">
               <Skeleton className="h-20 w-20 rounded-full" />
               <div className="flex-1 space-y-2">
@@ -58,20 +59,20 @@ function ProfileSkeleton() {
                 <Skeleton className="h-4 w-32" />
               </div>
             </div>
-          </Card>
+          </GlassCard>
 
           {/* Stats Skeleton */}
           <div className="grid gap-4 md:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="p-4">
+              <GlassCard key={i} variant="secondary" size="sm" depth="low" glow="none">
                 <Skeleton className="h-4 w-24 mb-2" />
                 <Skeleton className="h-8 w-16" />
-              </Card>
+              </GlassCard>
             ))}
           </div>
 
           {/* Form Skeleton */}
-          <Card className="p-6">
+          <GlassCard variant="primary" size="lg" depth="medium" glow="subtle">
             <Skeleton className="h-6 w-48 mb-6" />
             <div className="grid gap-4 md:grid-cols-2">
               {[...Array(6)].map((_, i) => (
@@ -81,7 +82,7 @@ function ProfileSkeleton() {
                 </div>
               ))}
             </div>
-          </Card>
+          </GlassCard>
         </div>
       </div>
     </div>
@@ -114,7 +115,7 @@ async function ProfileContent() {
           <ProfileStats profile={profile} subscriptions={subscriptions} />
 
           {/* Profile Form */}
-          <Card className="p-6">
+          <GlassCard variant="primary" size="xl" depth="medium" glow="medium">
             <div className="space-y-6">
               <div>
                 <h2 className="text-2xl font-semibold tracking-tight">Profile Settings</h2>
@@ -124,7 +125,7 @@ async function ProfileContent() {
               </div>
               <ProfileForm profile={profile} />
             </div>
-          </Card>
+          </GlassCard>
         </div>
       </div>
     </div>

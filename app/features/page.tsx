@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 import { UnifiedHeader } from '@/components/layout/unified-header'
 import { 
@@ -204,17 +205,22 @@ export default function FeaturesPage() {
         </div>
 
         {/* Interactive Feature Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {features.map((feature, index) => {
             const Icon = feature.icon
             return (
-                             <Card 
-                 key={feature.id}
-                 className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4"
-                 style={{ 
-                   animationDelay: `${index * 100}ms`
-                 }}
-               >
+              <GlassCard 
+                key={feature.id}
+                variant="primary"
+                size="md" 
+                depth="medium"
+                glow="medium"
+                interactive="hover"
+                className="group relative animate-in fade-in slide-in-from-bottom-4"
+                style={{ 
+                  animationDelay: `${index * 100}ms`
+                }}
+              >
                 {/* Gradient Background */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
                 
@@ -271,7 +277,7 @@ export default function FeaturesPage() {
                 
                 {/* Hover Effect Border */}
                 <div className={`absolute inset-0 rounded-lg bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-20 transition-opacity duration-500 pointer-events-none`} />
-              </Card>
+              </GlassCard>
             )
           })}
         </div>
@@ -303,7 +309,13 @@ export default function FeaturesPage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-16 text-center">
-        <Card className="max-w-4xl mx-auto p-12 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-0 shadow-xl">
+        <GlassCard 
+          variant="floating" 
+          size="xl" 
+          depth="floating" 
+          glow="strong"
+          className="max-w-4xl mx-auto"
+        >
           <div className="space-y-6">
             <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0">
               <Target className="w-4 h-4 mr-2" />
@@ -333,7 +345,7 @@ export default function FeaturesPage() {
               </Button>
             </div>
           </div>
-        </Card>
+        </GlassCard>
       </section>
 
 

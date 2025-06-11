@@ -1,6 +1,7 @@
 "use client"
 
 import { Card } from '@/components/ui/card'
+import { GlassCard } from '@/components/ui/glass-card'
 import { Badge } from '@/components/ui/badge'
 import { CreditCard, Calendar, TrendingUp, Activity } from 'lucide-react'
 import { isActiveSubscription, formatSubscriptionPrice, getDaysUntilExpiry } from '@/lib/database-utils'
@@ -126,7 +127,7 @@ export function ProfileStats({ profile, subscriptions }: ProfileStatsProps) {
       {stats.map((stat, index) => {
         const Icon = stat.icon
         return (
-          <Card key={index} className="p-4 hover:shadow-md transition-shadow">
+          <GlassCard key={index} variant="secondary" size="sm" depth="low" glow="subtle" interactive="hover">
             <div className="flex items-start justify-between">
               <div className="space-y-2">
                 <div className="flex items-center space-x-2">
@@ -150,7 +151,7 @@ export function ProfileStats({ profile, subscriptions }: ProfileStatsProps) {
                 {stat.badge}
               </div>
             </div>
-          </Card>
+          </GlassCard>
         )
       })}
     </div>

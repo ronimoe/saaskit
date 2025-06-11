@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { GlassCard } from '@/components/ui/glass-card'
 import { MapPin, Calendar, Globe, Building2, Phone, Mail } from 'lucide-react'
 import { getProfileDisplayName, parseBillingAddress } from '@/lib/database-utils'
 import type { Profile } from '@/types/database'
@@ -36,7 +37,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
   const initials = getInitials(displayName)
 
   return (
-    <Card className="p-6">
+    <GlassCard variant="primary" size="lg" depth="medium" glow="subtle">
       <div className="flex flex-col sm:flex-row items-start space-y-4 sm:space-y-0 sm:space-x-6">
         {/* Avatar */}
         <div className="relative">
@@ -137,6 +138,6 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           </Button>
         </div>
       </div>
-    </Card>
+    </GlassCard>
   )
 } 
