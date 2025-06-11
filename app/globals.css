@@ -3,6 +3,7 @@
 @import "../styles/glassmorphism.css";
 @import "../styles/advanced-animations.css";
 @import "../styles/non-traditional-layouts.css";
+@import "../styles/gamification.css";
 
 @custom-variant dark (&:is(.dark *));
 

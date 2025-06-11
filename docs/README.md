@@ -28,6 +28,11 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 - **[Animation System](./animations-system.md)** - Magnetic effects, particle backgrounds, and micro-interactions
 - **[Non-Traditional Layouts](./non-traditional-layouts.md)** - Asymmetrical grids, 3D effects, and floating elements
 
+### User Experience & Engagement
+- **[Gamification System](./gamification-system.md)** - Complete guide to levels, achievements, XP system, and progress tracking
+- **[Personalization System](./personalization-system.md)** - Time-based greetings, adaptive content, and user preferences
+- **[Modern CSS Enhancements](./modern-css-enhancements.md)** - Container queries, scroll-driven animations, and view transitions
+
 ## 🏗️ Architecture Overview
 
 This SaaS Kit is built with:
