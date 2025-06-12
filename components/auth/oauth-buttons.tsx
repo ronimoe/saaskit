@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { createClientComponentClient } from '@/lib/supabase';
-import { features, services } from '@/lib/env';
+import { features, services, env } from '@/lib/env';
 
 interface OAuthButtonsProps {
   redirectTo?: string;
@@ -22,6 +22,12 @@ export function OAuthButtons({
 }: OAuthButtonsProps) {
   const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Handle hydration by only showing OAuth buttons after client mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -57,8 +63,22 @@ export function OAuthButtons({
     }
   };
 
+  // Don't render anything on server side to prevent hydration mismatch
+  if (!isClient) {
+    return null;
+  }
+
+  // DEBUG: Log the OAuth configuration
+  console.log('OAuth Debug:', {
+    'features.socialAuth': features.socialAuth,
+    'services.hasGoogleAuth': services.hasGoogleAuth,
+    'env.NEXT_PUBLIC_GOOGLE_CLIENT_ID': env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    'process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID': process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  });
+
     // Check if social auth is enabled via feature flag and Google OAuth is configured
   if (!features.socialAuth || !services.hasGoogleAuth) {
+    console.log('OAuth button hidden - socialAuth:', features.socialAuth, 'hasGoogleAuth:', services.hasGoogleAuth);
     return null;
   }
 
