@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Separator } from '@/components/ui/separator';
 
 import { loginSchema, type LoginFormData } from '@/lib/schemas/auth';
+import { OAuthButtons, OAuthDivider } from '@/components/auth/oauth-buttons';
 import { signInAction } from '@/app/actions/auth';
 import { useAuth } from '@/lib/stores/auth-store';
 
@@ -130,7 +131,16 @@ export function LoginForm({
       )}
 
       <CardContent className="p-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* OAuth Buttons */}
+        <OAuthButtons 
+          redirectTo={redirectTo}
+          disabled={isLoading}
+          className="mb-6"
+        />
+        
+        <OAuthDivider />
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6">
           {/* Email Field */}
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">

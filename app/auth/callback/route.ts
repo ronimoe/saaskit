@@ -4,8 +4,9 @@ import { ensureCustomerExists } from '@/lib/customer-service';
 
 /**
  * Auth callback handler for Supabase authentication flows
- * Handles email confirmations, password resets, and other auth callbacks
+ * Handles email confirmations, password resets, OAuth callbacks, and other auth flows
  * Uses atomic customer creation to prevent race conditions
+ * Enhanced OAuth error handling and user experience
  */
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -43,11 +44,20 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(loginUrl);
       }
 
-      // Handle signup confirmation - create Stripe customer and profile
-      if (requestUrl.searchParams.get('type') === 'signup') {
+      // Get the current user after code exchange to check if it's a new user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Check if this is a new user (OAuth signup detection)
+      const isNewUser = user && (
+        requestUrl.searchParams.get('type') === 'signup' ||
+        (user.app_metadata?.providers?.includes('google') && 
+         new Date(user.created_at).getTime() > Date.now() - 60000) // Created within last minute
+      );
+      
+      // Handle signup confirmation or OAuth signup - create Stripe customer and profile  
+      if (isNewUser) {
         try {
-          // Get the current user after code exchange
-          const { data: { user } } = await supabase.auth.getUser();
+          // User is already fetched above
           
           if (user?.id && user?.email) {
             console.log(`[AUTH CALLBACK] Creating customer for new user: ${user.id}`);
@@ -82,10 +92,12 @@ export async function GET(request: NextRequest) {
       // Successful authentication - redirect to intended destination
       const redirectUrl = new URL(next, requestUrl.origin);
       
-      // Add success message for email confirmations
-      if (requestUrl.searchParams.get('type') === 'signup') {
-        redirectUrl.searchParams.set('message', 'Email confirmed successfully! Welcome to your account.');
-      }
+              // Add success message for signup confirmations
+        if (requestUrl.searchParams.get('type') === 'signup') {
+          redirectUrl.searchParams.set('message', 'Email confirmed successfully! Welcome to your account.');
+        } else if (isNewUser && user?.app_metadata?.providers?.includes('google')) {
+          redirectUrl.searchParams.set('message', 'Successfully signed up with Google! Welcome to your account.');
+        }
       
       // Handle password reset flow
       if (requestUrl.searchParams.get('type') === 'recovery') {
