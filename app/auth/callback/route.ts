@@ -3,6 +3,29 @@ import { createServerComponentClient } from '@/lib/supabase';
 import { ensureCustomerExists } from '@/lib/customer-service';
 
 /**
+ * Maps OAuth error codes to user-friendly error messages
+ */
+function getOAuthErrorMessage(error: string, errorDescription?: string | null): string {
+  switch (error) {
+    case 'access_denied':
+      return 'You cancelled the sign-in process. Please try again if you want to continue.';
+    case 'invalid_grant':
+      return 'The authorization code is invalid or expired. Please try signing in again.';
+    case 'invalid_request':
+      return 'There was an issue with the sign-in request. Please try again.';
+    case 'server_error':
+      return 'Google encountered an error during sign-in. Please try again in a moment.';
+    case 'temporarily_unavailable':
+      return 'Google sign-in is temporarily unavailable. Please try again later.';
+    case 'invalid_scope':
+      return 'The requested permissions are invalid. Please contact support.';
+    default:
+      // Return the error description if available, otherwise a generic message
+      return errorDescription || 'An error occurred during sign-in. Please try again.';
+  }
+}
+
+/**
  * Auth callback handler for Supabase authentication flows
  * Handles email confirmations, password resets, OAuth callbacks, and other auth flows
  * Uses atomic customer creation to prevent race conditions
@@ -15,13 +38,16 @@ export async function GET(request: NextRequest) {
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
 
-  // Handle auth errors
+  // Handle auth errors with OAuth-specific error handling
   if (error) {
-    console.error('Auth callback error:', error, errorDescription);
+    console.error('Auth callback error:', { error, errorDescription, url: requestUrl.href });
+    
+    // Map OAuth-specific errors to user-friendly messages
+    const errorMessage = getOAuthErrorMessage(error, errorDescription);
     
     // Redirect to login with error message
     const loginUrl = new URL('/login', requestUrl.origin);
-    loginUrl.searchParams.set('error', errorDescription || error);
+    loginUrl.searchParams.set('error', errorMessage);
     
     return NextResponse.redirect(loginUrl);
   }
@@ -35,11 +61,23 @@ export async function GET(request: NextRequest) {
       const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
       
       if (exchangeError) {
-        console.error('Code exchange error:', exchangeError);
+        console.error('Code exchange error:', {
+          error: exchangeError,
+          code: code?.substring(0, 10) + '...', // Log partial code for debugging
+          url: requestUrl.href
+        });
+        
+        // Map exchange errors to user-friendly messages
+        let errorMessage = 'Authentication failed. Please try again.';
+        if (exchangeError.message?.includes('invalid_grant')) {
+          errorMessage = 'The authorization code is invalid or expired. Please try signing in again.';
+        } else if (exchangeError.message?.includes('network')) {
+          errorMessage = 'Network error during authentication. Please check your connection and try again.';
+        }
         
         // Redirect to login with error
         const loginUrl = new URL('/login', requestUrl.origin);
-        loginUrl.searchParams.set('error', 'Authentication failed. Please try again.');
+        loginUrl.searchParams.set('error', errorMessage);
         
         return NextResponse.redirect(loginUrl);
       }
@@ -48,10 +86,13 @@ export async function GET(request: NextRequest) {
       const { data: { user } } = await supabase.auth.getUser();
       
       // Check if this is a new user (OAuth signup detection)
+      const isOAuthProvider = user?.app_metadata?.providers?.includes('google');
+      const isRecentSignup = user && new Date(user.created_at).getTime() > Date.now() - 60000; // Created within last minute
+      const isEmailSignup = requestUrl.searchParams.get('type') === 'signup';
+      
       const isNewUser = user && (
-        requestUrl.searchParams.get('type') === 'signup' ||
-        (user.app_metadata?.providers?.includes('google') && 
-         new Date(user.created_at).getTime() > Date.now() - 60000) // Created within last minute
+        isEmailSignup || 
+        (isOAuthProvider && isRecentSignup)
       );
       
       // Handle signup confirmation or OAuth signup - create Stripe customer and profile  
@@ -92,12 +133,14 @@ export async function GET(request: NextRequest) {
       // Successful authentication - redirect to intended destination
       const redirectUrl = new URL(next, requestUrl.origin);
       
-              // Add success message for signup confirmations
-        if (requestUrl.searchParams.get('type') === 'signup') {
-          redirectUrl.searchParams.set('message', 'Email confirmed successfully! Welcome to your account.');
-        } else if (isNewUser && user?.app_metadata?.providers?.includes('google')) {
-          redirectUrl.searchParams.set('message', 'Successfully signed up with Google! Welcome to your account.');
-        }
+      // Add success message for signup confirmations
+      if (isEmailSignup) {
+        redirectUrl.searchParams.set('message', 'Email confirmed successfully! Welcome to your account.');
+      } else if (isNewUser && isOAuthProvider) {
+        redirectUrl.searchParams.set('message', 'Successfully signed up with Google! Welcome to your account.');
+      } else if (isOAuthProvider) {
+        redirectUrl.searchParams.set('message', 'Successfully signed in with Google!');
+      }
       
       // Handle password reset flow
       if (requestUrl.searchParams.get('type') === 'recovery') {
