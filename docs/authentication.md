@@ -17,7 +17,8 @@ This guide documents the complete authentication system implementation in our Sa
 11. [Environment Configuration](#environment-configuration)
 12. [Database Schema](#database-schema)
 13. [OAuth Integration](#oauth-integration)
-14. [Best Practices](#best-practices)
+14. [OAuth Account Linking & Feature Flags](./oauth-account-linking.md)
+15. [Best Practices](#best-practices)
 
 ## Architecture Overview
 

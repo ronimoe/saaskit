@@ -17,6 +17,7 @@ import { Progress } from '@/components/ui/progress';
 import { signupSchema, type SignupFormData } from '@/lib/schemas/auth';
 import { signUpAction } from '@/app/actions/auth';
 import { useAuth } from '@/lib/stores/auth-store';
+import { OAuthButtons, OAuthDivider } from '@/components/auth/oauth-buttons';
 
 interface SignupFormProps {
   redirectTo?: string;
@@ -141,7 +142,16 @@ export function SignupForm({
       )}
 
       <CardContent className="p-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        {/* OAuth Buttons */}
+        <OAuthButtons 
+          redirectTo={redirectTo}
+          disabled={isLoading}
+          className="mb-6"
+        />
+        
+        <OAuthDivider />
+        
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 mt-6">
           {/* Email Field */}
           <div className="space-y-2">
             <label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
