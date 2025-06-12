@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerComponentClient } from '@/lib/supabase';
 import { ensureCustomerExists } from '@/lib/customer-service';
+import { checkAccountLinking, generateLinkingToken } from '@/lib/account-linking';
 
 /**
  * Maps OAuth error codes to user-friendly error messages
@@ -94,6 +95,44 @@ export async function GET(request: NextRequest) {
         isEmailSignup || 
         (isOAuthProvider && isRecentSignup)
       );
+
+      // Check for account linking if this is a new OAuth user
+      if (isNewUser && isOAuthProvider && user?.email) {
+        try {
+          const linkingResult = await checkAccountLinking(user.email, 'google', user.id);
+          
+          if (linkingResult.needsLinking && linkingResult.existingUserId) {
+            // Account linking is needed - redirect to linking confirmation
+            const linkingToken = generateLinkingToken(user.email, 'google');
+            const linkingUrl = new URL('/auth/link-account', requestUrl.origin);
+            linkingUrl.searchParams.set('token', linkingToken);
+            linkingUrl.searchParams.set('provider', 'google');
+            linkingUrl.searchParams.set('email', user.email);
+            linkingUrl.searchParams.set('message', linkingResult.message || 'Account linking required');
+            
+            return NextResponse.redirect(linkingUrl);
+          }
+          
+          if (linkingResult.conflictType === 'oauth_exists') {
+            // OAuth account already exists - redirect to login with message
+            const loginUrl = new URL('/login', requestUrl.origin);
+            loginUrl.searchParams.set('message', linkingResult.message || 'Please sign in with your existing account');
+            
+            return NextResponse.redirect(loginUrl);
+          }
+          
+          if (linkingResult.conflictType === 'multiple_providers') {
+            // Multiple accounts conflict - redirect to support
+            const loginUrl = new URL('/login', requestUrl.origin);
+            loginUrl.searchParams.set('error', linkingResult.message || 'Multiple accounts found. Please contact support.');
+            
+            return NextResponse.redirect(loginUrl);
+          }
+        } catch (linkingError) {
+          console.error('[AUTH CALLBACK] Account linking check failed:', linkingError);
+          // Continue with normal flow if linking check fails
+        }
+      }
       
       // Handle signup confirmation or OAuth signup - create Stripe customer and profile  
       if (isNewUser) {
@@ -103,25 +142,39 @@ export async function GET(request: NextRequest) {
           if (user?.id && user?.email) {
             console.log(`[AUTH CALLBACK] Creating customer for new user: ${user.id}`);
             
-            // Use our race-condition-safe customer service directly
-            const customerResult = await ensureCustomerExists(
-              user.id,
-              user.email,
-              user.user_metadata?.full_name
-            );
-
-            if (!customerResult.success) {
-              console.error('[AUTH CALLBACK] Customer creation failed:', customerResult.error);
+            // For OAuth users, we'll create the customer but not the profile
+            // The profile will be created in the profile completion flow
+            if (isOAuthProvider && isRecentSignup) {
+              // For OAuth users, just create the Stripe customer
+              // Profile creation will happen in the setup flow
+              const { ensureStripeCustomer } = await import('@/lib/stripe-sync');
               
-              // Don't fail the auth flow, but log the error
-              // User can still access the app, customer can be created later
+              try {
+                await ensureStripeCustomer(user.id, user.email);
+                console.log('[AUTH CALLBACK] Stripe customer created for OAuth user');
+              } catch (stripeError) {
+                console.error('[AUTH CALLBACK] Stripe customer creation failed:', stripeError);
+                // Don't fail the auth flow
+              }
             } else {
-              console.log('[AUTH CALLBACK] Customer and profile created successfully', {
-                profileId: customerResult.profile?.id,
-                stripeCustomerId: customerResult.stripeCustomerId,
-                isNewCustomer: customerResult.isNewCustomer,
-                isNewProfile: customerResult.isNewProfile
-              });
+              // For email signups, create both customer and profile
+              const customerResult = await ensureCustomerExists(
+                user.id,
+                user.email,
+                user.user_metadata?.full_name
+              );
+
+              if (!customerResult.success) {
+                console.error('[AUTH CALLBACK] Customer creation failed:', customerResult.error);
+                // Don't fail the auth flow, but log the error
+              } else {
+                console.log('[AUTH CALLBACK] Customer and profile created successfully', {
+                  profileId: customerResult.profile?.id,
+                  stripeCustomerId: customerResult.stripeCustomerId,
+                  isNewCustomer: customerResult.isNewCustomer,
+                  isNewProfile: customerResult.isNewProfile
+                });
+              }
             }
           }
         } catch (customerError) {
@@ -130,16 +183,23 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Successful authentication - redirect to intended destination
-      const redirectUrl = new URL(next, requestUrl.origin);
+      // Determine redirect destination based on user type and profile status
+      let redirectUrl: URL;
       
-      // Add success message for signup confirmations
-      if (isEmailSignup) {
-        redirectUrl.searchParams.set('message', 'Email confirmed successfully! Welcome to your account.');
-      } else if (isNewUser && isOAuthProvider) {
-        redirectUrl.searchParams.set('message', 'Successfully signed up with Google! Welcome to your account.');
-      } else if (isOAuthProvider) {
-        redirectUrl.searchParams.set('message', 'Successfully signed in with Google!');
+      if (isNewUser && isOAuthProvider) {
+        // New OAuth users should complete their profile
+        redirectUrl = new URL('/auth/setup-profile', requestUrl.origin);
+        redirectUrl.searchParams.set('message', 'Successfully signed up with Google! Let\'s complete your profile.');
+      } else {
+        // Existing users or email confirmations go to intended destination
+        redirectUrl = new URL(next, requestUrl.origin);
+        
+        // Add success message for signup confirmations
+        if (isEmailSignup) {
+          redirectUrl.searchParams.set('message', 'Email confirmed successfully! Welcome to your account.');
+        } else if (isOAuthProvider) {
+          redirectUrl.searchParams.set('message', 'Successfully signed in with Google!');
+        }
       }
       
       // Handle password reset flow

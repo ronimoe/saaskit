@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { createClientComponentClient } from '@/lib/supabase';
+import { features, services } from '@/lib/env';
 
 interface OAuthButtonsProps {
   redirectTo?: string;
@@ -56,10 +57,8 @@ export function OAuthButtons({
     }
   };
 
-  // Check if social auth is enabled via feature flag
-  const socialAuthEnabled = process.env.NEXT_PUBLIC_ENABLE_SOCIAL_AUTH === 'true';
-
-  if (!socialAuthEnabled) {
+    // Check if social auth is enabled via feature flag and Google OAuth is configured
+  if (!features.socialAuth || !services.hasGoogleAuth) {
     return null;
   }
 
