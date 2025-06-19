@@ -83,9 +83,12 @@ export function calculateUserLevel(totalXp: number): UserLevel {
   let nextLevel = levels[1] || levels[0]!
   
   for (let i = 0; i < levels.length; i++) {
-    if (totalXp >= levels[i].xpRequired) {
-      currentLevel = levels[i]
-      nextLevel = levels[i + 1] || levels[i]
+    const level = levels[i]
+    if (!level) continue
+    
+    if (totalXp >= level.xpRequired) {
+      currentLevel = level
+      nextLevel = levels[i + 1] || level
     } else {
       break
     }

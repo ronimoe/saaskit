@@ -119,7 +119,7 @@ export function useFeatureVariant<T extends FeatureFlagValue = FeatureFlagValue>
   
   return useMemo(() => {
     if (typeof value === 'string' && value in variants) {
-      return variants[value];
+      return variants[value] as T;
     }
     return defaultVariant;
   }, [value, variants, defaultVariant]);
