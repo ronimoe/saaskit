@@ -5,7 +5,7 @@
  * This service processes Stripe webhook events and ensures data consistency.
  */
 
-import { createSupabaseServerClient } from './supabase';
+import { createServerComponentClient } from './supabase';
 import { stripe } from './stripe';
 import type { Database } from '@/types/database';
 

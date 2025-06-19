@@ -111,6 +111,74 @@ export type Database = {
           }
         ]
       }
+      user_preferences: {
+        Row: {
+          id: string
+          user_id: string
+          theme_mode: 'system' | 'light' | 'dark'
+          compact_mode: boolean
+          reduce_motion: boolean
+          high_contrast: boolean
+          large_text: boolean
+          screen_reader_optimized: boolean
+          browser_notifications: boolean
+          sound_effects: boolean
+          debug_mode: boolean
+          show_layout_guides: boolean
+          console_logging: boolean
+          enable_animations: boolean
+          enable_glassmorphism: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          theme_mode?: 'system' | 'light' | 'dark'
+          compact_mode?: boolean
+          reduce_motion?: boolean
+          high_contrast?: boolean
+          large_text?: boolean
+          screen_reader_optimized?: boolean
+          browser_notifications?: boolean
+          sound_effects?: boolean
+          debug_mode?: boolean
+          show_layout_guides?: boolean
+          console_logging?: boolean
+          enable_animations?: boolean
+          enable_glassmorphism?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          theme_mode?: 'system' | 'light' | 'dark'
+          compact_mode?: boolean
+          reduce_motion?: boolean
+          high_contrast?: boolean
+          large_text?: boolean
+          screen_reader_optimized?: boolean
+          browser_notifications?: boolean
+          sound_effects?: boolean
+          debug_mode?: boolean
+          show_layout_guides?: boolean
+          console_logging?: boolean
+          enable_animations?: boolean
+          enable_glassmorphism?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       subscriptions: {
         Row: {
           cancel_at: string | null
@@ -520,4 +588,9 @@ export type DatabaseResult<T> = {
 
 export type StripeCustomer = Tables<"stripe_customers">
 export type StripeCustomerInsert = TablesInsert<"stripe_customers">
-export type StripeCustomerUpdate = TablesUpdate<"stripe_customers"> 
+export type StripeCustomerUpdate = TablesUpdate<"stripe_customers">
+
+// User preferences types
+export type UserPreferences = Tables<"user_preferences">
+export type UserPreferencesInsert = TablesInsert<"user_preferences">
+export type UserPreferencesUpdate = TablesUpdate<"user_preferences"> 

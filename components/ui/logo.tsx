@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import Image from 'next/image';
 import { useBrandLogos } from '@/components/providers/brand-provider';
@@ -12,6 +14,13 @@ interface LogoProps {
   sizes?: string;
   style?: React.CSSProperties;
   onClick?: () => void;
+  // Server-side props for when client hook isn't available
+  serverLogoProps?: {
+    src: string;
+    alt: string;
+    width?: number;
+    height?: number;
+  };
 }
 
 export function Logo({
@@ -23,9 +32,17 @@ export function Logo({
   sizes,
   style,
   onClick,
+  serverLogoProps,
 }: LogoProps) {
-  const { getLogoProps } = useBrandLogos();
-  const logoProps = getLogoProps(type);
+  // Use server props if provided, otherwise use client hook
+  let logoProps;
+  if (serverLogoProps) {
+    logoProps = serverLogoProps;
+  } else {
+    // This will run on client side since component is marked 'use client'
+    const { getLogoProps } = useBrandLogos();
+    logoProps = getLogoProps(type);
+  }
 
   return (
     <Image

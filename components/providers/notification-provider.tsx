@@ -15,7 +15,7 @@ interface NotificationContextType {
   // Advanced notification methods
   custom: (component: (id: string | number) => ReactElement<unknown, string | JSXElementConstructor<unknown>>, options?: ExternalToast) => string | number;
   loading: (message: string, options?: ExternalToast) => string | number;
-  promise: <T>(promise: Promise<T>, options: PromiseNotificationOptions, toastOptions?: ExternalToast) => string | number;
+  promise: <T>(promise: Promise<T>, options: PromiseNotificationOptions, toastOptions?: ExternalToast) => string | number | { unwrap: () => Promise<T> };
   
   // Control methods
   dismiss: (toastId?: string | number) => void;
