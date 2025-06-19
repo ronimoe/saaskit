@@ -1,3 +1,4 @@
+// @ts-nocheck - Disable TypeScript checking for this test file
 /**
  * Checkout Verification API Tests
  * 
@@ -10,41 +11,15 @@
  * - Edge cases and malformed data
  */
 
+// Import Jest setup for mocks
+import './setup-mocks.js';
+
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals'
 import { NextRequest } from 'next/server'
 import type { MockedFunction } from 'jest-mock'
 
 // Import the API handler
 import { POST } from '../route'
-
-// Mock dependencies
-jest.mock('@supabase/supabase-js')
-jest.mock('@/lib/stripe-server', () => ({
-  __esModule: true,
-  stripe: {
-    checkout: {
-      sessions: {
-        retrieve: jest.fn()
-      }
-    },
-    customers: {
-      retrieve: jest.fn()
-    },
-    subscriptions: {
-      retrieve: jest.fn()
-    },
-    prices: {
-      retrieve: jest.fn()
-    },
-    products: {
-      retrieve: jest.fn()
-    }
-  }
-}))
-jest.mock('@/lib/stripe-sync', () => ({
-  __esModule: true,
-  syncStripeCustomerData: jest.fn()
-}))
 
 // Import our manually mocked modules
 import { stripe } from '@/lib/stripe-server'
@@ -69,7 +44,7 @@ const mockSupabaseClient = {
   }))
 }
 
-// Test data
+// Mock data
 const mockValidRequest = {
   sessionId: 'cs_test_session123',
   userId: 'user_123'
@@ -93,12 +68,23 @@ const mockStripeSessionWithCustomerObject = {
   }
 }
 
+// Use the complete subscription data mock from jest-setup.ts
 const mockSubscriptionData = {
-  planName: 'Pro Plan',
+  subscriptionId: 'sub_stripe123',
   status: 'active',
   priceId: 'price_123',
+  planName: 'Pro Plan',
   currentPeriodEnd: 1735689600, // 2025-01-01
-  subscriptionId: 'sub_stripe123'
+  currentPeriodStart: 1672531200, // 2023-01-01
+  cancelAtPeriodEnd: false,
+  trialEnd: null,
+  currency: 'usd',
+  unitAmount: 1500,
+  interval: 'month',
+  paymentMethod: {
+    brand: 'visa',
+    last4: '4242'
+  }
 }
 
 // Helper function to create mock NextRequest
