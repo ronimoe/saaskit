@@ -8,6 +8,9 @@ process.env.SUPABASE_JWT_SECRET = 'test-jwt-secret';
 process.env.STRIPE_SECRET_KEY = 'sk_test_123';
 process.env.STRIPE_PUBLISHABLE_KEY = 'pk_test_123';
 process.env.NEXT_PUBLIC_APP_URL = 'https://test.com';
+process.env.NEXT_PUBLIC_ENABLE_SOCIAL_AUTH = 'true';
+process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'test-google-client-id';
+process.env.GOOGLE_CLIENT_SECRET = 'test-google-secret';
 
 // Mock fetch globally for Stripe and other HTTP requests
 global.fetch = jest.fn(() =>
@@ -138,6 +141,14 @@ global.ResizeObserver = jest.fn().mockImplementation(() => ({
   unobserve: jest.fn(),
   disconnect: jest.fn(),
 }));
+
+// Mock scrollIntoView for Radix UI components (only in jsdom environment)
+if (typeof HTMLElement !== 'undefined') {
+  HTMLElement.prototype.scrollIntoView = jest.fn();
+}
+
+// Skip window.location mocking for now to avoid conflicts
+// The OAuth tests handle their own location mocking when needed
 
 // Mock Next.js router
 const mockRouter = {

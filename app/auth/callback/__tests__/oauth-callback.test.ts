@@ -11,6 +11,22 @@
 import { NextRequest } from 'next/server';
 import { GET } from '../route';
 
+// Mock NextResponse
+jest.mock('next/server', () => ({
+  NextRequest: jest.fn(),
+  NextResponse: {
+    redirect: jest.fn((url: URL | string) => ({
+      status: 302,
+      headers: {
+        get: jest.fn((name: string) => {
+          if (name === 'location') return url.toString();
+          return null;
+        }),
+      },
+    })),
+  },
+}));
+
 // Mock dependencies
 jest.mock('@/lib/supabase', () => ({
   createServerComponentClient: jest.fn(),
@@ -19,6 +35,31 @@ jest.mock('@/lib/supabase', () => ({
 jest.mock('@/lib/customer-service', () => ({
   ensureCustomerExists: jest.fn(),
 }));
+
+jest.mock('@/lib/account-linking', () => ({
+  checkAccountLinking: jest.fn(),
+  generateLinkingToken: jest.fn(),
+}));
+
+jest.mock('@/lib/stripe-sync', () => ({
+  ensureStripeCustomer: jest.fn(),
+}));
+
+// Helper function to create properly mocked NextRequest
+function createMockRequest(url: string): NextRequest {
+  return {
+    url: url,
+    nextUrl: new URL(url),
+    method: 'GET',
+    headers: new Headers(),
+    body: null,
+    json: async () => ({}),
+    text: async () => '',
+    arrayBuffer: async () => new ArrayBuffer(0),
+    formData: async () => new FormData(),
+    clone: () => createMockRequest(url),
+  } as unknown as NextRequest;
+}
 
 const mockSupabase = {
   auth: {
@@ -47,54 +88,54 @@ describe('OAuth Callback Route', () => {
 
   describe('OAuth Error Handling', () => {
     it('should handle access_denied error with user-friendly message', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback?error=access_denied&error_description=User%20cancelled');
+      const request = createMockRequest('http://localhost:3000/auth/callback?error=access_denied&error_description=User%20cancelled');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
       expect(location).toContain('/login');
-      expect(location).toContain('error=You%20cancelled%20the%20sign-in%20process');
+      expect(location).toContain('error=You+cancelled+the+sign-in+process');
     });
 
     it('should handle invalid_grant error with specific message', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback?error=invalid_grant');
+      const request = createMockRequest('http://localhost:3000/auth/callback?error=invalid_grant');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=The%20authorization%20code%20is%20invalid%20or%20expired');
+      expect(location).toContain('error=The+authorization+code+is+invalid+or+expired');
     });
 
     it('should handle server_error with Google-specific message', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback?error=server_error');
+      const request = createMockRequest('http://localhost:3000/auth/callback?error=server_error');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=Google%20encountered%20an%20error%20during%20sign-in');
+      expect(location).toContain('error=Google+encountered+an+error+during+sign-in');
     });
 
     it('should handle unknown errors with error description', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback?error=unknown_error&error_description=Custom%20error%20message');
+      const request = createMockRequest('http://localhost:3000/auth/callback?error=unknown_error&error_description=Custom%20error%20message');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=Custom%20error%20message');
+      expect(location).toContain('error=Custom+error+message');
     });
 
     it('should handle unknown errors without description', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback?error=unknown_error');
+      const request = createMockRequest('http://localhost:3000/auth/callback?error=unknown_error');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=An%20error%20occurred%20during%20sign-in');
+      expect(location).toContain('error=An+error+occurred+during+sign-in');
     });
   });
 
@@ -125,19 +166,17 @@ describe('OAuth Callback Route', () => {
     });
 
     it('should detect OAuth signup for new Google user', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=auth_code_123');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=auth_code_123');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
-      expect(mockEnsureCustomerExists).toHaveBeenCalledWith(
-        'user-123',
-        'test@example.com',
-        'Test User'
-      );
+      // OAuth users are redirected to setup-profile, not immediate customer creation
+      expect(mockEnsureCustomerExists).not.toHaveBeenCalled();
       
       const location = response.headers.get('location');
-      expect(location).toContain('message=Successfully%20signed%20up%20with%20Google');
+      expect(location).toContain('/auth/setup-profile');
+      expect(location).toContain('message=Successfully+signed+up+with+Google');
     });
 
     it('should detect OAuth signin for existing Google user', async () => {
@@ -149,7 +188,7 @@ describe('OAuth Callback Route', () => {
       
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: existingUser } });
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=auth_code_123');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=auth_code_123');
       
       const response = await GET(request);
       
@@ -157,7 +196,7 @@ describe('OAuth Callback Route', () => {
       expect(mockEnsureCustomerExists).not.toHaveBeenCalled();
       
       const location = response.headers.get('location');
-      expect(location).toContain('message=Successfully%20signed%20in%20with%20Google');
+      expect(location).toContain('message=Successfully+signed+in+with+Google');
     });
 
     it('should handle email signup confirmation', async () => {
@@ -171,7 +210,7 @@ describe('OAuth Callback Route', () => {
       
       mockSupabase.auth.getUser.mockResolvedValue({ data: { user: emailUser } });
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=auth_code_123&type=signup');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=auth_code_123&type=signup');
       
       const response = await GET(request);
       
@@ -179,7 +218,7 @@ describe('OAuth Callback Route', () => {
       expect(mockEnsureCustomerExists).toHaveBeenCalled();
       
       const location = response.headers.get('location');
-      expect(location).toContain('message=Email%20confirmed%20successfully');
+      expect(location).toContain('message=Email+confirmed+successfully');
     });
   });
 
@@ -193,13 +232,13 @@ describe('OAuth Callback Route', () => {
         error: { message: 'invalid_grant: Authorization code expired' }
       });
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=expired_code');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=expired_code');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=The%20authorization%20code%20is%20invalid%20or%20expired');
+      expect(location).toContain('error=The+authorization+code+is+invalid+or+expired');
     });
 
     it('should handle network exchange error', async () => {
@@ -207,13 +246,13 @@ describe('OAuth Callback Route', () => {
         error: { message: 'network error: Connection timeout' }
       });
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=valid_code');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=valid_code');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=Network%20error%20during%20authentication');
+      expect(location).toContain('error=Network+error+during+authentication');
     });
 
     it('should handle generic exchange error', async () => {
@@ -221,13 +260,13 @@ describe('OAuth Callback Route', () => {
         error: { message: 'Unknown error occurred' }
       });
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=valid_code');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=valid_code');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=Authentication%20failed');
+      expect(location).toContain('error=Authentication+failed');
     });
   });
 
@@ -256,55 +295,56 @@ describe('OAuth Callback Route', () => {
         error: 'Stripe API error'
       });
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=auth_code_123');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=auth_code_123');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
-      expect(mockEnsureCustomerExists).toHaveBeenCalled();
+      // OAuth users are redirected to setup-profile, not immediate customer creation
+      expect(mockEnsureCustomerExists).not.toHaveBeenCalled();
       
-      // Should still redirect to profile even if customer creation failed
+      // Should redirect to setup-profile for OAuth users
       const location = response.headers.get('location');
-      expect(location).toContain('/profile');
+      expect(location).toContain('/auth/setup-profile');
     });
 
     it('should continue auth flow if customer creation throws exception', async () => {
       mockEnsureCustomerExists.mockRejectedValue(new Error('Database connection failed'));
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=auth_code_123');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=auth_code_123');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       
-      // Should still redirect to profile even if customer creation threw error
+      // Should still redirect to setup-profile for OAuth users
       const location = response.headers.get('location');
-      expect(location).toContain('/profile');
+      expect(location).toContain('/auth/setup-profile');
     });
   });
 
   describe('Invalid Requests', () => {
     it('should handle missing code parameter', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback');
+      const request = createMockRequest('http://localhost:3000/auth/callback');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
       expect(location).toContain('/login');
-      expect(location).toContain('error=Invalid%20authentication%20request');
+      expect(location).toContain('error=Invalid+authentication+request');
     });
 
     it('should handle unexpected exceptions', async () => {
       mockCreateServerComponentClient.mockRejectedValue(new Error('Supabase connection failed'));
       
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=auth_code_123');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=auth_code_123');
       
       const response = await GET(request);
       
       expect(response.status).toBe(302);
       const location = response.headers.get('location');
-      expect(location).toContain('error=An%20unexpected%20error%20occurred');
+      expect(location).toContain('error=An+unexpected+error+occurred');
     });
   });
 
@@ -327,7 +367,7 @@ describe('OAuth Callback Route', () => {
     });
 
     it('should redirect to password reset confirmation for recovery type', async () => {
-      const request = new NextRequest('http://localhost:3000/auth/callback?code=recovery_code&type=recovery');
+      const request = createMockRequest('http://localhost:3000/auth/callback?code=recovery_code&type=recovery');
       
       const response = await GET(request);
       

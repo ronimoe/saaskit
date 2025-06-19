@@ -25,7 +25,7 @@ interface OAuthData {
 
 interface ProfileCompletionFormProps {
   user: SupabaseUser;
-  oauthData: OAuthData;
+  oauthData?: OAuthData;
 }
 
 const TIMEZONE_OPTIONS = [
@@ -47,7 +47,7 @@ export function ProfileCompletionForm({ user, oauthData }: ProfileCompletionForm
   const [isPending, startTransition] = useTransition();
   
   const [formData, setFormData] = useState<ProfileFormData>({
-    full_name: oauthData.full_name || '',
+    full_name: oauthData?.full_name || '',
     phone: '',
     company_name: '',
     website_url: '',
@@ -62,6 +62,11 @@ export function ProfileCompletionForm({ user, oauthData }: ProfileCompletionForm
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.full_name) {
+      toast.error('Full name is required.');
+      return;
+    }
     
     // Validate form data
     const validation = validateProfileData(formData);
@@ -109,7 +114,7 @@ export function ProfileCompletionForm({ user, oauthData }: ProfileCompletionForm
         
         // Create minimal profile with just required fields
         const minimalProfileData = createProfileData(user.id, user.email!, {
-          full_name: oauthData.full_name || null,
+          full_name: oauthData?.full_name || null,
           timezone: 'UTC',
           email_notifications: true,
           marketing_emails: false,
@@ -316,7 +321,7 @@ export function ProfileCompletionForm({ user, oauthData }: ProfileCompletionForm
       </div>
 
       {/* Provider Info */}
-      {oauthData.provider !== 'email' && (
+      {oauthData && oauthData.provider !== 'email' && (
         <div className="text-center pt-2">
           <p className="text-xs text-muted-foreground">
             Signed up with {oauthData.provider === 'google' ? 'Google' : oauthData.provider} • 

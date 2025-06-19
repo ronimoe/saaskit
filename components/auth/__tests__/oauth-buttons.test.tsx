@@ -33,6 +33,25 @@ jest.mock('@/lib/supabase', () => ({
   createClientComponentClient: jest.fn(),
 }));
 
+jest.mock('@/lib/env', () => ({
+  get env() {
+    return {
+      NEXT_PUBLIC_ENABLE_SOCIAL_AUTH: process.env.NEXT_PUBLIC_ENABLE_SOCIAL_AUTH,
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    };
+  },
+  get features() {
+    return {
+      socialAuth: process.env.NEXT_PUBLIC_ENABLE_SOCIAL_AUTH === 'true',
+    };
+  },
+  get services() {
+    return {
+      hasGoogleAuth: process.env.NEXT_PUBLIC_ENABLE_SOCIAL_AUTH === 'true' && !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+    };
+  },
+}));
+
 // Mock implementations
 const mockPush = jest.fn();
 const mockSignInWithOAuth = jest.fn();
@@ -56,14 +75,6 @@ beforeEach(() => {
   
   // Reset environment variable
   process.env.NEXT_PUBLIC_ENABLE_SOCIAL_AUTH = 'true';
-  
-  // Mock window.location.origin
-  Object.defineProperty(window, 'location', {
-    value: {
-      origin: 'http://localhost:3000',
-    },
-    writable: true,
-  });
 });
 
 describe('OAuthButtons', () => {
@@ -139,7 +150,7 @@ describe('OAuthButtons', () => {
       expect(mockSignInWithOAuth).toHaveBeenCalledWith({
         provider: 'google',
         options: {
-          redirectTo: 'http://localhost:3000/auth/callback?next=%2Fprofile',
+          redirectTo: 'http://localhost/auth/callback?next=%2Fprofile',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -286,7 +297,7 @@ describe('OAuthButtons', () => {
       expect(mockSignInWithOAuth).toHaveBeenCalledWith({
         provider: 'google',
         options: {
-          redirectTo: 'http://localhost:3000/auth/callback?next=%2Fdashboard%3Ftab%3Dsettings%26view%3Dprofile',
+          redirectTo: 'http://localhost/auth/callback?next=%2Fdashboard%3Ftab%3Dsettings%26view%3Dprofile',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

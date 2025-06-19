@@ -19,13 +19,25 @@ import { POST } from '../route'
 
 // Mock dependencies
 jest.mock('@supabase/supabase-js')
-jest.mock('@/lib/stripe', () => ({
+jest.mock('@/lib/stripe-server', () => ({
   __esModule: true,
   stripe: {
     checkout: {
       sessions: {
         retrieve: jest.fn()
       }
+    },
+    customers: {
+      retrieve: jest.fn()
+    },
+    subscriptions: {
+      retrieve: jest.fn()
+    },
+    prices: {
+      retrieve: jest.fn()
+    },
+    products: {
+      retrieve: jest.fn()
     }
   }
 }))
@@ -35,7 +47,7 @@ jest.mock('@/lib/stripe-sync', () => ({
 }))
 
 // Import our manually mocked modules
-import { stripe } from '@/lib/stripe'
+import { stripe } from '@/lib/stripe-server'
 import { syncStripeCustomerData } from '@/lib/stripe-sync'
 import { createClient } from '@supabase/supabase-js'
 
@@ -107,6 +119,15 @@ describe('Checkout Verification API', () => {
     // Setup default mock implementations
     mockedCreateClient.mockReturnValue(mockSupabaseClient as any)
     
+    // Setup default Stripe mocks
+    mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockStripeSession as any)
+    mockStripe.customers.retrieve.mockResolvedValue({
+      id: 'cus_stripe123',
+      email: 'test@example.com',
+      deleted: false
+    } as any)
+    mockSyncStripeCustomerData.mockResolvedValue(mockSubscriptionData)
+    
     // Mock console methods to avoid noise in tests
     jest.spyOn(console, 'error').mockImplementation(() => {})
     
@@ -133,14 +154,14 @@ describe('Checkout Verification API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing required fields: sessionId and userId')
+      expect(data.error).toBe('Missing required field: sessionId')
     })
 
     it('should return 400 when userId is missing', async () => {
       // Arrange
       const request = createMockRequest({
         sessionId: 'cs_test_session123'
-        // userId missing
+        // userId missing - this should trigger the authenticated user check
       })
 
       // Act
@@ -149,7 +170,7 @@ describe('Checkout Verification API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing required fields: sessionId and userId')
+      expect(data.error).toBe('Missing required field: userId for authenticated checkout')
     })
 
     it('should return 400 when both fields are missing', async () => {
@@ -162,7 +183,7 @@ describe('Checkout Verification API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing required fields: sessionId and userId')
+      expect(data.error).toBe('Missing required field: sessionId')
     })
 
     it('should return 400 when fields are empty strings', async () => {
@@ -178,7 +199,7 @@ describe('Checkout Verification API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing required fields: sessionId and userId')
+      expect(data.error).toBe('Missing required field: sessionId')
     })
 
     it('should return 400 when fields are null', async () => {
@@ -194,7 +215,7 @@ describe('Checkout Verification API', () => {
 
       // Assert
       expect(response.status).toBe(400)
-      expect(data.error).toBe('Missing required fields: sessionId and userId')
+      expect(data.error).toBe('Missing required field: sessionId')
     })
   })
 
@@ -231,7 +252,7 @@ describe('Checkout Verification API', () => {
       expect(data.error).toBe('Failed to verify checkout session')
       expect(console.error).toHaveBeenCalledWith(
         'Error verifying checkout session:',
-        expect.any(Error)
+        new Error('Session not found'),
       )
     })
 
@@ -476,7 +497,11 @@ describe('Checkout Verification API', () => {
       // Arrange
       const request = createMockRequest(mockValidRequest)
       mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockStripeSession as any)
-      mockSyncStripeCustomerData.mockRejectedValue(new Error('Sync failed'))
+      // Clear the default mock and set up rejection for this test
+      mockSyncStripeCustomerData.mockClear()
+      mockSyncStripeCustomerData.mockImplementation(() => 
+        Promise.reject(new Error('Sync failed'))
+      )
 
       // Act
       const response = await POST(request)
@@ -484,7 +509,11 @@ describe('Checkout Verification API', () => {
 
       // Assert
       expect(response.status).toBe(500)
-      expect(data.error).toBe('Failed to verify checkout session')
+      expect(data.error).toBe('Failed to sync Stripe data')
+      expect(console.error).toHaveBeenCalledWith(
+        'Failed to sync stripe customer data.',
+        new Error('Sync failed'),
+      )
     })
 
     it('should handle partial subscription data', async () => {
@@ -556,7 +585,8 @@ describe('Checkout Verification API', () => {
         },
         customer: {
           id: 'cus_stripe123'
-        }
+        },
+        isGuest: false
       })
     })
 
@@ -724,5 +754,35 @@ describe('Checkout Verification API', () => {
       const data2 = await response2.json()
       expect(data1.sessionId).toBe(data2.sessionId)
     })
+  })
+
+  describe('Payment Verification', () => {
+    it('should handle sync errors gracefully', async () => {
+      // Arrange
+      const request = createMockRequest(mockValidRequest)
+      mockStripe.checkout.sessions.retrieve.mockResolvedValue(
+        mockStripeSessionWithCustomerObject as any,
+      )
+      mockSyncStripeCustomerData.mockClear()
+      mockSyncStripeCustomerData.mockImplementation(() =>
+        Promise.reject(new Error('Sync failed')),
+      )
+
+      // Act
+      const response = await POST(request)
+      const data = await response.json()
+
+      // Assert
+      expect(response.status).toBe(500)
+      expect(data.error).toBe('Failed to sync Stripe data')
+      expect(console.error).toHaveBeenCalledWith(
+        'Failed to sync stripe customer data.',
+        new Error('Sync failed'),
+      )
+    })
+  })
+
+  describe('User Authorization', () => {
+    // ... existing code ...
   })
 })

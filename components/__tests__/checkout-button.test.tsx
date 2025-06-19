@@ -33,7 +33,7 @@ const mockSupabaseClient = {
   },
 };
 
-jest.mock('../../utils/supabase/client', () => ({
+jest.mock('@/utils/supabase/client', () => ({
   createClient: jest.fn(() => mockSupabaseClient),
 }));
 
@@ -42,7 +42,7 @@ const mockStripeClient = {
   redirectToCheckout: jest.fn(),
 };
 
-jest.mock('../../lib/stripe', () => ({
+jest.mock('@/lib/stripe-client', () => ({
   getStripe: jest.fn(() => Promise.resolve(mockStripeClient)),
 }));
 
@@ -76,7 +76,7 @@ describe('CheckoutButton', () => {
     render(<CheckoutButton {...defaultProps} />);
     
     expect(screen.getByRole('button')).toBeInTheDocument();
-    expect(screen.getByText('Subscribe to Pro Plan')).toBeInTheDocument();
+    expect(screen.getByText('Start Free Trial')).toBeInTheDocument();
   });
 
   it('should render checkout button with custom children', () => {
@@ -116,7 +116,7 @@ describe('CheckoutButton', () => {
       error: null,
     });
 
-    render(<CheckoutButton {...defaultProps} />);
+    render(<CheckoutButton {...defaultProps} enableGuestCheckout={false} />);
     
     const button = screen.getByRole('button');
     fireEvent.click(button);
@@ -159,6 +159,7 @@ describe('CheckoutButton', () => {
           userId: 'user_123',
           userEmail: 'test@example.com',
           fullName: undefined, // user_metadata is empty in mock
+          isGuest: false,
         }),
       });
     });
@@ -207,6 +208,7 @@ describe('CheckoutButton', () => {
           userId: 'user_123',
           userEmail: 'test@example.com',
           fullName: 'John Doe',
+          isGuest: false,
         }),
       });
     });

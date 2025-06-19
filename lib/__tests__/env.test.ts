@@ -209,9 +209,9 @@ describe('env.ts', () => {
     it('should provide environment detection helpers', () => {
       const { isDevelopment, isProduction, isStaging } = require('../env');
 
-      expect(isDevelopment).toBe(true);
-      expect(isProduction).toBe(false);
-      expect(isStaging).toBe(false);
+      expect(isDevelopment()).toBe(true);
+      expect(isProduction()).toBe(false);
+      expect(isStaging()).toBe(false);
     });
 
     it('should provide feature flags object', () => {
@@ -304,9 +304,9 @@ describe('env.ts', () => {
     });
 
     it('should detect social auth availability', () => {
-      process.env.GOOGLE_CLIENT_ID = 'google-client-id';
+      process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID = 'google-client-id';
       process.env.GOOGLE_CLIENT_SECRET = 'google-client-secret';
-      process.env.GITHUB_CLIENT_ID = 'github-client-id';
+      process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID = 'github-client-id';
       process.env.GITHUB_CLIENT_SECRET = 'github-client-secret';
 
       const { services } = require('../env');
