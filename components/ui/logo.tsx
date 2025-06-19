@@ -34,15 +34,11 @@ export function Logo({
   onClick,
   serverLogoProps,
 }: LogoProps) {
-  // Use server props if provided, otherwise use client hook
-  let logoProps;
-  if (serverLogoProps) {
-    logoProps = serverLogoProps;
-  } else {
-    // This will run on client side since component is marked 'use client'
-    const { getLogoProps } = useBrandLogos();
-    logoProps = getLogoProps(type);
-  }
+  // Always call the hook (React rule)
+  const { getLogoProps } = useBrandLogos();
+  
+  // Use server props if provided, otherwise use client hook result
+  const logoProps = serverLogoProps || getLogoProps(type);
 
   return (
     <Image

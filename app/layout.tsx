@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { BrandProvider } from "@/components/providers/brand-provider";
+import { NotificationProvider } from "@/components/providers/notification-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { brandConfig, generateMetadata } from "@/config/brand";
 import "./globals.css";
@@ -37,8 +38,10 @@ export default function RootLayout({
         >
           <BrandProvider>
             <AuthProvider>
-              {children}
-              <Toaster richColors />
+              <NotificationProvider>
+                {children}
+                <Toaster richColors />
+              </NotificationProvider>
             </AuthProvider>
           </BrandProvider>
         </ThemeProvider>

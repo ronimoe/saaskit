@@ -28,8 +28,7 @@ export interface LinkAccountsResult {
  */
 export async function checkAccountLinking(
   email: string,
-  oauthProvider: string,
-  oauthUserId?: string
+  oauthProvider: string
 ): Promise<AccountLinkingResult> {
   try {
     const supabase = await createClient();
@@ -217,7 +216,7 @@ export function verifyLinkingToken(token: string): { email: string; provider: st
     }
     
     return { email, provider, timestamp };
-  } catch (error) {
+  } catch {
     return null; // Invalid token
   }
 }

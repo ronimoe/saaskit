@@ -1,7 +1,6 @@
 import crypto from 'crypto';
 import { 
   FeatureFlagsConfig, 
-  FeatureFlagConfig, 
   FeatureFlagRule,
   FeatureFlagValue,
   UserContext,

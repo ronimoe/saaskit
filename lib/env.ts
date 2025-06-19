@@ -165,12 +165,12 @@ function getEnv(): ClientEnv | ServerEnv {
 }
 
 // Create a safe environment object that returns undefined for missing client vars
-function createSafeEnv(): any {
+function createSafeEnv(): ClientEnv | ServerEnv {
   if (isClient) {
     // On client, only parse client schema and provide safe defaults
     try {
       return clientEnvSchema.parse(process.env);
-    } catch (error) {
+    } catch {
       // On client, if parsing fails, return safe defaults but preserve actual env values
       console.warn('Using environment defaults on client side');
       return {

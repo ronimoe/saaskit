@@ -22,7 +22,7 @@ import {
   SelectValue 
 } from '@/components/ui/select'
 import { updateSinglePreferenceAction, resetUserPreferencesAction } from '@/app/actions/user-preferences'
-import { applyPreferencesToDocument } from '@/lib/user-preferences'
+import { applyPreferencesToDocument, type UserPreferencesFormData } from '@/lib/user-preferences'
 import type { UserPreferences } from '@/types/database'
 import { toast } from 'sonner'
 
@@ -44,7 +44,7 @@ export function InteractiveUserPreferences({ initialPreferences }: InteractiveUs
     applyPreferencesToDocument(newPreferences)
     
     startTransition(async () => {
-      const result = await updateSinglePreferenceAction(key as any, value as any)
+      const result = await updateSinglePreferenceAction(key as keyof UserPreferencesFormData, value as string | boolean)
       
       if (!result.success) {
         // Revert on error

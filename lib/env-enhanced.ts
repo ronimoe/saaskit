@@ -5,15 +5,12 @@
  * validation, and runtime environment switching capabilities.
  */
 
-import { z } from 'zod';
 import { env, type ClientEnv, type ServerEnv } from './env';
 import { 
   getCurrentEnvironment, 
   getEnvironmentConfig, 
   validateEnvironment,
   checkEnvironmentHealth,
-  getEnvironmentClientSchema,
-  getEnvironmentServerSchema,
   environmentUtils,
   type Environment,
   type EnvironmentConfig
@@ -71,7 +68,6 @@ export function getEnhancedClientEnv(): EnhancedClientEnv {
   }
   
   // Validate with environment-specific schema
-  const schema = getEnvironmentClientSchema(environment);
   const validation = validateEnvironment(process.env, environment);
   
   // Cache the result
@@ -263,7 +259,7 @@ export const devUtils = {
   /**
    * Validate environment configuration manually (development only)
    */
-  validateManually(envVars: Record<string, any>, targetEnvironment?: Environment): object {
+  validateManually(envVars: Record<string, unknown>, targetEnvironment?: Environment): object {
     if (getCurrentEnvironment() !== 'development') {
       console.warn('Manual validation is only available in development');
       return {};

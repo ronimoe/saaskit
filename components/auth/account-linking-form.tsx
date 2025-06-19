@@ -167,7 +167,7 @@ export function AccountLinkingForm({
       <div className="text-xs text-muted-foreground text-center">
         <p>
           This action will merge your {provider} account with your existing account.
-          You'll be able to use both sign-in methods in the future.
+          You&apos;ll be able to use both sign-in methods in the future.
         </p>
       </div>
     </div>

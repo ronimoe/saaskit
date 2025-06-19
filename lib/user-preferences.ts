@@ -9,7 +9,7 @@
 
 import { createClient } from '@/utils/supabase/server'
 import { createClient as createClientClient } from '@/utils/supabase/client'
-import type { UserPreferences, UserPreferencesInsert, UserPreferencesUpdate } from '@/types/database'
+import type { UserPreferences, UserPreferencesInsert } from '@/types/database'
 
 // ==================================================
 // TYPES

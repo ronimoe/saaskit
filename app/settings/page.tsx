@@ -11,11 +11,9 @@ import {
   Settings as SettingsIcon,
   Palette,
   Flag,
-  Globe,
   Monitor,
   Users,
   Lightbulb,
-  Shield,
   Zap,
 } from 'lucide-react'
 
@@ -341,7 +339,7 @@ async function SettingsContent() {
                     
                     <div className="text-sm text-muted-foreground space-y-2">
                       <p>
-                        Feature flags are configured through the application's configuration system. 
+                        Feature flags are configured through the application&apos;s configuration system. 
                         These settings control the availability of features across the application.
                       </p>
                       <p>
