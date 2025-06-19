@@ -216,7 +216,7 @@ export function checkAchievements(
   
   // Calculate subscription duration
   const subscriptionMonths = subscriptions.reduce((total, sub) => {
-    if (sub.status === 'active' || sub.status === 'canceled') {
+    if ((sub.status === 'active' || sub.status === 'canceled') && sub.created_at) {
       const startDate = new Date(sub.created_at)
       const endDate = sub.canceled_at ? new Date(sub.canceled_at) : new Date()
       const months = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
@@ -252,11 +252,11 @@ export function checkAchievements(
         break
       case 'first_subscription':
         earned = subscriptions.length > 0
-        earnedAt = earned ? subscriptions[0]?.created_at : undefined
+        earnedAt = earned ? subscriptions[0]?.created_at || undefined : undefined
         break
       case 'long_subscriber':
         earned = subscriptionMonths >= 6
-        earnedAt = earned ? subscriptions[0]?.created_at : undefined
+        earnedAt = earned ? subscriptions[0]?.created_at || undefined : undefined
         break
       case 'level_5':
         earned = userLevel.level >= 5
@@ -320,7 +320,7 @@ export function calculateUserProgress(profile: Profile, subscriptions: Subscript
   
   // Calculate subscription months
   const subscriptionMonths = subscriptions.reduce((total, sub) => {
-    if (sub.status === 'active' || sub.status === 'canceled') {
+    if ((sub.status === 'active' || sub.status === 'canceled') && sub.created_at) {
       const startDate = new Date(sub.created_at)
       const endDate = sub.canceled_at ? new Date(sub.canceled_at) : new Date()
       const months = Math.floor((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
