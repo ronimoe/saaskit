@@ -1,6 +1,7 @@
 import React from 'react';
 import { DashboardLayout } from '@/components/layout/dashboard-sidebar';
 import { UnifiedHeader } from '@/components/layout/unified-header';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 
 interface DashboardLayoutWrapperProps {
   children: React.ReactNode;
@@ -31,6 +32,11 @@ export default function DashboardLayoutWrapper({
       {/* Main Dashboard Layout with Sidebar */}
       <DashboardLayout showSidebar={true}>
         <main className="flex-1 p-6">
+          {/* Breadcrumb Navigation */}
+          <div className="mb-6">
+            <Breadcrumb />
+          </div>
+          
           {children}
         </main>
       </DashboardLayout>
