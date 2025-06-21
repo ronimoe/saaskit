@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
       // Check for account linking if this is a new OAuth user
       if (isNewUser && isOAuthProvider && user?.email) {
         try {
-          const linkingResult = await checkAccountLinking(user.email, 'google', user.id);
+          const linkingResult = await checkAccountLinking(user.email, 'google');
           
           if (linkingResult.needsLinking && linkingResult.existingUserId) {
             // Account linking is needed - redirect to linking confirmation

@@ -24,7 +24,7 @@ import {
   authHelpers,
 } from '@/lib/supabase';
 import type { Database } from '@/types/database';
-import { env } from '@/lib/env';
+import { env, services } from '@/lib/env';
 import { ensureStripeCustomer } from '@/lib/stripe-sync';
 import { createProfileData } from '@/lib/database-utils';
 
@@ -77,11 +77,11 @@ export const oauthUtils = {
   getAvailableProviders(): Provider[] {
     const providers: Provider[] = [];
     
-    if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+    if (services.hasGoogleAuth) {
       providers.push('google');
     }
     
-    if (env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET) {
+    if (services.hasGitHubAuth) {
       providers.push('github');
     }
     

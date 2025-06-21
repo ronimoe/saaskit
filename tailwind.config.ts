@@ -87,7 +87,7 @@ function convertAnimationTokens() {
 const brandConfig = getBrandConfig()
 const brandColorPalette = generateBrandColorPalette(brandConfig)
 
-const config: Config = {
+const config = {
   content: [
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -354,7 +354,7 @@ const config: Config = {
   ],
 }
 
-export default config
+export default config satisfies Config
 
 // Export types for better TypeScript integration
 export type TailwindConfig = typeof config

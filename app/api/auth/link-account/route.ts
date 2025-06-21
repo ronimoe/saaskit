@@ -44,7 +44,7 @@ async function handleCheckLinking(data: {
   provider: string;
   userId?: string;
 }) {
-  const { email, provider, userId } = data;
+  const { email, provider } = data;
 
   if (!email || !provider) {
     return NextResponse.json(
@@ -53,7 +53,7 @@ async function handleCheckLinking(data: {
     );
   }
 
-  const result = await checkAccountLinking(email, provider, userId);
+  const result = await checkAccountLinking(email, provider);
   
   return NextResponse.json({ result });
 }

@@ -32,6 +32,10 @@ jest.mock('../env', () => ({
     GITHUB_CLIENT_ID: 'test-github-id',
     GITHUB_CLIENT_SECRET: 'test-github-secret',
   },
+  services: {
+    hasGoogleAuth: true,
+    hasGitHubAuth: true,
+  },
 }));
 
 // Mock Supabase
