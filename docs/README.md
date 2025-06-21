@@ -7,6 +7,8 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 ### Authentication System
 - **[Authentication Overview](./authentication-overview.md)** - Quick reference guide to our auth implementation
 - **[Complete Authentication Guide](./authentication.md)** - Comprehensive documentation of the entire auth system
+- **[Profile Management System](./profile-management-system.md)** - User profile display, editing, and avatar upload functionality
+- **[Avatar Upload Guide](./avatar-upload-guide.md)** - Quick reference for the avatar upload component
 
 ### Payment & Subscription System
 - **[Guest Checkout System](./guest-checkout-system.md)** - "Payment First, Account Later" implementation guide

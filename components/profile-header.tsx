@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { GlassCard } from '@/components/ui/glass-card'
 import { MapPin, Calendar, Globe, Building2, Phone, Mail } from 'lucide-react'
 import { getProfileDisplayName, parseBillingAddress } from '@/lib/database-utils'
+import { AvatarUpload } from '@/components/avatar-upload'
 import type { Profile } from '@/types/database'
 
 interface ProfileHeaderProps {
@@ -32,9 +34,14 @@ function formatDate(dateString: string | null): string {
 }
 
 export function ProfileHeader({ profile }: ProfileHeaderProps) {
+  const [currentAvatarUrl, setCurrentAvatarUrl] = useState(profile.avatar_url)
   const displayName = getProfileDisplayName(profile)
   const billingAddress = parseBillingAddress(profile.billing_address)
   const initials = getInitials(displayName)
+
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    setCurrentAvatarUrl(newAvatarUrl)
+  }
 
   return (
     <GlassCard variant="primary" size="lg" depth="medium" glow="subtle">
@@ -42,7 +49,7 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
         {/* Avatar */}
         <div className="relative">
           <Avatar className="h-20 w-20 sm:h-24 sm:w-24">
-            <AvatarImage src={profile.avatar_url || undefined} alt={displayName} />
+            <AvatarImage src={currentAvatarUrl || undefined} alt={displayName} />
             <AvatarFallback className="text-lg font-semibold bg-gradient-to-br from-blue-500 to-purple-600 text-white">
               {initials}
             </AvatarFallback>
@@ -131,11 +138,14 @@ export function ProfileHeader({ profile }: ProfileHeaderProps) {
           </div>
         </div>
 
-        {/* Action Button */}
+        {/* Avatar Upload Component */}
         <div className="w-full sm:w-auto">
-          <Button variant="outline" className="w-full sm:w-auto">
-            Edit Avatar
-          </Button>
+          <AvatarUpload
+            currentAvatarUrl={currentAvatarUrl}
+            userDisplayName={displayName}
+            userId={profile.user_id}
+            onAvatarUpdate={handleAvatarUpdate}
+          />
         </div>
       </div>
     </GlassCard>
