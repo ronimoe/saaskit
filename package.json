@@ -11,8 +11,14 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
+    "setup": "node scripts/setup-project.js",
+    "cli": "node scripts/saas-cli.js",
+    "generate": "node scripts/saas-cli.js generate",
     "stripe:setup": "node scripts/setup-stripe.js",
     "stripe:webhooks": "node scripts/setup-webhooks.js"
+  },
+  "bin": {
+    "saas-cli": "./scripts/saas-cli.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",

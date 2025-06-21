@@ -1,9 +1,35 @@
+/**
+ * Button Component
+ * 
+ * A versatile button component built on top of Radix UI Slot with class-variance-authority
+ * for type-safe variant handling. Supports multiple variants, sizes, and can render as
+ * different elements using the asChild prop.
+ * 
+ * @example
+ * ```tsx
+ * // Basic button
+ * <Button>Click me</Button>
+ * 
+ * // Button with variant and size
+ * <Button variant="destructive" size="lg">Delete</Button>
+ * 
+ * // Button as a link
+ * <Button asChild>
+ *   <Link href="/dashboard">Go to Dashboard</Link>
+ * </Button>
+ * ```
+ */
+
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Button variant configuration using class-variance-authority
+ * Defines all possible button styles and their corresponding CSS classes
+ */
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
@@ -35,16 +61,36 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * Button component props interface
+ */
+interface ButtonProps extends 
+  React.ComponentProps<"button">,
+  VariantProps<typeof buttonVariants> {
+  /**
+   * When true, the button will render as a Slot component,
+   * allowing it to merge with its child component
+   * @default false
+   */
+  asChild?: boolean
+}
+
+/**
+ * Button Component
+ * 
+ * @param className - Additional CSS classes to apply
+ * @param variant - Button style variant (default, destructive, outline, secondary, ghost, link)
+ * @param size - Button size (default, sm, lg, icon)
+ * @param asChild - Whether to render as a Slot component
+ * @param props - Additional button props
+ */
 function Button({
   className,
   variant,
   size,
   asChild = false,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
+}: ButtonProps) {
   const Comp = asChild ? Slot : "button"
 
   return (
