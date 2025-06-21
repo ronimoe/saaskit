@@ -23,6 +23,7 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 
 ### Next-Generation UI System
 - **[UI System Overview](./ui-system-overview.md)** - Complete overview of the advanced UI components and systems
+- **[Notification System](./notification-system.md)** - Comprehensive notification system with Sonner integration
 - **[Branding Configuration](./branding-configuration.md)** - Comprehensive type-safe branding system with logos, colors, and metadata
 - **[Branding Quick Start](./branding-quick-start.md)** - 15-minute setup guide for brand identity
 - **[Glass Components](./glass-components.md)** - Detailed guide to glassmorphism effects and glass card components
@@ -291,7 +292,7 @@ Our authentication system provides:
 - Comprehensive error handling
 - Form validation with Zod schemas
 - Loading states and UX optimization
-- Toast notifications
+- **Integrated notification system** with context-aware messaging
 - Redirect handling
 
 ### ✅ Security Features

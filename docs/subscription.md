@@ -1499,7 +1499,7 @@ The Stripe Customer Portal must be configured in the Stripe Dashboard before it 
   ```typescript
   // Client-side fallback example
   if (errorMessage.includes('Stripe Customer Portal is not configured')) {
-    toast.error('Redirecting to Stripe dashboard instead');
+    notifications.warning('Redirecting to Stripe dashboard instead');
     // Redirect to Stripe dashboard customer view as fallback
   }
   ```
