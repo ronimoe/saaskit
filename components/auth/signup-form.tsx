@@ -5,8 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2, UserPlus, Mail, Lock, Check, X } from 'lucide-react';
-import { toast } from 'sonner';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,6 +16,7 @@ import { signupSchema, type SignupFormData } from '@/lib/schemas/auth';
 import { signUpAction } from '@/app/actions/auth';
 import { useAuth } from '@/lib/stores/auth-store';
 import { OAuthButtons, OAuthDivider } from '@/components/auth/oauth-buttons';
+import { useNotifications } from '@/components/providers/notification-provider';
 
 interface SignupFormProps {
   redirectTo?: string;
@@ -59,6 +58,7 @@ export function SignupForm({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { user } = useAuth();
+  const notifications = useNotifications();
 
   // Initialize form with React Hook Form and Zod validation
   const {
@@ -105,15 +105,18 @@ export function SignupForm({
                 message: messages[0],
               });
             });
+            notifications.formError('Please check your input', 'Some fields contain invalid data');
           } else {
             // Show general error message
-            toast.error(result.message);
+            notifications.authError(result.message);
           }
           return;
         }
 
         // Success
-        toast.success(result.message);
+        notifications.success(result.message, {
+          description: 'Please check your email to confirm your account'
+        });
         reset();
         
         // Redirect to login page with success message
@@ -121,7 +124,7 @@ export function SignupForm({
         
       } catch (error) {
         console.error('Signup form error:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        notifications.authError('An unexpected error occurred. Please try again.');
       }
     });
   };
@@ -383,6 +386,7 @@ export function SignupFormMinimal({
 }) {
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
+  const notifications = useNotifications();
 
   const {
     register,
@@ -414,19 +418,20 @@ export function SignupFormMinimal({
                 message: messages[0],
               });
             });
+            notifications.formError('Please check your input', 'Some fields contain invalid data');
           } else {
-            toast.error(result.message);
+            notifications.authError(result.message);
           }
           return;
         }
 
-        toast.success(result.message);
+        notifications.authSuccess(result.message);
         reset();
         onSuccess?.();
         
       } catch (error) {
         console.error('Signup error:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        notifications.authError('An unexpected error occurred. Please try again.');
       }
     });
   };

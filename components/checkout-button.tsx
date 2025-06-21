@@ -6,6 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { getStripe } from '@/lib/stripe-client';
 import { Button } from '@/components/ui/button';
 import { Loader2, UserPlus } from 'lucide-react';
+import { useNotifications } from '@/components/providers/notification-provider';
 
 interface CheckoutButtonProps {
   priceId: string;
@@ -25,16 +26,15 @@ export default function CheckoutButton({
   enableGuestCheckout = true
 }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(false);
   const router = useRouter();
+  const notifications = useNotifications();
 
   const handleCheckout = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      setCheckingAuth(true);
+    setIsLoading(true);
+    setCheckingAuth(true);
 
+    try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -61,6 +61,9 @@ export default function CheckoutButton({
       } else {
         // Guest checkout (no authentication required)
         if (!enableGuestCheckout) {
+          notifications.info('Please log in to continue', {
+            description: 'You need to sign in to subscribe to this plan.'
+          });
           router.push('/login?redirect=/pricing');
           return;
         }
@@ -78,63 +81,75 @@ export default function CheckoutButton({
         });
       }
 
-      // Create checkout session
-      const response = await fetch('/api/stripe/checkout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(checkoutData),
-      });
+      // Create checkout session with promise-based notification
+      await notifications.promise(
+        fetch('/api/stripe/checkout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(checkoutData),
+        }).then(async (response) => {
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to create checkout session');
+          }
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create checkout session');
-      }
+          const { sessionId, url, customerId } = await response.json();
 
-      const { sessionId, url, customerId } = await response.json();
+          console.log('[CHECKOUT BUTTON] Checkout session created:', {
+            sessionId,
+            customerId: customerId || 'guest',
+            hasUrl: !!url,
+            isGuest: !user
+          });
 
-      console.log('[CHECKOUT BUTTON] Checkout session created:', {
-        sessionId,
-        customerId: customerId || 'guest',
-        hasUrl: !!url,
-        isGuest: !user
-      });
+          if (url) {
+            // Redirect directly to Stripe Checkout
+            // Check if we're in a test environment (JSDOM) to avoid navigation errors
+            const isTestEnvironment = typeof window !== 'undefined' && 
+              (window.navigator.userAgent.includes('jsdom') || 
+               process.env.NODE_ENV === 'test' || 
+               process.env.JEST_WORKER_ID !== undefined);
+            
+            if (isTestEnvironment) {
+              console.log('Test environment detected, skipping window.location redirect');
+              // In tests, we just simulate success without actually redirecting
+            } else {
+              // In real browser, perform the redirect
+              window.location.href = url;
+            }
+          } else if (sessionId) {
+            // Fallback: use Stripe.js to redirect
+            const stripe = await getStripe();
+            if (!stripe) {
+              throw new Error('Failed to load Stripe');
+            }
 
-      if (url) {
-        // Redirect directly to Stripe Checkout
-        // Check if we're in a test environment (JSDOM) to avoid navigation errors
-        const isTestEnvironment = typeof window !== 'undefined' && 
-          (window.navigator.userAgent.includes('jsdom') || 
-           process.env.NODE_ENV === 'test' || 
-           process.env.JEST_WORKER_ID !== undefined);
-        
-        if (isTestEnvironment) {
-          console.log('Test environment detected, skipping window.location redirect');
-          // In tests, we just simulate success without actually redirecting
-        } else {
-          // In real browser, perform the redirect
-          window.location.href = url;
+            const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
+            
+            if (stripeError) {
+              throw new Error(stripeError.message);
+            }
+          } else {
+            throw new Error('No checkout URL or session ID received');
+          }
+        }),
+        {
+          loading: 'Creating checkout session...',
+          success: 'Redirecting to checkout...',
+          error: (error: unknown) => {
+            console.error('Checkout error:', error);
+            return `Checkout failed: ${error instanceof Error ? error.message : 'Unknown error'}`;
+          }
         }
-      } else if (sessionId) {
-        // Fallback: use Stripe.js to redirect
-        const stripe = await getStripe();
-        if (!stripe) {
-          throw new Error('Failed to load Stripe');
-        }
-
-        const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
-        
-        if (stripeError) {
-          throw new Error(stripeError.message);
-        }
-      } else {
-        throw new Error('No checkout URL or session ID received');
-      }
+      );
 
     } catch (err) {
       console.error('Checkout error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to start checkout');
+      notifications.paymentError(
+        err instanceof Error ? err.message : 'Failed to start checkout'
+      );
     } finally {
       setIsLoading(false);
       setCheckingAuth(false);
@@ -197,12 +212,6 @@ export default function CheckoutButton({
       {enableGuestCheckout && !isLoading && (
         <p className="text-xs text-gray-500 text-center">
           No account required • Create account after payment
-        </p>
-      )}
-      
-      {error && (
-        <p className="text-sm text-red-600 text-center">
-          {error}
         </p>
       )}
     </div>

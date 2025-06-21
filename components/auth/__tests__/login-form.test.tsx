@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../../../__tests__/test-utils';
 import userEvent from '@testing-library/user-event';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -184,7 +184,10 @@ describe('LoginForm', () => {
       });
 
       await waitFor(() => {
-        expect(mockToast.success).toHaveBeenCalledWith('Welcome back!');
+        expect(mockToast.success).toHaveBeenCalledWith('Welcome back!', {
+          description: 'Welcome back to your dashboard',
+          duration: 4000,
+        });
         expect(mockPush).toHaveBeenCalledWith('/profile');
       });
     });
@@ -207,7 +210,10 @@ describe('LoginForm', () => {
       await user.click(submitButton);
 
       await waitFor(() => {
-        expect(mockToast.error).toHaveBeenCalledWith('Invalid email or password');
+        expect(mockToast.error).toHaveBeenCalledWith('Invalid email or password', {
+          description: 'Please check your credentials and try again',
+          duration: 6000,
+        });
       });
     });
 

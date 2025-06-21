@@ -31,6 +31,9 @@ const config: Config = {
     '<rootDir>/**/__tests__/**/*.{ts,tsx}',
     '<rootDir>/**/*.(test|spec).{ts,tsx}',
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/__tests__/test-utils.tsx',
+  ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {
       tsconfig: {

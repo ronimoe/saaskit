@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2, Lock, CheckCircle, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+import { useNotifications } from '@/components/providers/notification-provider';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ export function PasswordResetConfirmForm({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
   const [passwordUpdated, setPasswordUpdated] = useState(false);
+  const notifications = useNotifications();
 
   // Initialize form with React Hook Form and Zod validation
   const {
@@ -82,13 +83,13 @@ export function PasswordResetConfirmForm({
     // Handle URL parameters for errors
     const error = searchParams.get('error');
     if (error) {
-      toast.error(error);
+      notifications.authError(error);
       // Clean up URL parameters
       const url = new URL(window.location.href);
       url.searchParams.delete('error');
       window.history.replaceState({}, '', url.toString());
     }
-  }, [searchParams]);
+  }, [searchParams, notifications]);
 
   const onSubmit = async (data: PasswordResetConfirmFormData) => {
     startTransition(async () => {
@@ -104,15 +105,18 @@ export function PasswordResetConfirmForm({
                 message: messages[0],
               });
             });
+            notifications.formError('Please check your input', 'Some fields contain invalid data');
           } else {
             // Show general error message
-            toast.error(result.message);
+            notifications.authError(result.message);
           }
           return;
         }
 
         // Success
-        toast.success(result.message);
+        notifications.success(result.message, {
+          description: 'Redirecting to sign in...'
+        });
         setPasswordUpdated(true);
         reset();
         
@@ -123,7 +127,7 @@ export function PasswordResetConfirmForm({
         
       } catch (error) {
         console.error('Password reset confirm form error:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        notifications.authError('An unexpected error occurred. Please try again.');
       }
     });
   };

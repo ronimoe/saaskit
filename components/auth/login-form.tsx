@@ -5,8 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, Loader2, LogIn, Mail, Lock } from 'lucide-react';
-import { toast } from 'sonner';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +14,7 @@ import { loginSchema, type LoginFormData } from '@/lib/schemas/auth';
 import { OAuthButtons, OAuthDivider } from '@/components/auth/oauth-buttons';
 import { signInAction } from '@/app/actions/auth';
 import { useAuth } from '@/lib/stores/auth-store';
+import { useNotifications } from '@/components/providers/notification-provider';
 
 interface LoginFormProps {
   redirectTo?: string;
@@ -35,6 +34,7 @@ export function LoginForm({
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
   const { user } = useAuth();
+  const notifications = useNotifications();
 
   // Handle URL parameters for messages and errors
   useEffect(() => {
@@ -42,7 +42,7 @@ export function LoginForm({
     const error = searchParams.get('error');
     
     if (message) {
-      toast.success(message);
+      notifications.authSuccess(message);
       // Clean up URL parameters
       const url = new URL(window.location.href);
       url.searchParams.delete('message');
@@ -50,13 +50,13 @@ export function LoginForm({
     }
     
     if (error) {
-      toast.error(error);
+      notifications.authError(error);
       // Clean up URL parameters
       const url = new URL(window.location.href);
       url.searchParams.delete('error');
       window.history.replaceState({}, '', url.toString());
     }
-  }, [searchParams]);
+  }, [searchParams, notifications]);
 
   // Initialize form with React Hook Form and Zod validation
   const {
@@ -94,15 +94,16 @@ export function LoginForm({
                 message: messages[0],
               });
             });
+            notifications.formError('Please check your input', 'Some fields contain invalid data');
           } else {
             // Show general error message
-            toast.error(result.message);
+            notifications.authError(result.message);
           }
           return;
         }
 
         // Success
-        toast.success(result.message);
+        notifications.authSuccess(result.message);
         reset();
         
         // Redirect after successful login
@@ -110,7 +111,7 @@ export function LoginForm({
         
       } catch (error) {
         console.error('Login form error:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        notifications.authError('An unexpected error occurred. Please try again.');
       }
     });
   };
@@ -269,6 +270,7 @@ export function LoginFormMinimal({
 }) {
   const [isPending, startTransition] = useTransition();
   const [showPassword, setShowPassword] = useState(false);
+  const notifications = useNotifications();
 
   const {
     register,
@@ -297,19 +299,20 @@ export function LoginFormMinimal({
                 message: messages[0],
               });
             });
+            notifications.formError('Please check your input', 'Some fields contain invalid data');
           } else {
-            toast.error(result.message);
+            notifications.authError(result.message);
           }
           return;
         }
 
-        toast.success(result.message);
+        notifications.authSuccess(result.message);
         reset();
         onSuccess?.();
         
       } catch (error) {
         console.error('Login form error:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        notifications.authError('An unexpected error occurred. Please try again.');
       }
     });
   };

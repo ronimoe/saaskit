@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '../../__tests__/test-utils';
 import '@testing-library/jest-dom';
 import { useRouter } from 'next/navigation';
 import CheckoutButton from '../checkout-button';
@@ -46,6 +46,25 @@ jest.mock('@/lib/stripe-client', () => ({
   getStripe: jest.fn(() => Promise.resolve(mockStripeClient)),
 }));
 
+// Mock the notification service
+const mockNotifications = {
+  info: jest.fn(),
+  promise: jest.fn().mockImplementation((promise, options) => {
+    // Execute the promise but don't let errors propagate to the test
+    return promise.catch(() => {
+      // Silently handle errors in tests
+    });
+  }),
+  paymentError: jest.fn(),
+  success: jest.fn(),
+  error: jest.fn(),
+};
+
+jest.mock('@/components/providers/notification-provider', () => ({
+  useNotifications: jest.fn(() => mockNotifications),
+  NotificationProvider: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 // Mock fetch globally
 global.fetch = jest.fn();
 
@@ -70,6 +89,9 @@ describe('CheckoutButton', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (global.fetch as jest.Mock).mockClear();
+    
+    // Reset notification mocks
+    Object.values(mockNotifications).forEach(mock => mock.mockClear());
   });
 
   it('should render checkout button with default text', () => {
@@ -239,7 +261,12 @@ describe('CheckoutButton', () => {
     // Should show loading state
     await waitFor(() => {
       expect(button).toBeDisabled();
-      expect(screen.getByText('Starting checkout...')).toBeInTheDocument();
+      expect(screen.getByText('Checking account...')).toBeInTheDocument();
+    });
+
+    // Should eventually show checkout loading state and call promise notification
+    await waitFor(() => {
+      expect(mockNotifications.promise).toHaveBeenCalled();
     });
   });
 
@@ -263,7 +290,14 @@ describe('CheckoutButton', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid price ID')).toBeInTheDocument();
+      expect(mockNotifications.promise).toHaveBeenCalledWith(
+        expect.any(Promise),
+        expect.objectContaining({
+          loading: 'Creating checkout session...',
+          success: 'Redirecting to checkout...',
+          error: expect.any(Function)
+        })
+      );
     });
 
     // Button should be re-enabled
@@ -285,7 +319,14 @@ describe('CheckoutButton', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText('Network error')).toBeInTheDocument();
+      expect(mockNotifications.promise).toHaveBeenCalledWith(
+        expect.any(Promise),
+        expect.objectContaining({
+          loading: 'Creating checkout session...',
+          success: 'Redirecting to checkout...',
+          error: expect.any(Function)
+        })
+      );
     });
   });
 
@@ -315,7 +356,7 @@ describe('CheckoutButton', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText('Stripe redirect failed')).toBeInTheDocument();
+      expect(mockNotifications.promise).toHaveBeenCalled();
     });
   });
 
@@ -328,7 +369,7 @@ describe('CheckoutButton', () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText('Authentication failed')).toBeInTheDocument();
+      expect(mockNotifications.paymentError).toHaveBeenCalledWith('Authentication failed');
     });
   });
 
@@ -358,16 +399,19 @@ describe('CheckoutButton', () => {
     
     const button = screen.getByRole('button');
     
-    // First click - should show error
+    // First click - should call promise notification which will handle error
     fireEvent.click(button);
     await waitFor(() => {
-      expect(screen.getByText('API Error')).toBeInTheDocument();
+      expect(mockNotifications.promise).toHaveBeenCalledTimes(1);
     });
 
-    // Second click - should clear error and succeed
+    // Reset mocks for second click
+    mockNotifications.promise.mockClear();
+
+    // Second click - should succeed
     fireEvent.click(button);
     await waitFor(() => {
-      expect(screen.queryByText('API Error')).not.toBeInTheDocument();
+      expect(mockNotifications.promise).toHaveBeenCalledTimes(1);
     });
   });
 }); 
