@@ -829,7 +829,48 @@ export class ThemePerformanceMonitor {
 
 ---
 
+## Dashboard Integration
+
+The theme system seamlessly integrates with the dashboard skeleton loading states:
+
+### Skeleton Theme Adaptation
+
+```tsx
+// Dashboard skeletons automatically adapt to current theme
+export function MetricsCardSkeleton() {
+  return (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-4 w-20" /> {/* Uses theme-aware bg-muted */}
+        <Skeleton className="h-4 w-4 rounded-full" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-8 w-16 mb-2" />
+        <Skeleton className="h-3 w-12 rounded-full" />
+      </CardContent>
+    </Card>
+  )
+}
+```
+
+### Theme Toggle Integration
+
+```tsx
+// Theme toggle in dashboard header affects all skeleton components
+<UnifiedHeader variant="app" /> {/* Contains theme toggle */}
+<DashboardLayout>
+  <DashboardContent /> {/* Skeletons respect theme changes */}
+</DashboardLayout>
+```
+
+**Key Features:**
+- **Automatic Theme Detection**: Skeletons inherit theme colors via CSS custom properties
+- **Smooth Transitions**: Theme changes animate skeleton backgrounds
+- **Consistent Styling**: Dashboard components maintain theme consistency
+- **Performance Optimized**: Theme changes don't cause skeleton re-renders
+
 **Related Documentation:**
+- [Dashboard System](./dashboard-system.md) - Complete dashboard layout and navigation
 - [UI System Overview](./ui-system-overview.md)
 - [Glass Components](./glass-components.md)
 - [Animation System](./animations-system.md)

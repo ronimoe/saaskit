@@ -81,6 +81,7 @@ const {
 Routes are automatically categorized:
 - **Auth routes**: `/login`, `/signup`, `/reset-password` (redirect if authenticated)
 - **Protected routes**: `/profile`, `/dashboard`, `/settings` (require authentication)
+- **Dashboard integration**: Seamless navigation with breadcrumbs and responsive sidebar
 - **Public routes**: Everything else (accessible to all)
 
 ### Manual Protection
