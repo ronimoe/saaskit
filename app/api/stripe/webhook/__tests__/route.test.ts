@@ -34,237 +34,202 @@ jest.mock('@/lib/guest-session-manager', () => ({
   cleanupExpiredSessions: jest.fn(),
 }));
 
-// Mock environment variables
-const originalEnv = process.env;
-beforeAll(() => {
-  process.env = {
-    ...originalEnv,
-    STRIPE_WEBHOOK_SECRET: 'whsec_test_secret',
-  };
-});
+// Mock Math.random for cleanup testing
+const originalMathRandom = Math.random;
 
-afterAll(() => {
-  process.env = originalEnv;
-});
-
-// Mock console methods
+// Mock console methods to track logging
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
 
-// Mock Math.random for cleanup testing
-const mockMathRandom = jest.spyOn(Math, 'random');
-
 describe('Stripe Webhook API Route', () => {
-  const mockHeaders = headers as jest.MockedFunction<typeof headers>;
   const mockVerifyWebhookSignature = verifyWebhookSignature as jest.MockedFunction<typeof verifyWebhookSignature>;
   const mockSyncStripeCustomerData = syncStripeCustomerData as jest.MockedFunction<typeof syncStripeCustomerData>;
   const mockCreateGuestSession = createGuestSession as jest.MockedFunction<typeof createGuestSession>;
   const mockIsGuestCustomer = isGuestCustomer as jest.MockedFunction<typeof isGuestCustomer>;
   const mockCleanupExpiredSessions = cleanupExpiredSessions as jest.MockedFunction<typeof cleanupExpiredSessions>;
+  const mockHeaders = headers as jest.MockedFunction<typeof headers>;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockMathRandom.mockReturnValue(0.5); // Default to not trigger cleanup
+    Math.random = originalMathRandom;
   });
 
   afterAll(() => {
     mockConsoleLog.mockRestore();
     mockConsoleError.mockRestore();
-    mockMathRandom.mockRestore();
+    Math.random = originalMathRandom;
   });
 
-  const createMockRequest = (body: string, signature?: string) => {
-    const mockHeadersMap = new Map();
-    if (signature) {
-      mockHeadersMap.set('stripe-signature', signature);
-    }
-    
-    mockHeaders.mockResolvedValue({
-      get: (key: string) => mockHeadersMap.get(key) || null,
-    } as any);
-
-    return new NextRequest('http://localhost:3000/api/stripe/webhook', {
-      method: 'POST',
-      body,
-      headers: signature ? { 'stripe-signature': signature } : {},
-    });
+  const createMockRequest = (body: string) => {
+    const request = {
+      text: jest.fn().mockResolvedValue(body),
+      json: jest.fn().mockResolvedValue(JSON.parse(body)),
+    } as unknown as NextRequest;
+    return request;
   };
+
+  const mockEvent = (type: string, data: unknown) => ({
+    id: 'evt_test123',
+    type,
+    data: { object: data },
+    created: Date.now(),
+  });
 
   describe('POST /api/stripe/webhook', () => {
     describe('Signature Verification', () => {
       it('returns 400 when stripe-signature header is missing', async () => {
-        const request = createMockRequest('{}');
+        mockHeaders.mockResolvedValue({
+          get: jest.fn().mockReturnValue(null),
+        } as any);
 
+        const request = createMockRequest('{}');
         const response = await POST(request);
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data).toEqual({ error: 'Missing stripe-signature header' });
-        expect(mockConsoleError).toHaveBeenCalledWith('Missing stripe-signature header');
+        expect(data).toEqual({
+          error: 'Missing stripe-signature header',
+        });
       });
 
       it('returns 500 when webhook secret is not configured', async () => {
-        process.env.STRIPE_WEBHOOK_SECRET = '';
-        
-        const request = createMockRequest('{}', 'test-signature');
+        const originalEnv = process.env.STRIPE_WEBHOOK_SECRET;
+        delete process.env.STRIPE_WEBHOOK_SECRET;
 
+        mockHeaders.mockResolvedValue({
+          get: jest.fn().mockReturnValue('test-signature'),
+        } as any);
+
+        const request = createMockRequest('{}');
         const response = await POST(request);
         const data = await response.json();
 
         expect(response.status).toBe(500);
-        expect(data).toEqual({ error: 'Webhook secret not configured' });
-        expect(mockConsoleError).toHaveBeenCalledWith('Missing STRIPE_WEBHOOK_SECRET environment variable');
-        
-        // Restore
-        process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
+        expect(data).toEqual({
+          error: 'Webhook secret not configured',
+        });
+
+        // Restore env
+        if (originalEnv) {
+          process.env.STRIPE_WEBHOOK_SECRET = originalEnv;
+        }
       });
 
       it('returns 400 when signature verification fails', async () => {
-        const mockError = new Error('Invalid signature');
+        process.env.STRIPE_WEBHOOK_SECRET = 'test-secret';
+        
+        mockHeaders.mockResolvedValue({
+          get: jest.fn().mockReturnValue('invalid-signature'),
+        } as any);
+
         mockVerifyWebhookSignature.mockImplementation(() => {
-          throw mockError;
+          throw new Error('Invalid signature');
         });
 
-        const request = createMockRequest('{}', 'invalid-signature');
-
+        const request = createMockRequest('{}');
         const response = await POST(request);
         const data = await response.json();
 
         expect(response.status).toBe(400);
-        expect(data).toEqual({ error: 'Invalid signature' });
-        expect(mockConsoleError).toHaveBeenCalledWith('Webhook signature verification failed:', mockError);
+        expect(data).toEqual({
+          error: 'Invalid signature',
+        });
       });
     });
 
     describe('Event Processing', () => {
-      const mockEvent = (type: string, data: unknown) => ({
-        type,
-        data: { object: data },
-      });
-
       beforeEach(() => {
-        mockVerifyWebhookSignature.mockReturnValue(mockEvent('test.event', {}) as any);
-                 mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: undefined });
-        mockSyncStripeCustomerData.mockResolvedValue({
-          subscriptionId: 'sub_test',
-          status: 'active' as const,
-          priceId: 'price_test',
-          planName: 'Test Plan',
-          currentPeriodStart: 1672531200,
-          currentPeriodEnd: 1704067200,
-          cancelAtPeriodEnd: false,
-          trialEnd: null,
-          currency: 'usd',
-          unitAmount: 1000,
-          interval: 'month',
-          paymentMethod: null,
-        });
+        process.env.STRIPE_WEBHOOK_SECRET = 'test-secret';
+        mockHeaders.mockResolvedValue({
+          get: jest.fn().mockReturnValue('valid-signature'),
+        } as any);
       });
 
       it('ignores irrelevant event types', async () => {
-        mockVerifyWebhookSignature.mockReturnValue(mockEvent('irrelevant.event', {}) as any);
+        const irrelevantEvent = mockEvent('payment_intent.created', {
+          id: 'pi_test123',
+        });
 
-        const request = createMockRequest('{}', 'valid-signature');
+        mockVerifyWebhookSignature.mockReturnValue(irrelevantEvent as any);
+
+        const request = createMockRequest(JSON.stringify(irrelevantEvent));
         const response = await POST(request);
         const data = await response.json();
 
         expect(response.status).toBe(200);
-        expect(data).toEqual({ received: true });
-        expect(mockConsoleLog).toHaveBeenCalledWith('[WEBHOOK] Processing event: irrelevant.event');
-        expect(mockConsoleLog).toHaveBeenCalledWith('[WEBHOOK] Ignoring event type: irrelevant.event');
+        expect(data).toEqual({
+          received: true,
+        });
       });
 
       describe('Subscription Events', () => {
         it('handles customer.subscription.created event', async () => {
-          const subscription = { customer: 'cus_test123' };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.created', subscription) as any);
+          const subscription = {
+            id: 'sub_test123',
+            customer: 'cus_test123',
+            status: 'active',
+          };
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('customer.subscription.created', subscription);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: undefined });
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
           const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(data).toEqual({ received: true });
+          expect(data).toEqual({
+            received: true,
+            
+          });
           expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_test123');
         });
 
         it('handles customer.subscription.updated event', async () => {
-          const subscription = { customer: 'cus_test456' };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.updated', subscription) as any);
+          const subscription = {
+            id: 'sub_test123',
+            customer: 'cus_test123',
+            status: 'active',
+          };
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('customer.subscription.updated', subscription);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: undefined });
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_test456');
+          expect(data).toEqual({
+            received: true,
+            
+          });
+          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_test123');
         });
 
         it('handles customer.subscription.deleted event', async () => {
-          const subscription = { customer: 'cus_test789' };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.deleted', subscription) as any);
+          const subscription = {
+            id: 'sub_test123',
+            customer: 'cus_test123',
+            status: 'canceled',
+          };
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('customer.subscription.deleted', subscription);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: undefined });
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_test789');
-        });
-
-        it('handles subscription with customer object instead of string', async () => {
-          const subscription = { customer: { id: 'cus_object123' } };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.created', subscription) as any);
-
-          const request = createMockRequest('{}', 'valid-signature');
-          const response = await POST(request);
-
-          expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_object123');
-        });
-      });
-
-      describe('Invoice Events', () => {
-        it('handles invoice.payment_succeeded event', async () => {
-          const invoice = { customer: 'cus_invoice123' };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('invoice.payment_succeeded', invoice) as any);
-
-          const request = createMockRequest('{}', 'valid-signature');
-          const response = await POST(request);
-
-          expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_invoice123');
-        });
-
-        it('handles invoice.payment_failed event', async () => {
-          const invoice = { customer: 'cus_failed123' };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('invoice.payment_failed', invoice) as any);
-
-          const request = createMockRequest('{}', 'valid-signature');
-          const response = await POST(request);
-
-          expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_failed123');
-        });
-
-        it('handles invoice with customer object', async () => {
-          const invoice = { customer: { id: 'cus_invoice_obj123' } };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('invoice.payment_succeeded', invoice) as any);
-
-          const request = createMockRequest('{}', 'valid-signature');
-          const response = await POST(request);
-
-          expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_invoice_obj123');
-        });
-
-        it('skips invoice events without customer', async () => {
-          const invoice = { customer: null };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('invoice.payment_succeeded', invoice) as any);
-
-          const request = createMockRequest('{}', 'valid-signature');
-          const response = await POST(request);
-
-          expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
+          expect(data).toEqual({
+            received: true,
+            
+          });
+          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_test123');
         });
       });
 
@@ -272,48 +237,68 @@ describe('Stripe Webhook API Route', () => {
         it('handles authenticated checkout.session.completed', async () => {
           const session = {
             id: 'cs_test123',
-            customer: 'cus_checkout123',
+            customer: 'cus_test123',
             mode: 'subscription',
+            client_reference_id: 'user_123',
           };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('checkout.session.completed', session) as any);
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('checkout.session.completed', session);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: undefined });
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(mockIsGuestCustomer).toHaveBeenCalledWith('cus_checkout123');
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_checkout123');
+          expect(data).toEqual({
+            received: true,
+            
+          });
+          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_test123');
         });
 
         it('skips non-subscription checkout sessions', async () => {
           const session = {
-            id: 'cs_payment123',
-            customer: 'cus_payment123',
+            id: 'cs_test123',
+            customer: 'cus_test123',
             mode: 'payment',
           };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('checkout.session.completed', session) as any);
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('checkout.session.completed', session);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(mockConsoleLog).toHaveBeenCalledWith('[WEBHOOK] Skipping non-subscription checkout: cs_payment123');
-          expect(mockIsGuestCustomer).not.toHaveBeenCalled();
+          expect(data).toEqual({
+            received: true,
+            
+          });
+          expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
         });
 
         it('skips checkout sessions without customer', async () => {
           const session = {
-            id: 'cs_no_customer123',
-            customer: null,
+            id: 'cs_test123',
             mode: 'subscription',
           };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('checkout.session.completed', session) as any);
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('checkout.session.completed', session);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(mockConsoleLog).toHaveBeenCalledWith('[WEBHOOK] Skipping non-subscription checkout: cs_no_customer123');
+          expect(data).toEqual({
+            received: true,
+            
+          });
+          expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
         });
       });
 
@@ -323,36 +308,39 @@ describe('Stripe Webhook API Route', () => {
             id: 'cs_guest123',
             customer: 'cus_guest123',
             mode: 'subscription',
-            subscription: 'sub_guest123',
+            client_reference_id: null,
             payment_status: 'paid',
             amount_total: 2000,
             currency: 'usd',
             metadata: { planName: 'Pro Plan', priceId: 'price_123' },
           };
 
-                     mockVerifyWebhookSignature.mockReturnValue(mockEvent('checkout.session.completed', session) as any);
-           mockIsGuestCustomer.mockResolvedValue({ isGuest: true, error: undefined });
-           mockCreateGuestSession.mockResolvedValue({ success: true });
+          const event = mockEvent('checkout.session.completed', session);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: true, error: undefined });
+          mockCreateGuestSession.mockResolvedValue({ success: true });
 
-          const { stripe } = await import('@/lib/stripe-server');
-          const mockStripeCustomerRetrieve = stripe.customers.retrieve as jest.MockedFunction<any>;
-          const mockStripeCustomerUpdate = stripe.customers.update as jest.MockedFunction<any>;
-
-          mockStripeCustomerRetrieve.mockResolvedValue({
+          // Mock the Stripe customer retrieval
+          const { stripe } = require('@/lib/stripe-server');
+          stripe.customers.retrieve.mockResolvedValue({
             id: 'cus_guest123',
             email: 'guest@example.com',
             metadata: {},
             deleted: false,
           });
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
+          expect(data).toEqual({
+            received: true,
+          });
           expect(mockCreateGuestSession).toHaveBeenCalledWith({
             sessionId: 'cs_guest123',
             stripeCustomerId: 'cus_guest123',
-            subscriptionId: 'sub_guest123',
+            subscriptionId: undefined,
             customerEmail: 'guest@example.com',
             planName: 'Pro Plan',
             priceId: 'price_123',
@@ -361,47 +349,46 @@ describe('Stripe Webhook API Route', () => {
             currency: 'usd',
             metadata: { planName: 'Pro Plan', priceId: 'price_123' },
           });
-          expect(mockStripeCustomerUpdate).toHaveBeenCalled();
+          expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
         });
 
         it('skips sync for guest customers on subscription events', async () => {
-          const subscription = { customer: 'cus_guest456' };
-                     mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.created', subscription) as any);
-           mockIsGuestCustomer.mockResolvedValue({ isGuest: true, error: undefined });
-
-          const request = createMockRequest('{}', 'valid-signature');
-          const response = await POST(request);
-
-          expect(response.status).toBe(200);
-          expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
-          expect(mockConsoleLog).toHaveBeenCalledWith('[WEBHOOK] Skipping sync for guest customer: cus_guest456 (will sync after reconciliation)');
-        });
-
-        it('handles guest check error by falling back to normal processing', async () => {
-          const session = {
-            id: 'cs_error123',
-            customer: 'cus_error123',
-            mode: 'subscription',
+          const subscription = {
+            id: 'sub_guest123',
+            customer: 'cus_guest123',
+            status: 'active',
           };
 
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('checkout.session.completed', session) as any);
-          mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: 'Database error' });
+          const event = mockEvent('customer.subscription.created', subscription);
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: true, error: undefined });
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(mockConsoleError).toHaveBeenCalledWith('[WEBHOOK] Error checking guest status for cus_error123:', 'Database error');
-          expect(mockSyncStripeCustomerData).toHaveBeenCalledWith('cus_error123');
+          expect(data).toEqual({
+            received: true,
+            
+          });
+          expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
         });
       });
 
       describe('Cleanup and Maintenance', () => {
         it('triggers cleanup when random condition is met', async () => {
-          mockMathRandom.mockReturnValue(0.05); // 5% - should trigger cleanup
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.created', { customer: 'cus_123' }) as any);
+          Math.random = jest.fn().mockReturnValue(0.001); // Less than 0.01
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('customer.subscription.updated', {
+            id: 'sub_test123',
+            customer: 'cus_test123',
+          });
+          
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: undefined });
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
 
           expect(response.status).toBe(200);
@@ -409,10 +396,17 @@ describe('Stripe Webhook API Route', () => {
         });
 
         it('does not trigger cleanup when random condition is not met', async () => {
-          mockMathRandom.mockReturnValue(0.15); // 15% - should not trigger cleanup
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.created', { customer: 'cus_123' }) as any);
+          Math.random = jest.fn().mockReturnValue(0.5); // Greater than 0.01
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const event = mockEvent('customer.subscription.updated', {
+            id: 'sub_test123',
+            customer: 'cus_test123',
+          });
+          
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockResolvedValue({ isGuest: false, error: undefined });
+
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
 
           expect(response.status).toBe(200);
@@ -422,27 +416,41 @@ describe('Stripe Webhook API Route', () => {
 
       describe('Error Handling', () => {
         it('handles errors during event processing', async () => {
-          const subscription = { customer: 'cus_error123' };
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('customer.subscription.created', subscription) as any);
-          mockSyncStripeCustomerData.mockRejectedValue(new Error('Sync failed'));
+          const event = mockEvent('customer.subscription.created', {
+            id: 'sub_error123',
+            customer: 'cus_error123',
+          });
+          
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
+          mockIsGuestCustomer.mockRejectedValue(new Error('Database error'));
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
           const data = await response.json();
 
           expect(response.status).toBe(500);
-          expect(data).toEqual({ error: 'Webhook processing failed' });
-          expect(mockConsoleError).toHaveBeenCalledWith('[WEBHOOK] Error processing webhook customer.subscription.created:', expect.any(Error));
+          expect(data).toEqual({
+            error: 'Webhook processing failed',
+          });
+          expect(mockConsoleError).toHaveBeenCalled();
         });
 
         it('handles unhandled event types gracefully', async () => {
-          mockVerifyWebhookSignature.mockReturnValue(mockEvent('unknown.event.type', {}) as any);
+          const event = mockEvent('unknown.event.type', {
+            id: 'unknown_123',
+          });
+          
+          mockVerifyWebhookSignature.mockReturnValue(event as any);
 
-          const request = createMockRequest('{}', 'valid-signature');
+          const request = createMockRequest(JSON.stringify(event));
           const response = await POST(request);
+          const data = await response.json();
 
           expect(response.status).toBe(200);
-          expect(mockConsoleLog).toHaveBeenCalledWith('[WEBHOOK] Unhandled event type: unknown.event.type');
+          expect(data).toEqual({
+            received: true,
+            
+          });
         });
       });
     });

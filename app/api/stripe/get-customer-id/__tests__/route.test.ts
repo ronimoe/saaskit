@@ -22,13 +22,11 @@ describe('GET Customer ID API Route', () => {
   });
 
   const createMockRequest = (body: unknown) => {
-    return new NextRequest('http://localhost:3000/api/stripe/get-customer-id', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
+    const request = {
+      json: jest.fn().mockResolvedValue(body),
+      text: jest.fn().mockResolvedValue(JSON.stringify(body)),
+    } as unknown as NextRequest;
+    return request;
   };
 
   describe('POST /api/stripe/get-customer-id', () => {
@@ -146,13 +144,10 @@ describe('GET Customer ID API Route', () => {
     });
 
     it('handles invalid JSON in request body', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/get-customer-id', {
-        method: 'POST',
-        body: 'invalid json',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = {
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+        text: jest.fn().mockResolvedValue('invalid json'),
+      } as unknown as NextRequest;
 
       const response = await POST(request);
       const data = await response.json();

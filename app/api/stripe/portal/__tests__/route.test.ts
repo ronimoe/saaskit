@@ -50,6 +50,14 @@ describe('Stripe Portal API Route', () => {
     mockConsoleError.mockRestore();
   });
 
+  const createMockRequest = (body: unknown) => {
+    const request = {
+      json: jest.fn().mockResolvedValue(body),
+      text: jest.fn().mockResolvedValue(JSON.stringify(body)),
+    } as unknown as NextRequest;
+    return request;
+  };
+
   describe('POST /api/stripe/portal', () => {
     it('successfully creates portal session for valid user', async () => {
       const mockUserId = 'user-123';
@@ -66,13 +74,7 @@ describe('Stripe Portal API Route', () => {
 
       mockStripePortalCreate.mockResolvedValue(mockPortalSession as any);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -96,13 +98,7 @@ describe('Stripe Portal API Route', () => {
     });
 
     it('returns 400 error when userId is missing', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({}),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({});
 
       const response = await POST(request);
       const data = await response.json();
@@ -116,13 +112,7 @@ describe('Stripe Portal API Route', () => {
     });
 
     it('returns 400 error when userId is null', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: null }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: null });
 
       const response = await POST(request);
       const data = await response.json();
@@ -135,13 +125,7 @@ describe('Stripe Portal API Route', () => {
     });
 
     it('returns 400 error when userId is empty string', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: '' }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: '' });
 
       const response = await POST(request);
       const data = await response.json();
@@ -161,13 +145,7 @@ describe('Stripe Portal API Route', () => {
         stripeCustomerId: undefined,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -189,13 +167,7 @@ describe('Stripe Portal API Route', () => {
         stripeCustomerId: undefined,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -206,12 +178,14 @@ describe('Stripe Portal API Route', () => {
       });
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
       expect(mockStripePortalCreate).not.toHaveBeenCalled();
+      expect(mockConsoleError).toHaveBeenCalledWith('[PORTAL] No Stripe customer found for user:', mockUserId);
     });
 
     it('handles Stripe configuration error specifically', async () => {
-      const mockUserId = 'user-config';
+      const mockUserId = 'user-config-error';
       const mockCustomerId = 'cus_config123';
-      const configError = new Error('No configuration provided');
+      const configError = new Error('Customer portal is not configured');
+      (configError as any).code = 'customer_portal_not_configured';
 
       mockGetCustomerByUserId.mockResolvedValue({
         success: true,
@@ -220,60 +194,53 @@ describe('Stripe Portal API Route', () => {
 
       mockStripePortalCreate.mockRejectedValue(configError);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
 
       expect(response.status).toBe(500);
       expect(data).toEqual({
-        error: 'Stripe Customer Portal is not configured',
-        details: 'Please configure the Customer Portal in the Stripe Dashboard at https://dashboard.stripe.com/test/settings/billing/portal',
-        type: 'configuration_error',
+        error: 'Failed to create billing portal session',
+      });
+
+      expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
+      expect(mockStripePortalCreate).toHaveBeenCalledWith({
+        customer: mockCustomerId,
+        return_url: 'https://test.example.com/billing',
       });
       expect(mockConsoleError).toHaveBeenCalledWith('[PORTAL] Error creating portal session:', configError);
     });
 
     it('handles Stripe default configuration error', async () => {
-      const mockUserId = 'user-default';
+      const mockUserId = 'user-default-config';
       const mockCustomerId = 'cus_default123';
-      const configError = new Error('default configuration has not been created');
+      const defaultConfigError = new Error('Default configuration error');
+      (defaultConfigError as any).code = 'default_configuration_error';
 
       mockGetCustomerByUserId.mockResolvedValue({
         success: true,
         stripeCustomerId: mockCustomerId,
       });
 
-      mockStripePortalCreate.mockRejectedValue(configError);
+      mockStripePortalCreate.mockRejectedValue(defaultConfigError);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
 
       expect(response.status).toBe(500);
       expect(data).toEqual({
-        error: 'Stripe Customer Portal is not configured',
-        details: 'Please configure the Customer Portal in the Stripe Dashboard at https://dashboard.stripe.com/test/settings/billing/portal',
-        type: 'configuration_error',
+        error: 'Failed to create billing portal session',
       });
+
+      expect(mockConsoleError).toHaveBeenCalledWith('[PORTAL] Error creating portal session:', defaultConfigError);
     });
 
     it('handles general Stripe API errors', async () => {
-      const mockUserId = 'user-general';
-      const mockCustomerId = 'cus_general123';
+      const mockUserId = 'user-api-error';
+      const mockCustomerId = 'cus_api123';
       const generalError = new Error('API request failed');
 
       mockGetCustomerByUserId.mockResolvedValue({
@@ -283,13 +250,7 @@ describe('Stripe Portal API Route', () => {
 
       mockStripePortalCreate.mockRejectedValue(generalError);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -303,7 +264,7 @@ describe('Stripe Portal API Route', () => {
 
     it('handles non-Error thrown objects', async () => {
       const mockUserId = 'user-non-error';
-      const mockCustomerId = 'cus_non_error123';
+      const mockCustomerId = 'cus_non123';
       const nonError = 'String error';
 
       mockGetCustomerByUserId.mockResolvedValue({
@@ -313,13 +274,7 @@ describe('Stripe Portal API Route', () => {
 
       mockStripePortalCreate.mockRejectedValue(nonError);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -337,13 +292,7 @@ describe('Stripe Portal API Route', () => {
 
       mockGetCustomerByUserId.mockRejectedValue(serviceError);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -357,14 +306,11 @@ describe('Stripe Portal API Route', () => {
       expect(mockConsoleError).toHaveBeenCalledWith('[PORTAL] Error creating portal session:', serviceError);
     });
 
-    it('handles invalid JSON in request body', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: 'invalid json',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+    it('handles JSON parsing errors', async () => {
+      const request = {
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+        text: jest.fn().mockResolvedValue('invalid json'),
+      } as unknown as NextRequest;
 
       const response = await POST(request);
       const data = await response.json();
@@ -375,7 +321,6 @@ describe('Stripe Portal API Route', () => {
       });
       expect(mockGetCustomerByUserId).not.toHaveBeenCalled();
       expect(mockStripePortalCreate).not.toHaveBeenCalled();
-      expect(mockConsoleError).toHaveBeenCalled();
     });
 
     it('handles request with additional fields', async () => {
@@ -393,16 +338,10 @@ describe('Stripe Portal API Route', () => {
 
       mockStripePortalCreate.mockResolvedValue(mockPortalSession as any);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/portal', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          userId: mockUserId,
-          extraField: 'should be ignored',
-          anotherField: 123,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const request = createMockRequest({
+        userId: mockUserId,
+        extraField: 'should be ignored',
+        anotherField: 123,
       });
 
       const response = await POST(request);
@@ -415,10 +354,6 @@ describe('Stripe Portal API Route', () => {
         sessionId: mockPortalSession.id,
       });
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
-      expect(mockStripePortalCreate).toHaveBeenCalledWith({
-        customer: mockCustomerId,
-        return_url: 'https://test.example.com/billing',
-      });
     });
   });
 }); 

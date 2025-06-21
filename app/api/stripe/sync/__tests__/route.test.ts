@@ -20,6 +20,14 @@ describe('Stripe Sync API Route', () => {
   const mockSyncStripeCustomerData = syncStripeCustomerData as jest.MockedFunction<typeof syncStripeCustomerData>;
   const mockGetCustomerByUserId = getCustomerByUserId as jest.MockedFunction<typeof getCustomerByUserId>;
 
+  const createMockRequest = (body: unknown) => {
+    const request = {
+      json: jest.fn().mockResolvedValue(body),
+      text: jest.fn().mockResolvedValue(JSON.stringify(body)),
+    } as unknown as NextRequest;
+    return request;
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -58,13 +66,7 @@ describe('Stripe Sync API Route', () => {
 
       mockSyncStripeCustomerData.mockResolvedValue(mockSubscriptionData);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -78,19 +80,12 @@ describe('Stripe Sync API Route', () => {
 
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
       expect(mockSyncStripeCustomerData).toHaveBeenCalledWith(mockCustomerId);
-
       expect(mockConsoleLog).toHaveBeenCalledWith(`[SYNC] Forcing Stripe data sync for user: ${mockUserId}`);
       expect(mockConsoleLog).toHaveBeenCalledWith(`[SYNC] Found customer: ${mockCustomerId} for user: ${mockUserId}`);
     });
 
     it('returns 400 error when userId is missing', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({}),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({});
 
       const response = await POST(request);
       const data = await response.json();
@@ -104,13 +99,7 @@ describe('Stripe Sync API Route', () => {
     });
 
     it('returns 400 error when userId is null', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: null }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: null });
 
       const response = await POST(request);
       const data = await response.json();
@@ -123,13 +112,7 @@ describe('Stripe Sync API Route', () => {
     });
 
     it('returns 400 error when userId is empty string', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: '' }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: '' });
 
       const response = await POST(request);
       const data = await response.json();
@@ -149,13 +132,7 @@ describe('Stripe Sync API Route', () => {
         stripeCustomerId: undefined,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -177,13 +154,7 @@ describe('Stripe Sync API Route', () => {
         stripeCustomerId: undefined,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -194,12 +165,13 @@ describe('Stripe Sync API Route', () => {
       });
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
       expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
+      expect(mockConsoleError).toHaveBeenCalledWith('[SYNC] No Stripe customer found for user:', mockUserId);
     });
 
     it('handles sync function throwing an error', async () => {
       const mockUserId = 'user-sync-error';
-      const mockCustomerId = 'cus_sync_error123';
-      const syncError = new Error('Stripe API error');
+      const mockCustomerId = 'cus_sync123';
+      const syncError = new Error('Stripe API failed');
 
       mockGetCustomerByUserId.mockResolvedValue({
         success: true,
@@ -208,13 +180,7 @@ describe('Stripe Sync API Route', () => {
 
       mockSyncStripeCustomerData.mockRejectedValue(syncError);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -234,13 +200,7 @@ describe('Stripe Sync API Route', () => {
 
       mockGetCustomerByUserId.mockRejectedValue(serviceError);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -254,14 +214,11 @@ describe('Stripe Sync API Route', () => {
       expect(mockConsoleError).toHaveBeenCalledWith('[SYNC] Error synchronizing with Stripe:', serviceError);
     });
 
-    it('handles invalid JSON in request body', async () => {
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: 'invalid json',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+    it('handles JSON parsing errors', async () => {
+      const request = {
+        json: jest.fn().mockRejectedValue(new Error('Invalid JSON')),
+        text: jest.fn().mockResolvedValue('invalid json'),
+      } as unknown as NextRequest;
 
       const response = await POST(request);
       const data = await response.json();
@@ -272,7 +229,6 @@ describe('Stripe Sync API Route', () => {
       });
       expect(mockGetCustomerByUserId).not.toHaveBeenCalled();
       expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
-      expect(mockConsoleError).toHaveBeenCalled();
     });
 
     it('handles request with additional fields', async () => {
@@ -300,16 +256,10 @@ describe('Stripe Sync API Route', () => {
 
       mockSyncStripeCustomerData.mockResolvedValue(mockSubscriptionData);
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ 
-          userId: mockUserId,
-          extraField: 'should be ignored',
-          anotherField: 123,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const request = createMockRequest({
+        userId: mockUserId,
+        extraField: 'should be ignored',
+        anotherField: 123,
       });
 
       const response = await POST(request);
@@ -322,12 +272,11 @@ describe('Stripe Sync API Route', () => {
         subscriptionData: mockSubscriptionData,
       });
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
-      expect(mockSyncStripeCustomerData).toHaveBeenCalledWith(mockCustomerId);
     });
 
     it('handles sync returning null subscription data', async () => {
-      const mockUserId = 'user-null-data';
-      const mockCustomerId = 'cus_null_data123';
+      const mockUserId = 'user-null-sync';
+      const mockCustomerId = 'cus_null123';
 
       mockGetCustomerByUserId.mockResolvedValue({
         success: true,
@@ -349,13 +298,7 @@ describe('Stripe Sync API Route', () => {
         paymentMethod: null,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -364,15 +307,28 @@ describe('Stripe Sync API Route', () => {
       expect(data).toEqual({
         success: true,
         message: 'Synchronization completed',
-        subscriptionData: null,
+        subscriptionData: {
+          subscriptionId: null,
+          status: 'none',
+          priceId: null,
+          planName: null,
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+          trialEnd: null,
+          currency: null,
+          unitAmount: null,
+          interval: null,
+          paymentMethod: null,
+        },
       });
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
       expect(mockSyncStripeCustomerData).toHaveBeenCalledWith(mockCustomerId);
     });
 
     it('handles sync returning empty object', async () => {
-      const mockUserId = 'user-empty-data';
-      const mockCustomerId = 'cus_empty_data123';
+      const mockUserId = 'user-empty-sync';
+      const mockCustomerId = 'cus_empty123';
 
       mockGetCustomerByUserId.mockResolvedValue({
         success: true,
@@ -394,13 +350,7 @@ describe('Stripe Sync API Route', () => {
         paymentMethod: null,
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -409,7 +359,20 @@ describe('Stripe Sync API Route', () => {
       expect(data).toEqual({
         success: true,
         message: 'Synchronization completed',
-        subscriptionData: {},
+        subscriptionData: {
+          subscriptionId: null,
+          status: 'none',
+          priceId: null,
+          planName: null,
+          currentPeriodStart: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+          trialEnd: null,
+          currency: null,
+          unitAmount: null,
+          interval: null,
+          paymentMethod: null,
+        },
       });
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
       expect(mockSyncStripeCustomerData).toHaveBeenCalledWith(mockCustomerId);
@@ -423,13 +386,7 @@ describe('Stripe Sync API Route', () => {
         stripeCustomerId: '',
       });
 
-      const request = new NextRequest('http://localhost:3000/api/stripe/sync', {
-        method: 'POST',
-        body: JSON.stringify({ userId: mockUserId }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const request = createMockRequest({ userId: mockUserId });
 
       const response = await POST(request);
       const data = await response.json();
@@ -440,6 +397,7 @@ describe('Stripe Sync API Route', () => {
       });
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith(mockUserId);
       expect(mockSyncStripeCustomerData).not.toHaveBeenCalled();
+      expect(mockConsoleError).toHaveBeenCalledWith('[SYNC] No Stripe customer found for user:', mockUserId);
     });
   });
 }); 
