@@ -89,9 +89,9 @@ export function Breadcrumb({
   return (
     <nav 
       aria-label="Breadcrumb navigation" 
-      className={cn("flex items-center space-x-1 text-sm text-muted-foreground", className)}
+      className={cn("flex items-center space-x-1 text-sm text-muted-foreground overflow-x-auto pb-2", className)}
     >
-      <ol className="flex items-center space-x-1">
+              <ol className="flex items-center space-x-1 whitespace-nowrap">
         {breadcrumbs.map((item, index) => {
           const isLast = index === breadcrumbs.length - 1;
           const Icon = item.icon;
@@ -117,7 +117,7 @@ export function Breadcrumb({
                 // Clickable breadcrumb link
                 <Link
                   href={item.href}
-                  className="flex items-center space-x-1 hover:text-foreground transition-colors"
+                  className="flex items-center space-x-1 hover:text-foreground transition-colors min-h-[44px] py-2 px-1 -mx-1 rounded-md hover:bg-accent/50"
                 >
                   {Icon && <Icon className="h-4 w-4" />}
                   <span>{item.label}</span>

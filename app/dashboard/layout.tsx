@@ -31,9 +31,9 @@ export default function DashboardLayoutWrapper({
       
       {/* Main Dashboard Layout with Sidebar */}
       <DashboardLayout showSidebar={true}>
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-6">
           {/* Breadcrumb Navigation */}
-          <div className="mb-6">
+          <div className="mb-4 md:mb-6">
             <Breadcrumb />
           </div>
           
