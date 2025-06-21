@@ -51,10 +51,18 @@ The Unified Header System automatically detects the user's authentication status
 - User avatar with dropdown menu (includes Sign Out)
 - Mobile-responsive slide-out menu
 - Active page highlighting
+- **Dashboard Integration**: Works seamlessly with dashboard layout and breadcrumb navigation
 
 **When shown:**
 - User is authenticated
 - On application pages
+
+**Dashboard Integration:**
+The `app` variant is specifically designed to work with the dashboard layout system:
+- Integrated with `DashboardLayout` component for responsive sidebar navigation
+- Positioned above breadcrumb navigation for proper hierarchy
+- Mobile hamburger menu positioned to avoid overlap with dashboard controls
+- Theme toggle synchronized with dashboard skeleton loading states
 
 ## Authentication-Aware Behavior
 
@@ -409,4 +417,42 @@ Test different authentication scenarios:
 // 5. Authenticated on app page
 // 6. Logout from each variant
 // 7. Mobile menu behavior in each state
-``` 
+```
+
+## Dashboard System Integration
+
+The Unified Header System is designed to work seamlessly with the dashboard layout system:
+
+### Layout Structure
+```tsx
+// Dashboard pages use this structure
+export default function DashboardLayout({ children }) {
+  return (
+    <>
+      <UnifiedHeader variant="app" />
+      <DashboardLayout>
+        <Breadcrumb />
+        {children}
+      </DashboardLayout>
+    </>
+  )
+}
+```
+
+### Mobile Positioning
+- Header: `fixed top-0` with proper z-index
+- Mobile toggle: `top-20` to avoid header overlap
+- Breadcrumb: Below header in main content area
+- Sidebar: Overlay with backdrop on mobile
+
+### Theme Synchronization
+- Header theme toggle affects dashboard skeleton states
+- Loading states respect theme preferences
+- Consistent brand colors throughout dashboard components
+
+## Related Documentation
+
+- **[Dashboard System](./dashboard-system.md)** - Complete dashboard layout and navigation system
+- **[Authentication Overview](./authentication-overview.md)** - Authentication system integration
+- **[Theme System](./theme-system.md)** - Theme integration and customization
+- **[Branding Configuration](./branding-configuration.md)** - Brand configuration and logo system 

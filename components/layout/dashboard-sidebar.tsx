@@ -199,7 +199,7 @@ export function DashboardLayout({
               variant="ghost"
               size="icon"
               onClick={() => setSidebarOpen(true)}
-              className="fixed top-4 left-4 z-30"
+              className="fixed top-20 left-4 z-30 bg-background border shadow-md"
             >
               <PanelLeft className="h-4 w-4" />
             </Button>

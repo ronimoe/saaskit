@@ -25,6 +25,8 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 
 ### Next-Generation UI System
 - **[UI System Overview](./ui-system-overview.md)** - Complete overview of the advanced UI components and systems
+- **[Dashboard System](./dashboard-system.md)** - Comprehensive dashboard layout with responsive navigation, breadcrumbs, and loading states
+- **[Unified Header System](./unified-header-system.md)** - Authentication-aware header system with brand consistency
 - **[Notification System](./notification-system.md)** - Comprehensive notification system with Sonner integration
 - **[Branding Configuration](./branding-configuration.md)** - Comprehensive type-safe branding system with logos, colors, and metadata
 - **[Branding Quick Start](./branding-quick-start.md)** - 15-minute setup guide for brand identity
