@@ -442,6 +442,76 @@ export interface Database {
 - **Microservices**: Tables can be split across services as needed
 - **Analytics**: Designed for data warehouse integration
 
+## Supabase Storage
+
+### Avatar Storage Bucket
+
+The application uses Supabase Storage for avatar uploads with a dedicated `avatars` bucket:
+
+```sql
+-- Storage bucket configuration
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'avatars',
+  'avatars',
+  true,
+  5242880, -- 5MB limit
+  ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+);
+```
+
+**Configuration:**
+- **Public access**: `true` for avatar display
+- **File size limit**: 5MB maximum (5,242,880 bytes)
+- **Allowed formats**: JPEG, PNG, WebP
+- **Security**: RLS policies for user-specific access
+
+### Storage RLS Policies
+
+```sql
+-- Users can upload their own avatars
+CREATE POLICY "Users can upload their own avatars" ON storage.objects
+  FOR INSERT WITH CHECK (
+    bucket_id = 'avatars' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Users can update their own avatars
+CREATE POLICY "Users can update their own avatars" ON storage.objects
+  FOR UPDATE USING (
+    bucket_id = 'avatars' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Users can delete their own avatars
+CREATE POLICY "Users can delete their own avatars" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'avatars' AND 
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
+
+-- Public read access for avatar display
+CREATE POLICY "Anyone can view avatars" ON storage.objects
+  FOR SELECT USING (bucket_id = 'avatars');
+```
+
+### File Organization
+
+Avatar files are organized in the storage bucket using the following structure:
+
+```
+avatars/
+├── {user_id}/
+│   └── avatar-{timestamp}.{extension}
+└── public/
+    └── default-avatar.png
+```
+
+**Naming Convention:**
+- User-specific folder: `{user_id}/`
+- File naming: `avatar-{timestamp}.{extension}`
+- Automatic cleanup: Old avatars are replaced, not accumulated
+
 ---
 
 This schema design provides a solid foundation for the SaaS Kit application while maintaining flexibility for future enhancements and ensuring optimal performance and security. 

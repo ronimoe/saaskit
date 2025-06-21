@@ -241,6 +241,39 @@ async function updateUserAvatar(avatarUrl: string) {
 }
 ```
 
+### Avatar Upload Component
+
+For a complete avatar upload solution with file selection, validation, and progress tracking, use the `AvatarUpload` component:
+
+```typescript
+import { AvatarUpload } from '@/components/avatar-upload';
+
+function ProfilePage({ profile }: { profile: Profile }) {
+  const handleAvatarUpdate = (newAvatarUrl: string) => {
+    // Handle avatar update (e.g., update local state)
+    console.log('Avatar updated:', newAvatarUrl);
+  };
+
+  return (
+    <div>
+      <AvatarUpload
+        currentAvatarUrl={profile.avatar_url}
+        userDisplayName={profile.full_name || 'User'}
+        userId={profile.user_id}
+        onAvatarUpdate={handleAvatarUpdate}
+      />
+    </div>
+  );
+}
+```
+
+**Features:**
+- File validation (JPEG, PNG, WebP, max 5MB)
+- Real-time image preview
+- Upload progress tracking
+- Comprehensive error handling
+- Immediate UI updates
+
 ## Admin User Management (Server-side only)
 
 ### Create User

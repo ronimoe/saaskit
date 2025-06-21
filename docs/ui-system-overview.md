@@ -178,6 +178,72 @@ function MyComponent() {
 
 **[→ View Detailed Notification System Documentation](./notification-system.md)**
 
+## Profile Management System (5.0)
+
+Comprehensive user profile management components with modern UI and seamless Supabase integration.
+
+### Components
+
+| Component | Description | File Location |
+|-----------|-------------|---------------|
+| `ProfileHeader` | Profile display with avatar and user info | `components/profile-header.tsx` |
+| `ProfileForm` | Complete profile editing form | `components/profile-form.tsx` |
+| `AvatarUpload` | Avatar upload with progress tracking | `components/avatar-upload.tsx` |
+| `ProfileStats` | Profile completion and statistics | `components/profile-stats.tsx` |
+
+### Key Features
+
+- **Avatar Upload System**: Secure file upload to Supabase Storage with real-time preview
+- **Profile Editing**: Complete form with validation and optimistic updates
+- **Profile Completion**: Automatic tracking with gamification integration
+- **Responsive Design**: Glass card effects with mobile-first approach
+- **Real-time Updates**: Immediate UI feedback with error handling
+
+### Usage Examples
+
+```tsx
+// Profile header with avatar upload
+<ProfileHeader profile={profile} />
+
+// Profile editing form
+<ProfileForm profile={profile} />
+
+// Standalone avatar upload
+<AvatarUpload
+  currentAvatarUrl={profile.avatar_url}
+  userDisplayName={profile.full_name || 'User'}
+  userId={profile.user_id}
+  onAvatarUpdate={handleAvatarUpdate}
+/>
+```
+
+### Profile Page Integration
+
+```tsx
+// Complete profile page implementation
+function ProfilePage() {
+  return (
+    <div className="space-y-8">
+      <ProfileHeader profile={profile} />
+      <div className="grid gap-8 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <ProfileForm profile={profile} />
+        </div>
+        <div className="space-y-6">
+          <ProfileStats profile={profile} />
+          <GamificationDashboard 
+            profile={profile}
+            subscriptions={subscriptions}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+**[→ View Detailed Profile Management Documentation](./profile-management-system.md)**
+
 ## Animations & Micro-Interactions (14.4)
 
 Advanced animation system featuring magnetic effects, particle backgrounds, and micro-interactions.
