@@ -1,3 +1,35 @@
+/**
+ * Checkout Button Component
+ * 
+ * A comprehensive checkout button that handles both authenticated and guest checkout flows.
+ * Integrates with Stripe for payment processing and Supabase for authentication.
+ * 
+ * Features:
+ * - Automatic user authentication detection
+ * - Guest checkout support (payment first, account later)
+ * - Loading states with descriptive messages
+ * - Error handling with notifications
+ * - Stripe Checkout session creation and redirection
+ * - Test environment compatibility
+ * 
+ * @example
+ * ```tsx
+ * // Basic usage
+ * <CheckoutButton priceId="price_123" planName="Pro Plan" />
+ * 
+ * // With custom styling and guest checkout disabled
+ * <CheckoutButton 
+ *   priceId="price_123" 
+ *   planName="Enterprise" 
+ *   isPopular={true}
+ *   enableGuestCheckout={false}
+ *   className="custom-styles"
+ * >
+ *   Subscribe Now
+ * </CheckoutButton>
+ * ```
+ */
+
 'use client';
 
 import { useState } from 'react';
@@ -8,15 +40,47 @@ import { Button } from '@/components/ui/button';
 import { Loader2, UserPlus } from 'lucide-react';
 import { useNotifications } from '@/components/providers/notification-provider';
 
+/**
+ * Props for the CheckoutButton component
+ */
 interface CheckoutButtonProps {
+  /** Stripe price ID for the subscription plan */
   priceId: string;
+  
+  /** Display name of the subscription plan */
   planName: string;
+  
+  /** Whether this is a popular/featured plan (affects styling) */
   isPopular?: boolean;
+  
+  /** Additional CSS classes to apply to the button */
   className?: string;
+  
+  /** Custom button content (overrides default text) */
   children?: React.ReactNode;
+  
+  /** 
+   * Whether to allow guest checkout (payment before account creation)
+   * When false, users must be logged in to proceed
+   * @default true
+   */
   enableGuestCheckout?: boolean;
 }
 
+/**
+ * CheckoutButton Component
+ * 
+ * Renders a button that initiates the checkout process for a subscription plan.
+ * Automatically detects user authentication status and handles both authenticated
+ * and guest checkout flows.
+ * 
+ * @param priceId - Stripe price ID for the subscription
+ * @param planName - Display name for the subscription plan
+ * @param isPopular - Whether to style as a popular/featured option
+ * @param className - Additional CSS classes
+ * @param children - Custom button content
+ * @param enableGuestCheckout - Whether to allow checkout without authentication
+ */
 export default function CheckoutButton({ 
   priceId, 
   planName, 
@@ -25,11 +89,26 @@ export default function CheckoutButton({
   children,
   enableGuestCheckout = true
 }: CheckoutButtonProps) {
+  /** Loading state for the entire checkout process */
   const [isLoading, setIsLoading] = useState(false);
+  
+  /** Loading state specifically for authentication check */
   const [checkingAuth, setCheckingAuth] = useState(false);
+  
   const router = useRouter();
   const notifications = useNotifications();
 
+  /**
+   * Handles the checkout process
+   * 
+   * Flow:
+   * 1. Check user authentication status
+   * 2. Prepare checkout data based on auth status
+   * 3. Create Stripe checkout session via API
+   * 4. Redirect to Stripe Checkout
+   * 
+   * Supports both authenticated and guest checkout flows.
+   */
   const handleCheckout = async () => {
     setIsLoading(true);
     setCheckingAuth(true);
@@ -162,7 +241,17 @@ export default function CheckoutButton({
       : 'bg-gray-900 hover:bg-gray-800'
   } text-white`;
 
-  // Show different text and icons based on loading state
+  /**
+   * Determines the button content based on current state
+   * 
+   * Shows different text and icons for:
+   * - Authentication checking
+   * - Checkout processing
+   * - Default state with guest checkout indication
+   * - Custom children content
+   * 
+   * @returns JSX element or string for button content
+   */
   const getButtonContent = () => {
     if (isLoading) {
       if (checkingAuth) {

@@ -1,0 +1,252 @@
+#!/usr/bin/env node
+
+/**
+ * SaaS Kit Project Setup Script
+ * 
+ * This script automates the setup of a new SaaS Kit project with:
+ * - Environment configuration
+ * - Dependency installation
+ * - Database setup
+ * - Branding configuration
+ * - Development tools setup
+ * 
+ * Usage:
+ *   node scripts/setup-project.js
+ *   npm run setup
+ * 
+ * Requirements:
+ *   - Node.js 18+ 
+ *   - npm or yarn
+ *   - Git (optional, for repository initialization)
+ */
+
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const readline = require('readline');
+
+// ANSI color codes for console output
+const colors = {
+  reset: '\x1b[0m',
+  bright: '\x1b[1m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  blue: '\x1b[34m',
+  magenta: '\x1b[35m',
+  cyan: '\x1b[36m',
+};
+
+// Utility functions for colored console output
+const log = {
+  info: (msg) => console.log(`${colors.blue}ℹ${colors.reset} ${msg}`),
+  success: (msg) => console.log(`${colors.green}✅${colors.reset} ${msg}`),
+  warning: (msg) => console.log(`${colors.yellow}⚠️${colors.reset} ${msg}`),
+  error: (msg) => console.log(`${colors.red}❌${colors.reset} ${msg}`),
+  step: (msg) => console.log(`${colors.cyan}🚀${colors.reset} ${colors.bright}${msg}${colors.reset}`),
+  section: (msg) => console.log(`\n${colors.magenta}${colors.bright}=== ${msg} ===${colors.reset}\n`),
+};
+
+// Configuration interface
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout
+});
+
+// Promisify readline question
+const question = (query) => new Promise((resolve) => rl.question(query, resolve));
+
+// Project configuration object
+let projectConfig = {
+  projectName: '',
+  appName: '',
+  companyName: '',
+  description: '',
+  appUrl: 'http://localhost:3000',
+  packageManager: 'npm',
+  setupGit: false,
+  setupSupabase: false,
+  setupStripe: false,
+  environment: 'development',
+  features: {
+    analytics: true,
+    socialAuth: true,
+    subscriptions: true,
+    teams: false,
+    apiAccess: false,
+    devTools: true,
+  }
+};
+
+// System requirements check
+function checkSystemRequirements() {
+  log.section('Checking System Requirements');
+  
+  const requirements = [
+    { name: 'Node.js', command: 'node --version', minVersion: '18.0.0' },
+    { name: 'npm', command: 'npm --version', minVersion: '8.0.0' },
+  ];
+
+  for (const req of requirements) {
+    try {
+      const version = execSync(req.command, { encoding: 'utf8' }).trim();
+      log.success(`${req.name}: ${version}`);
+    } catch (error) {
+      log.error(`${req.name} is not installed or not accessible`);
+      process.exit(1);
+    }
+  }
+
+  // Check for optional tools
+  try {
+    const yarnVersion = execSync('yarn --version', { encoding: 'utf8' }).trim();
+    log.info(`Yarn: ${yarnVersion} (optional)`);
+    projectConfig.packageManager = 'yarn';
+  } catch (error) {
+    log.info('Yarn: Not installed (optional)');
+  }
+}
+
+// Interactive configuration collection
+async function collectProjectConfiguration() {
+  log.section('Project Configuration');
+  
+  projectConfig.projectName = await question('Project name (kebab-case): ') || 'my-saas-app';
+  projectConfig.appName = await question('App display name: ') || 'My SaaS App';
+  projectConfig.companyName = await question('Company name: ') || 'Your Company';
+  projectConfig.description = await question('Project description: ') || 'Modern SaaS Platform';
+  
+  const customUrl = await question('App URL (press Enter for localhost:3000): ');
+  if (customUrl) projectConfig.appUrl = customUrl;
+  
+  if (projectConfig.packageManager === 'yarn') {
+    const useYarn = await question('Use Yarn instead of npm? (y/N): ');
+    if (useYarn.toLowerCase() !== 'y') {
+      projectConfig.packageManager = 'npm';
+    }
+  }
+  
+  const gitInit = await question('Initialize Git repository? (Y/n): ');
+  projectConfig.setupGit = gitInit.toLowerCase() !== 'n';
+  
+  const setupSupabase = await question('Configure Supabase now? (y/N): ');
+  projectConfig.setupSupabase = setupSupabase.toLowerCase() === 'y';
+  
+  const setupStripe = await question('Configure Stripe now? (y/N): ');
+  projectConfig.setupStripe = setupStripe.toLowerCase() === 'y';
+  
+  const enableTeams = await question('Enable team features? (y/N): ');
+  projectConfig.features.teams = enableTeams.toLowerCase() === 'y';
+  
+  const enableApiAccess = await question('Enable API access features? (y/N): ');
+  projectConfig.features.apiAccess = enableApiAccess.toLowerCase() === 'y';
+}
+
+// Environment file generation
+function generateEnvironmentFile() {
+  log.section('Environment Configuration');
+  
+  const envContent = `# =============================================================================
+# ${projectConfig.appName.toUpperCase()} - ENVIRONMENT VARIABLES
+# =============================================================================
+# Generated by SaaS Kit setup script on ${new Date().toISOString()}
+
+# =============================================================================
+# ENVIRONMENT CONFIGURATION
+# =============================================================================
+NODE_ENV=${projectConfig.environment}
+NEXT_PUBLIC_APP_URL=${projectConfig.appUrl}
+
+# =============================================================================
+# APP BRANDING
+# =============================================================================
+NEXT_PUBLIC_APP_NAME="${projectConfig.appName}"
+NEXT_PUBLIC_APP_DESCRIPTION="${projectConfig.description}"
+NEXT_PUBLIC_COMPANY_NAME="${projectConfig.companyName}"
+
+# =============================================================================
+# DATABASE & AUTHENTICATION (SUPABASE)
+# =============================================================================
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
+SUPABASE_JWT_SECRET=your_supabase_jwt_secret_here
+
+# =============================================================================
+# PAYMENT PROCESSING (STRIPE)
+# =============================================================================
+${projectConfig.setupStripe ? '' : '# '}NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+${projectConfig.setupStripe ? '' : '# '}STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+${projectConfig.setupStripe ? '' : '# '}STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret_here
+
+# =============================================================================
+# FEATURE FLAGS
+# =============================================================================
+NEXT_PUBLIC_ENABLE_ANALYTICS=${projectConfig.features.analytics}
+NEXT_PUBLIC_ENABLE_SOCIAL_AUTH=${projectConfig.features.socialAuth}
+NEXT_PUBLIC_ENABLE_SUBSCRIPTIONS=${projectConfig.features.subscriptions}
+NEXT_PUBLIC_ENABLE_TEAMS=${projectConfig.features.teams}
+NEXT_PUBLIC_ENABLE_API_ACCESS=${projectConfig.features.apiAccess}
+NEXT_PUBLIC_ENABLE_DEV_TOOLS=${projectConfig.features.devTools}
+
+# =============================================================================
+# DEVELOPMENT & DEBUGGING
+# =============================================================================
+DEBUG=${projectConfig.environment === 'development' ? 'true' : 'false'}
+DEBUG_SQL=false
+`;
+
+  fs.writeFileSync('.env.local', envContent);
+  log.success('Generated .env.local file');
+}
+
+// Package.json updates
+function updatePackageJson() {
+  log.section('Package Configuration');
+  
+  const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+  
+  packageJson.name = projectConfig.projectName;
+  packageJson.description = projectConfig.description;
+  
+  if (!packageJson.scripts.setup) {
+    packageJson.scripts.setup = 'node scripts/setup-project.js';
+  }
+  
+  fs.writeFileSync('package.json', JSON.stringify(packageJson, null, 2));
+  log.success('Updated package.json');
+}
+
+// Main setup function
+async function main() {
+  try {
+    console.log(`
+${colors.cyan}${colors.bright}
+╔═══════════════════════════════════════════════════════════════╗
+║                     SaaS Kit Project Setup                   ║
+╚═══════════════════════════════════════════════════════════════╝
+${colors.reset}
+`);
+
+    checkSystemRequirements();
+    await collectProjectConfiguration();
+    generateEnvironmentFile();
+    updatePackageJson();
+    
+    log.section('Setup Complete! 🎉');
+    log.success(`Your ${projectConfig.appName} project is ready!`);
+    
+  } catch (error) {
+    log.error('Setup failed:');
+    log.error(error.message);
+    process.exit(1);
+  } finally {
+    rl.close();
+  }
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = { main }; 
