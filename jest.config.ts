@@ -10,6 +10,7 @@ const config: Config = {
     '^@/lib/(.*)$': '<rootDir>/lib/$1',
     '^@/utils/(.*)$': '<rootDir>/utils/$1',
     '^@/types/(.*)$': '<rootDir>/types/$1',
+    '^@/config/(.*)$': '<rootDir>/config/$1',
     
     // Handle CSS imports (with CSS modules)
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
@@ -29,6 +30,9 @@ const config: Config = {
   testMatch: [
     '<rootDir>/**/__tests__/**/*.{ts,tsx}',
     '<rootDir>/**/*.(test|spec).{ts,tsx}',
+  ],
+  testPathIgnorePatterns: [
+    '<rootDir>/__tests__/test-utils.tsx',
   ],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', {

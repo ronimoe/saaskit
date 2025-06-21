@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { Button } from '@/components/ui/button';
 import { CreditCard, ExternalLink, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useNotifications } from '@/components/providers/notification-provider';
 
 interface BillingPortalButtonProps {
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
@@ -25,6 +25,7 @@ export function BillingPortalButton({
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+  const notifications = useNotifications();
 
   const handlePortalAccess = async () => {
     try {
@@ -34,7 +35,7 @@ export function BillingPortalButton({
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       
       if (authError || !user) {
-        toast.error('Please sign in to manage your billing');
+        notifications.authError('Please sign in to manage your billing');
         router.push('/login');
         return;
       }
@@ -76,11 +77,11 @@ export function BillingPortalButton({
       const errorMessage = error instanceof Error ? error.message : 'Failed to access billing portal';
       
       if (errorMessage.includes('No billing account found')) {
-        toast.error('No billing account found. Please create a subscription first.');
+        notifications.paymentError('No billing account found. Please create a subscription first.');
         router.push('/pricing');
       } else if (errorMessage.includes('Stripe Customer Portal is not configured')) {
         // Handle configuration error specifically
-        toast.error('Stripe Customer Portal is not configured. Redirecting to Stripe dashboard instead.');
+        notifications.warning('Stripe Customer Portal is not configured. Redirecting to Stripe dashboard instead.');
         
         // Optionally, if you're in development mode, show more details
         if (process.env.NODE_ENV === 'development') {
@@ -113,7 +114,7 @@ export function BillingPortalButton({
           window.open('https://dashboard.stripe.com/test', '_blank');
         }
       } else {
-        toast.error(errorMessage);
+        notifications.paymentError(errorMessage);
       }
     } finally {
       setIsLoading(false);

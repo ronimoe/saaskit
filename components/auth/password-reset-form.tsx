@@ -5,14 +5,13 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2, Mail, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { passwordResetSchema, type PasswordResetFormData } from '@/lib/schemas/auth';
 import { requestPasswordResetAction } from '@/app/actions/auth';
+import { useNotifications } from '@/components/providers/notification-provider';
 
 interface PasswordResetFormProps {
   title?: string;
@@ -28,6 +27,7 @@ export function PasswordResetForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [emailSent, setEmailSent] = useState(false);
+  const notifications = useNotifications();
 
   // Initialize form with React Hook Form and Zod validation
   const {
@@ -59,20 +59,23 @@ export function PasswordResetForm({
                 message: messages[0],
               });
             });
+            notifications.formError('Please check your input', 'Some fields contain invalid data');
           } else {
             // Show general error message
-            toast.error(result.message);
+            notifications.authError(result.message);
           }
           return;
         }
 
         // Success
-        toast.success(result.message);
+        notifications.success(result.message, {
+          description: 'Check your email for the reset link'
+        });
         setEmailSent(true);
         
       } catch (error) {
         console.error('Password reset form error:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        notifications.authError('An unexpected error occurred. Please try again.');
       }
     });
   };
@@ -221,6 +224,7 @@ export function PasswordResetFormMinimal({
 }) {
   const [isPending, startTransition] = useTransition();
   const [emailSent, setEmailSent] = useState(false);
+  const notifications = useNotifications();
 
   const {
     register,
@@ -249,19 +253,22 @@ export function PasswordResetFormMinimal({
                 message: messages[0],
               });
             });
+            notifications.formError('Please check your input', 'Some fields contain invalid data');
           } else {
-            toast.error(result.message);
+            notifications.authError(result.message);
           }
           return;
         }
 
-        toast.success(result.message);
+        notifications.success(result.message, {
+          description: 'Check your email for the reset link'
+        });
         setEmailSent(true);
         onSuccess?.();
         
       } catch (error) {
         console.error('Password reset form error:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        notifications.authError('An unexpected error occurred. Please try again.');
       }
     });
   };

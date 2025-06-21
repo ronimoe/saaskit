@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { BrandProvider } from "@/components/providers/brand-provider";
+import { NotificationProvider } from "@/components/providers/notification-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { brandConfig, generateMetadata } from "@/config/brand";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,10 +18,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "SaaS Kit - Modern SaaS Platform",
-  description: "A modern SaaS platform built with Next.js, shadcn/ui, and Tailwind CSS. Build your next project with beautiful, accessible components.",
-};
+export const metadata: Metadata = generateMetadata(brandConfig) as Metadata;
 
 export default function RootLayout({
   children,
@@ -36,10 +36,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            {children}
-            <Toaster richColors />
-          </AuthProvider>
+          <BrandProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                {children}
+                <Toaster richColors />
+              </NotificationProvider>
+            </AuthProvider>
+          </BrandProvider>
         </ThemeProvider>
       </body>
     </html>

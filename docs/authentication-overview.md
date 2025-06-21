@@ -223,11 +223,13 @@ npm test
 
 ### Sign In
 ```typescript
+const notifications = useNotifications();
 const result = await signInAction({ email, password });
 if (result.success) {
+  notifications.authSuccess('Welcome back!');
   router.push('/dashboard');
 } else {
-  toast.error(result.message);
+  notifications.authError(result.message);
 }
 ```
 

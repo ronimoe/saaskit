@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
@@ -20,7 +19,6 @@ export function OAuthButtons({
   disabled = false,
   className = '' 
 }: OAuthButtonsProps) {
-  const router = useRouter();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
 

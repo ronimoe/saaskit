@@ -127,7 +127,58 @@ A sophisticated theming system that adapts colors dynamically and integrates wit
 
 **[→ View Detailed Theme System Documentation](./theme-system.md)**
 
-## Animations & Micro-Interactions (14.3)
+## Notification System (14.3)
+
+Comprehensive notification system built on Sonner with specialized methods for authentication, billing, forms, and general user feedback.
+
+### Key Features
+
+- **Context-Aware Notifications**: Specialized methods for auth, billing, forms, and general feedback
+- **Promise Integration**: Built-in support for async operations with loading states
+- **Type Safety**: Full TypeScript support with proper typing
+- **Accessibility**: Screen reader compatible with proper ARIA attributes
+- **Consistent UX**: Standardized duration, styling, and behavior
+
+### Components
+
+| Component | Description | File Location |
+|-----------|-------------|---------------|
+| `NotificationProvider` | React context provider | `components/providers/notification-provider.tsx` |
+| `NotificationService` | Core notification service | `lib/notifications.ts` |
+| `Toaster` | Sonner component configuration | `components/ui/sonner.tsx` |
+
+### Notification Types
+
+- **Authentication**: `authSuccess()`, `authError()` - Login, signup, password reset
+- **Forms**: `formSuccess()`, `formError()` - Form submission and validation
+- **Payments**: `paymentSuccess()`, `paymentError()` - Billing and subscription operations
+- **General**: `success()`, `error()`, `warning()`, `info()` - General user feedback
+- **Promise**: `promise()` - Async operations with loading states
+
+### Usage Example
+
+```typescript
+import { useNotifications } from '@/components/providers/notification-provider'
+
+function MyComponent() {
+  const notifications = useNotifications()
+
+  const handleLogin = async () => {
+    await notifications.promise(
+      signIn(email, password),
+      {
+        loading: 'Signing you in...',
+        success: 'Welcome back!',
+        error: 'Invalid credentials'
+      }
+    )
+  }
+}
+```
+
+**[→ View Detailed Notification System Documentation](./notification-system.md)**
+
+## Animations & Micro-Interactions (14.4)
 
 Advanced animation system featuring magnetic effects, particle backgrounds, and micro-interactions.
 
@@ -156,7 +207,7 @@ Advanced animation system featuring magnetic effects, particle backgrounds, and 
 
 **[→ View Detailed Animations Documentation](./animations-system.md)**
 
-## Non-Traditional Layouts (14.4)
+## Non-Traditional Layouts (14.5)
 
 Breaking away from conventional grids with asymmetrical layouts, diagonal sections, and 3D effects.
 

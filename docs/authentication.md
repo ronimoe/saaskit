@@ -1063,7 +1063,7 @@ Tests for all auth forms covering:
 - **Loading indicators** during async operations
 - **Proper form validation** with real-time feedback
 - **Redirect handling** with return URLs
-- **Toast notifications** for user feedback
+- **Integrated notification system** with context-aware messaging for authentication events
 
 ### 3. Performance
 

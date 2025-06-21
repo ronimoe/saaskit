@@ -46,11 +46,11 @@ async function ProfileSetupContent() {
               Welcome to SaaS Kit! 🎉
             </h1>
             <p className="text-lg text-muted-foreground">
-              Let's complete your profile to get you started
+              Let&apos;s complete your profile to get you started
             </p>
             {oauthData.provider !== 'email' && (
               <p className="text-sm text-muted-foreground">
-                We've imported some information from {oauthData.provider === 'google' ? 'Google' : oauthData.provider}, 
+                We&apos;ve imported some information from {oauthData.provider === 'google' ? 'Google' : oauthData.provider}, 
                 but you can customize it below.
               </p>
             )}
@@ -67,7 +67,7 @@ async function ProfileSetupContent() {
           {/* Help Text */}
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
-              Don't worry, you can always update this information later in your profile settings.
+              Don&apos;t worry, you can always update this information later in your profile settings.
             </p>
           </div>
         </div>

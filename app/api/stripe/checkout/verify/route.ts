@@ -108,42 +108,58 @@ async function handleAuthenticatedVerification(session: Stripe.Checkout.Session,
   }
 
   // Sync the latest subscription data from Stripe
-  const subscriptionData = await syncStripeCustomerData(customerId);
+  try {
+    const subscriptionData = await syncStripeCustomerData(customerId);
 
-  // Format response data
-  let currentPeriodEndISO: string;
-  if (subscriptionData.currentPeriodEnd !== null && subscriptionData.currentPeriodEnd !== undefined) {
-    // Handle potential invalid timestamps
-    try {
-      currentPeriodEndISO = new Date(subscriptionData.currentPeriodEnd * 1000).toISOString();
-    } catch {
-      console.warn('Invalid currentPeriodEnd timestamp, using fallback:', subscriptionData.currentPeriodEnd);
+    // Format response data
+    let currentPeriodEndISO: string;
+    if (
+      subscriptionData.currentPeriodEnd !== null &&
+      subscriptionData.currentPeriodEnd !== undefined
+    ) {
+      // Handle potential invalid timestamps
+      try {
+        currentPeriodEndISO = new Date(
+          subscriptionData.currentPeriodEnd * 1000,
+        ).toISOString();
+      } catch {
+        console.warn(
+          'Invalid currentPeriodEnd timestamp, using fallback:',
+          subscriptionData.currentPeriodEnd,
+        );
+        const fallbackDate = new Date();
+        fallbackDate.setDate(fallbackDate.getDate() + 30);
+        currentPeriodEndISO = fallbackDate.toISOString();
+      }
+    } else {
       const fallbackDate = new Date();
       fallbackDate.setDate(fallbackDate.getDate() + 30);
       currentPeriodEndISO = fallbackDate.toISOString();
     }
-  } else {
-    const fallbackDate = new Date();
-    fallbackDate.setDate(fallbackDate.getDate() + 30);
-    currentPeriodEndISO = fallbackDate.toISOString();
+
+    const response = {
+      sessionId: session.id,
+      subscription: {
+        planName: subscriptionData.planName || 'Unknown Plan',
+        status: subscriptionData.status,
+        priceId: subscriptionData.priceId,
+        currentPeriodEnd: currentPeriodEndISO,
+        subscriptionId: subscriptionData.subscriptionId,
+      },
+      customer: {
+        id: customerId,
+      },
+      isGuest: false,
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error('Failed to sync stripe customer data.', error);
+    return NextResponse.json(
+      { error: 'Failed to sync Stripe data' },
+      { status: 500 },
+    );
   }
-
-  const response = {
-    sessionId: session.id,
-    subscription: {
-      planName: subscriptionData.planName || 'Unknown Plan',
-      status: subscriptionData.status,
-      priceId: subscriptionData.priceId,
-      currentPeriodEnd: currentPeriodEndISO,
-      subscriptionId: subscriptionData.subscriptionId,
-    },
-    customer: {
-      id: customerId,
-    },
-    isGuest: false
-  };
-
-  return NextResponse.json(response);
 }
 
 async function handleGuestVerification(session: Stripe.Checkout.Session, customerId: string, customerEmail: string) {

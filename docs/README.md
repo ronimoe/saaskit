@@ -23,6 +23,9 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 
 ### Next-Generation UI System
 - **[UI System Overview](./ui-system-overview.md)** - Complete overview of the advanced UI components and systems
+- **[Notification System](./notification-system.md)** - Comprehensive notification system with Sonner integration
+- **[Branding Configuration](./branding-configuration.md)** - Comprehensive type-safe branding system with logos, colors, and metadata
+- **[Branding Quick Start](./branding-quick-start.md)** - 15-minute setup guide for brand identity
 - **[Glass Components](./glass-components.md)** - Detailed guide to glassmorphism effects and glass card components
 - **[Interactive Features System](./interactive-features-system.md)** - Unfoldable cards, animated connections, and interactive previews
 - **[Interactive Components API](./interactive-components-api.md)** - Complete API reference for all interactive components
@@ -52,6 +55,33 @@ This SaaS Kit is built with:
 ## 🎨 Advanced Design System
 
 Our comprehensive design system provides next-generation UI components and effects that set your SaaS apart from the competition.
+
+### 🎯 Branding Configuration System
+
+A type-safe, comprehensive branding system that centralizes your brand identity:
+
+```typescript
+import { BrandLogo, useBrandColors, useBrandCompany } from '@/components/ui/logo'
+
+// Use anywhere in your app
+<BrandLogo className="h-8" />
+
+// Access brand colors
+const { colors } = useBrandColors()
+
+// Get company information
+const company = useBrandCompany()
+```
+
+**Key Features:**
+- **Type-safe configuration** with Zod validation
+- **Multi-format color support** (OKLCH, HEX, RGB)
+- **Logo management** with primary/secondary/icon variants
+- **SEO metadata generation** for all pages
+- **Server/client compatibility** for Next.js 15
+- **Dynamic updates** at runtime
+
+[→ Full Branding Configuration Guide](./branding-configuration.md)
 
 ### ✨ What's Included
 
@@ -262,7 +292,7 @@ Our authentication system provides:
 - Comprehensive error handling
 - Form validation with Zod schemas
 - Loading states and UX optimization
-- Toast notifications
+- **Integrated notification system** with context-aware messaging
 - Redirect handling
 
 ### ✅ Security Features

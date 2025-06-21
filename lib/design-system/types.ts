@@ -370,7 +370,7 @@ export interface FeatureDetection {
 
 export type DesignSystemComponent = keyof ComponentLibrary[keyof ComponentLibrary]
 
-export type AllVariants = GlassVariant | MagneticStrength | AnimationEasing | ParticleCount | GridCellType
+export type AllVariants = GlassVariant | MagneticStrength | AnimationEasingType | ParticleCount | GridCellType
 
 export type AllSizes = GlassSize | ParticleSize
 

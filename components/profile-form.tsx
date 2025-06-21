@@ -11,7 +11,7 @@ import { Loader2, Save, Check } from 'lucide-react'
 import { transformProfileFormData, validateProfileData, parseBillingAddress } from '@/lib/database-utils'
 import { createClient } from '@/utils/supabase/client'
 import { handleSupabaseResponse } from '@/lib/supabase'
-import { toast } from 'sonner'
+import { useNotifications } from '@/components/providers/notification-provider'
 import type { Profile, ProfileFormData, BillingAddress } from '@/types/database'
 
 interface ProfileFormProps {
@@ -35,6 +35,7 @@ const TIMEZONE_OPTIONS = [
 export function ProfileForm({ profile }: ProfileFormProps) {
   const [isPending, startTransition] = useTransition()
   const [isSuccess, setIsSuccess] = useState(false)
+  const notifications = useNotifications()
   
   const initialBillingAddress = parseBillingAddress(profile.billing_address)
   
@@ -84,12 +85,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
       if (result.error) {
         console.error('Error updating profile:', result.error)
-        toast.error(`Failed to update profile: ${result.error}`)
+        notifications.formError(`Failed to update profile: ${result.error}`)
         return
       }
 
       setIsSuccess(true)
-      toast.success('Profile updated successfully!')
+      notifications.formSuccess('Profile updated successfully!')
       
       // Reset success state after 3 seconds
       setTimeout(() => setIsSuccess(false), 3000)
@@ -135,12 +136,12 @@ export function ProfileForm({ profile }: ProfileFormProps) {
       
       if (shouldRetry) {
         // Show retry message
-        toast.info(errorMessage)
+        notifications.info(errorMessage)
         // Wait a bit before retrying
         await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)))
         return attemptUpdate(updateData, retryCount + 1)
       } else {
-        toast.error(`Failed to update profile: ${errorMessage}`)
+        notifications.formError(`Failed to update profile: ${errorMessage}`)
       }
     }
   }
@@ -168,9 +169,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
     // Validate form data
     const validation = validateProfileData(dataToValidate)
     if (!validation.isValid) {
-      toast.error('Please fix the following errors:', {
-        description: validation.errors.join('\n')
-      })
+      notifications.formError(`Please fix the following errors:\n${validation.errors.join('\n')}`)
       return
     }
 

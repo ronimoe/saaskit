@@ -19,7 +19,7 @@ jest.mock('@/lib/customer-service', () => ({
 
 // Mock Stripe with jest.doMock to avoid hoisting issues
 const mockCheckoutCreate = jest.fn();
-jest.doMock('@/lib/stripe', () => ({
+jest.doMock('@/lib/stripe-server', () => ({
   stripe: {
     checkout: {
       sessions: {
@@ -126,12 +126,14 @@ describe('POST /api/stripe/checkout', () => {
         userId: 'user_123',
         priceId: 'price_test_pro_monthly',
         profileId: 'profile_123',
+        checkoutType: 'authenticated',
       },
       subscription_data: {
         metadata: {
           userId: 'user_123',
           priceId: 'price_test_pro_monthly',
           profileId: 'profile_123',
+          checkoutType: 'authenticated',
         },
       },
     });
@@ -196,7 +198,7 @@ describe('POST /api/stripe/checkout', () => {
 
     // Assert
     expect(response.status).toBe(400);
-    expect(data.error).toBe('Missing required fields: priceId and userId');
+    expect(data.error).toBe('Missing required field: priceId');
   });
 
   it('should return 400 for missing userId', async () => {
@@ -209,7 +211,7 @@ describe('POST /api/stripe/checkout', () => {
 
     // Assert
     expect(response.status).toBe(400);
-    expect(data.error).toBe('Missing required fields: priceId and userId');
+    expect(data.error).toBe('User email is required for new customer creation');
   });
 
   it('should return 400 when userEmail is missing for new customer', async () => {
@@ -277,7 +279,7 @@ describe('POST /api/stripe/checkout', () => {
 
     // Assert
     expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to create checkout session');
+    expect(data.error).toBe('Failed to create authenticated checkout session');
   });
 
   it('should handle malformed JSON request body', async () => {

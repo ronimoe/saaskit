@@ -1,6 +1,9 @@
 // Re-export client-side utilities
 export { getStripe } from './stripe-client';
 
+// Re-export server-side utilities and instance
+export { stripe } from './stripe-server';
+
 // Re-export subscription plans and related utilities
 export { 
   SUBSCRIPTION_PLANS, 

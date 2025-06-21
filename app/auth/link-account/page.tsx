@@ -71,7 +71,7 @@ async function AccountLinkingContent({ searchParams }: PageProps) {
 
         <div className="text-center text-sm text-muted-foreground">
           <p>
-            By linking your accounts, you'll be able to sign in using either method.
+            By linking your accounts, you&apos;ll be able to sign in using either method.
             Your existing data and settings will be preserved.
           </p>
         </div>
