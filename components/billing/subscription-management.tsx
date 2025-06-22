@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { AlertTriangle, CreditCard, Trash2, Settings, ExternalLink, Loader2, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'

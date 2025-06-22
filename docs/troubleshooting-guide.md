@@ -230,6 +230,101 @@ const { data, error } = await supabase.auth.signInWithPassword({
 
 ## Payment and Stripe Issues
 
+### Billing Dashboard Issues
+
+**Problem**: Billing dashboard components not loading or showing errors.
+
+**Solution**:
+
+1. **Check Component Imports**:
+```typescript
+// Verify all billing components are properly imported
+import { 
+  PlanComparison, 
+  PaymentHistory, 
+  BillingAddressForm, 
+  SubscriptionManagement 
+} from '@/components/billing'
+```
+
+2. **Verify Client Components**:
+```typescript
+// Ensure all billing components have 'use client' directive
+'use client'
+
+import { useState } from 'react'
+// ... rest of component
+```
+
+3. **Check API Endpoints**:
+- Verify `/api/stripe/payment-history` returns valid data
+- Ensure `/api/stripe/billing-address` endpoints work
+- Test `/api/stripe/portal` for Customer Portal access
+
+**Problem**: Payment history not loading.
+
+**Solution**:
+
+1. **Check Stripe Customer Association**:
+```sql
+-- Verify user has Stripe customer ID
+SELECT stripe_customer_id FROM profiles WHERE user_id = 'user_id';
+```
+
+2. **Test API Endpoint**:
+```bash
+curl -X GET "http://localhost:3000/api/stripe/payment-history?userId=user_id"
+```
+
+3. **Check Stripe API Keys**:
+```typescript
+// Verify in .env.local
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+```
+
+**Problem**: Billing address form not saving.
+
+**Solution**:
+
+1. **Verify Form Validation**:
+```typescript
+// Check required fields are filled
+const requiredFields = ['name', 'line1', 'city', 'state', 'postal_code', 'country']
+```
+
+2. **Check API Response**:
+```typescript
+// Verify PUT request succeeds
+const response = await fetch('/api/stripe/billing-address', {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ userId, address })
+})
+```
+
+**Problem**: Subscription management portal not opening.
+
+**Solution**:
+
+1. **Verify Customer Portal Configuration**:
+- Check Stripe Dashboard > Customer Portal settings
+- Ensure return URL is configured correctly
+- Verify portal is activated
+
+2. **Check Portal API**:
+```typescript
+// Test portal session creation
+const response = await fetch('/api/stripe/portal', {
+  method: 'POST',
+  body: JSON.stringify({ userId })
+})
+```
+
+For detailed billing dashboard documentation, see the [Billing Dashboard Guide](./billing-dashboard.md).
+
+## Payment and Stripe Issues
+
 ### Stripe Checkout Not Working
 
 **Problem**: Checkout session creation fails.

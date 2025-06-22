@@ -13,6 +13,7 @@ Welcome to the comprehensive documentation for our Next.js 15 + Supabase SaaS Ki
 ### Payment & Subscription System
 - **[Guest Checkout System](./guest-checkout-system.md)** - "Payment First, Account Later" implementation guide
 - **[Subscription Management](./subscription.md)** - Complete subscription system documentation
+- **[Billing Dashboard](./billing-dashboard.md)** - Comprehensive billing dashboard with payment history and subscription management
 - **[Stripe Setup Guide](./stripe-setup.md)** - Stripe integration and configuration
 - **[NEW: Subscription Sync](./subscription.md#3-subscription-plan-updates-not-reflecting-in-database)** - Troubleshoot and fix Stripe subscription sync issues
 - **[NEW: Subscription Go-Live Checklist](./subscription-go-live.md)** - Comprehensive guide for taking subscriptions to production

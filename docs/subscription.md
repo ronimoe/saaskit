@@ -633,6 +633,32 @@ try {
 
 ## Frontend Components
 
+### Billing Dashboard Components
+
+The SaaS Kit includes a comprehensive billing dashboard with multiple specialized components for subscription management. For detailed documentation about the billing dashboard system, see the [Billing Dashboard Documentation](./billing-dashboard.md).
+
+**Core Billing Components:**
+- **PlanComparison** (`components/billing/plan-comparison.tsx`) - Interactive plan comparison with upgrade/downgrade options
+- **PaymentHistory** (`components/billing/payment-history.tsx`) - Payment history table with invoice downloads
+- **BillingAddressForm** (`components/billing/billing-address-form.tsx`) - Billing address management form
+- **SubscriptionManagement** (`components/billing/subscription-management.tsx`) - Subscription cancellation and payment method management
+
+**Usage:**
+```typescript
+import { 
+  PlanComparison, 
+  PaymentHistory, 
+  BillingAddressForm, 
+  SubscriptionManagement 
+} from '@/components/billing'
+
+// In your billing page
+<PlanComparison currentSubscription={subscription} userId={user.id} />
+<PaymentHistory userId={user.id} />
+<BillingAddressForm userId={user.id} />
+<SubscriptionManagement subscription={subscription} userId={user.id} />
+```
+
 ### CheckoutButton Component
 
 The main component for initiating subscription checkout.

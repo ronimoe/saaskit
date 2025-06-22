@@ -123,6 +123,19 @@ import { DashboardSkeleton, MetricsCardSkeleton, TableSkeleton } from '@/compone
 | `ProfileSkeleton` | Profile page placeholder | User profile pages |
 | `BillingSkeleton` | Billing page placeholder | Subscription pages |
 
+**Billing Dashboard Components:**
+
+The dashboard system includes specialized billing components for subscription management:
+
+| Component | Description | Location |
+|-----------|-------------|----------|
+| `PlanComparison` | Interactive plan comparison with upgrade/downgrade | `components/billing/plan-comparison.tsx` |
+| `PaymentHistory` | Payment history table with invoice downloads | `components/billing/payment-history.tsx` |
+| `BillingAddressForm` | Billing address management form | `components/billing/billing-address-form.tsx` |
+| `SubscriptionManagement` | Subscription cancellation and payment methods | `components/billing/subscription-management.tsx` |
+
+For detailed billing dashboard documentation, see the [Billing Dashboard Guide](./billing-dashboard.md).
+
 **Features:**
 - **Theme Aware**: Inherits proper styling via `bg-muted` class
 - **Responsive**: Matches exact dimensions of real content
