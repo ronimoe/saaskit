@@ -4,6 +4,7 @@ import { UnifiedHeader } from '@/components/layout/unified-header'
 import { DashboardLayout } from '@/components/layout'
 import { BillingPortalButton } from '@/components/billing-portal-button'
 import { SyncSubscriptionButton } from '@/components/sync-subscription-button'
+import { PlanComparison, PaymentHistory, BillingAddressForm, SubscriptionManagement } from '@/components/billing'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -433,6 +434,18 @@ async function BillingContent() {
               )}
             </div>
           </GlassCard>
+
+          {/* Plan Comparison */}
+          <PlanComparison currentSubscription={subscription} userId={user.id} />
+
+          {/* Payment History */}
+          <PaymentHistory userId={user.id} />
+
+          {/* Billing Address Management */}
+          <BillingAddressForm userId={user.id} />
+
+          {/* Subscription Management */}
+          <SubscriptionManagement subscription={subscription} userId={user.id} />
         </div>
       </div>
     </div>
