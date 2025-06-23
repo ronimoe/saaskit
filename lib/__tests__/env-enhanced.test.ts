@@ -65,10 +65,7 @@ jest.mock('@/config/environments', () => ({
 }))
 
 // Mock window object to control client/server detection
-Object.defineProperty(global, 'window', {
-  value: undefined,
-  writable: true,
-})
+;(global as any).window = undefined
 
 // Now import the module after mocks are set up
 import {
@@ -100,35 +97,63 @@ const mockConsoleError = jest.spyOn(console, 'error').mockImplementation()
 const mockDateNow = jest.spyOn(Date, 'now')
 
 describe('Enhanced Environment Configuration', () => {
-  // Mock data
+  // Mock data matching actual EnvironmentConfig structure
   const mockConfig = {
     name: 'development',
+    displayName: 'Development',
     features: {
-      analytics: true,
-      socialAuth: true,
-      subscriptions: true,
-      teams: false,
-      devTools: true,
+      enableHotReload: true,
+      enableDebugger: true,
+      enableTestData: true,
+      enableMockServices: true,
+      strictValidation: false,
+      requireHTTPS: false,
     },
     services: {
+      database: {
+        poolSize: 5,
+        maxConnections: 10,
+        enableLogging: true,
+      },
       email: {
         provider: 'smtp' as const,
-        from: 'test@example.com',
+        enableSending: false,
+        useMailhog: true,
+      },
+      payment: {
+        provider: 'stripe' as const,
+        useTestMode: true,
+        requireWebhooks: false,
       },
       storage: {
         provider: 'local' as const,
-        maxFileSize: 10 * 1024 * 1024,
+        enableCloudStorage: false,
       },
     },
-    database: {
-      maxConnections: 10,
-      enableLogging: true,
+    security: {
+      requireHTTPS: false,
+      enableCSRF: false,
+      sessionTimeout: 24 * 60 * 60 * 1000,
+      enableRateLimit: false,
     },
-    monitoring: {
-      enableMetrics: true,
-      enableTracing: false,
+    performance: {
+      enableCaching: false,
+      enableCompression: false,
+      enableCDN: false,
     },
-  }
+    logging: {
+      level: 'debug' as const,
+      enableConsole: true,
+      enableFile: false,
+      enableRemote: false,
+    },
+    validation: {
+      strictMode: false,
+      allowMissingSecrets: true,
+      requireAllServices: false,
+      skipOptionalChecks: true,
+    },
+  } as const
 
   const mockValidation = {
     isValid: true,
@@ -139,7 +164,9 @@ describe('Enhanced Environment Configuration', () => {
   }
 
   const mockHealth = {
-    overall: 'healthy' as const,
+    environment: 'development' as const,
+    config: mockConfig,
+    validation: mockValidation,
     services: [
       {
         name: 'Database (Supabase)',
@@ -150,10 +177,17 @@ describe('Enhanced Environment Configuration', () => {
         status: 'available' as const,
       },
     ],
+    overall: 'healthy' as const,
   }
 
   beforeEach(() => {
     jest.clearAllMocks()
+    
+    // Clear the validation cache between tests
+    const { devUtils } = require('@/lib/env-enhanced')
+    if (typeof devUtils.reloadEnvironment === 'function') {
+      devUtils.reloadEnvironment()
+    }
     
     // Set up default mocks
     mockGetCurrentEnvironment.mockReturnValue('development')
@@ -298,6 +332,9 @@ describe('Enhanced Environment Configuration', () => {
 
     it('should log critical service issues', () => {
       mockCheckEnvironmentHealth.mockReturnValue({
+        environment: 'development',
+        config: mockConfig,
+        validation: mockValidation,
         overall: 'error',
         services: [
           {
@@ -371,13 +408,13 @@ describe('Enhanced Environment Configuration', () => {
 
   describe('isFeatureEnabled', () => {
     it('should return feature flag status from config', () => {
-      const result = isFeatureEnabled('analytics')
+      const result = isFeatureEnabled('enableDebugger')
       
       expect(result).toBe(true)
     })
 
     it('should return false for missing features', () => {
-      const result = isFeatureEnabled('teams')
+      const result = isFeatureEnabled('requireHTTPS')
       
       expect(result).toBe(false)
     })
@@ -386,12 +423,12 @@ describe('Enhanced Environment Configuration', () => {
       const customEnv = {
         _config: {
           features: {
-            analytics: false,
+            enableDebugger: false,
           },
         },
-      } as EnhancedClientEnv
+      } as unknown as EnhancedClientEnv
       
-      const result = isFeatureEnabled('analytics', customEnv)
+      const result = isFeatureEnabled('enableDebugger', customEnv)
       
       expect(result).toBe(false)
     })
@@ -412,6 +449,9 @@ describe('Enhanced Environment Configuration', () => {
 
     it('should return false for missing services', () => {
       mockCheckEnvironmentHealth.mockReturnValue({
+        environment: 'development',
+        config: mockConfig,
+        validation: mockValidation,
         overall: 'warning',
         services: [
           {
@@ -471,6 +511,10 @@ describe('Enhanced Environment Configuration', () => {
       it('should warn when not in development', () => {
         mockGetCurrentEnvironment.mockReturnValue('production')
         
+        // Clear previous calls since beforeEach may have called reloadEnvironment in development mode
+        mockConsoleLog.mockClear()
+        mockConsoleWarn.mockClear()
+        
         devUtils.reloadEnvironment()
         
         expect(mockConsoleWarn).toHaveBeenCalledWith('Environment reload is only available in development')
@@ -490,7 +534,10 @@ describe('Enhanced Environment Configuration', () => {
           },
           server: {
             validated: true,
-            health: mockHealth,
+            health: {
+              overall: 'healthy',
+              services: mockHealth.services,
+            },
             config: mockConfig,
           },
           cache: {
@@ -627,4 +674,4 @@ describe('Enhanced Environment Configuration', () => {
       expect(mockCheckEnvironmentHealth).toHaveBeenCalledWith('production')
     })
   })
-}) 
+})
