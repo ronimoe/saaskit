@@ -6,7 +6,8 @@ import { UnifiedHeader } from '@/components/layout/unified-header';
 import { GlassCard } from '@/components/ui/glass-card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-async function ProfileSetupContent() {
+// Export the content component for testing
+export async function ProfileSetupContent() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   
