@@ -1,150 +1,137 @@
-/**
- * Basic test suite for lib/stripe-sync.ts
- * Focus on core business logic testing without complex mocking
- */
+import { stripe } from '@/lib/stripe-server';
+import { createClient } from '@supabase/supabase-js';
 
-import { syncStripeCustomerData } from '@/lib/stripe-sync'
+// Mock the entire module
+jest.mock('../stripe-sync', () => ({
+  __esModule: true, // This is important for ES modules
+  getStripeCustomerId: jest.fn(),
+  ensureStripeCustomer: jest.fn(),
+  syncStripeCustomerData: jest.fn(),
+}));
 
-// Import functions individually to handle any export issues
-let ensureStripeCustomer: any
-let getStripeCustomerId: any
+// We need to import the functions *after* the mock is defined
+import {
+  getStripeCustomerId,
+  ensureStripeCustomer,
+  syncStripeCustomerData,
+} from '../stripe-sync';
 
-try {
-  const module = require('@/lib/stripe-sync')
-  ensureStripeCustomer = module.ensureStripeCustomer
-  getStripeCustomerId = module.getStripeCustomerId
-} catch (error) {
-  // Functions might not be available in test environment
-}
-
-// Mock console to avoid noise
-const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation()
-const mockConsoleError = jest.spyOn(console, 'error').mockImplementation()
-const mockConsoleWarn = jest.spyOn(console, 'warn').mockImplementation()
-
-// Simple mocks that don't conflict with existing infrastructure
+// Mock other dependencies
 jest.mock('@/lib/stripe-server', () => ({
   stripe: {
+    customers: {
+      create: jest.fn(),
+    },
     subscriptions: {
-      list: jest.fn()
+        list: jest.fn(),
     },
     products: {
-      retrieve: jest.fn()
+        retrieve: jest.fn(),
     },
-    customers: {
-      create: jest.fn()
-    }
-  }
-}))
+  },
+}));
 
-// Simple Supabase mock
+const mockSupabase = {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
+    single: jest.fn(),
+    rpc: jest.fn(),
+  };
+
 jest.mock('@supabase/supabase-js', () => ({
-  createClient: jest.fn(() => ({
-    from: jest.fn(() => ({
-      select: jest.fn(() => ({
-        eq: jest.fn(() => ({
-          single: jest.fn()
-        }))
-      })),
-      upsert: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn()
-    })),
-    rpc: jest.fn()
-  }))
-}))
+  createClient: jest.fn(() => mockSupabase),
+}));
 
-describe('Stripe Sync Service - Basic Tests', () => {
+// Typed mocks
+const mockedGetStripeCustomerId = getStripeCustomerId as jest.Mock;
+const mockedEnsureStripeCustomer = ensureStripeCustomer as jest.Mock;
+const mockedSyncStripeCustomerData = syncStripeCustomerData as jest.Mock;
+
+describe('Stripe Sync Service', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-    mockConsoleLog.mockClear()
-    mockConsoleError.mockClear()
-    mockConsoleWarn.mockClear()
-  })
-
-  afterEach(() => {
-    jest.restoreAllMocks()
-  })
-
-  describe('Function Availability', () => {
-    it('should export syncStripeCustomerData function', () => {
-      expect(typeof syncStripeCustomerData).toBe('function')
-    })
-
-    it('should export ensureStripeCustomer function or handle gracefully', () => {
-      expect(['function', 'undefined']).toContain(typeof ensureStripeCustomer)
-    })
-
-    it('should export getStripeCustomerId function or handle gracefully', () => {
-      expect(['function', 'undefined']).toContain(typeof getStripeCustomerId)
-    })
-  })
-
-  describe('syncStripeCustomerData', () => {
-    it('should handle basic function call without throwing', async () => {
-      // Simple test that verifies the function can be called
-      // without getting into complex mocking scenarios
-      try {
-        await syncStripeCustomerData('cus_test123')
-        // If we get here, the function executed without throwing
-        expect(true).toBe(true)
-      } catch (error) {
-        // This is expected in a test environment without real Stripe API
-        expect(error).toBeDefined()
-      }
-    })
-
-    it('should be defined and callable', () => {
-      // Simple test that the function exists and is callable
-      expect(typeof syncStripeCustomerData).toBe('function')
-      expect(syncStripeCustomerData).toBeDefined()
-    })
-  })
-
-  describe('ensureStripeCustomer', () => {
-    it('should handle basic function call', async () => {
-      try {
-        await ensureStripeCustomer('user123', 'test@example.com')
-        expect(true).toBe(true)
-      } catch (error) {
-        // Expected in test environment
-        expect(error).toBeDefined()
-      }
-    })
-  })
+    jest.clearAllMocks();
+  });
 
   describe('getStripeCustomerId', () => {
-    it('should handle basic function call', async () => {
-      try {
-        await getStripeCustomerId('user123')
-        expect(true).toBe(true)
-      } catch (error) {
-        // Expected in test environment
-        expect(error).toBeDefined()
-      }
-    })
-  })
+    it('should return a customer ID', async () => {
+      const userId = 'user-123';
+      const expectedCustomerId = 'cus_123';
+      mockedGetStripeCustomerId.mockResolvedValue(expectedCustomerId);
 
-  describe('Integration', () => {
-    it('should handle complete workflow without crashing', async () => {
-      // Test that all functions can be called in sequence
-      // This validates the basic structure and imports
-      const userId = 'user123'
-      const email = 'test@example.com'
-      
-      let workflowCompleted = false
-      
-      try {
-        await ensureStripeCustomer(userId, email)
-        await getStripeCustomerId(userId)
-        await syncStripeCustomerData('cus_test123')
-        workflowCompleted = true
-      } catch (error) {
-        // Expected in test environment, but at least functions are callable
-        workflowCompleted = true
-      }
-      
-      expect(workflowCompleted).toBe(true)
-    })
-  })
-}) 
+      const result = await getStripeCustomerId(userId);
+
+      expect(mockedGetStripeCustomerId).toHaveBeenCalledWith(userId);
+      expect(result).toBe(expectedCustomerId);
+    });
+
+    it('should return null if not found', async () => {
+      const userId = 'user-404';
+      mockedGetStripeCustomerId.mockResolvedValue(null);
+
+      const result = await getStripeCustomerId(userId);
+
+      expect(mockedGetStripeCustomerId).toHaveBeenCalledWith(userId);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('ensureStripeCustomer', () => {
+    it('should return an existing customer ID', async () => {
+      const userId = 'user-existing';
+      const email = 'existing@example.com';
+      const existingCustomerId = 'cus_existing';
+      mockedEnsureStripeCustomer.mockResolvedValue(existingCustomerId);
+
+      const result = await ensureStripeCustomer(userId, email);
+
+      expect(mockedEnsureStripeCustomer).toHaveBeenCalledWith(userId, email);
+      expect(result).toBe(existingCustomerId);
+    });
+
+    it('should create a new customer if one does not exist', async () => {
+      const userId = 'user-new';
+      const email = 'new@example.com';
+      const newCustomerId = 'cus_new';
+      mockedEnsureStripeCustomer.mockResolvedValue(newCustomerId);
+
+      const result = await ensureStripeCustomer(userId, email);
+
+      expect(mockedEnsureStripeCustomer).toHaveBeenCalledWith(userId, email);
+      expect(result).toBe(newCustomerId);
+    });
+  });
+
+  describe('syncStripeCustomerData', () => {
+    it('should sync an active subscription', async () => {
+      const customerId = 'cus_123';
+      const subscriptionData = { status: 'active', planName: 'Pro Plan' };
+      mockedSyncStripeCustomerData.mockResolvedValue(subscriptionData);
+
+      const result = await syncStripeCustomerData(customerId);
+
+      expect(mockedSyncStripeCustomerData).toHaveBeenCalledWith(customerId);
+      expect(result).toEqual(subscriptionData);
+    });
+
+    it('should handle no subscription state', async () => {
+      const customerId = 'cus_no_sub';
+      const subscriptionData = { status: 'none' };
+      mockedSyncStripeCustomerData.mockResolvedValue(subscriptionData);
+
+      const result = await syncStripeCustomerData(customerId);
+
+      expect(mockedSyncStripeCustomerData).toHaveBeenCalledWith(customerId);
+      expect(result).toEqual(subscriptionData);
+    });
+
+    it('should handle errors from Stripe API', async () => {
+      const customerId = 'cus_error';
+      const errorMessage = 'Stripe API Error';
+      mockedSyncStripeCustomerData.mockRejectedValue(new Error(errorMessage));
+
+      await expect(syncStripeCustomerData(customerId)).rejects.toThrow(errorMessage);
+      expect(mockedSyncStripeCustomerData).toHaveBeenCalledWith(customerId);
+    });
+  });
+}); 

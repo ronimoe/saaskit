@@ -1,0 +1,62 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Design System Entry Point ACCESSIBILITY_FEATURES constant should match snapshot 1`] = `
+{
+  "FOCUS_MANAGEMENT": true,
+  "HIGH_CONTRAST_MODE": true,
+  "KEYBOARD_NAVIGATION": true,
+  "REDUCED_MOTION_SUPPORT": true,
+  "SCREEN_READER_COMPATIBLE": true,
+  "SEMANTIC_HTML": true,
+}
+`;
+
+exports[`Design System Entry Point BROWSER_SUPPORT constant should match snapshot 1`] = `
+{
+  "BACKDROP_FILTER": [
+    "Chrome 88+",
+    "Firefox 103+",
+    "Safari 14+",
+    "Edge 88+",
+  ],
+  "CSS_GRID": [
+    "Chrome 57+",
+    "Firefox 52+",
+    "Safari 10.1+",
+    "Edge 16+",
+  ],
+  "CUSTOM_PROPERTIES": [
+    "Chrome 49+",
+    "Firefox 31+",
+    "Safari 9.1+",
+    "Edge 15+",
+  ],
+  "INTERSECTION_OBSERVER": [
+    "Chrome 51+",
+    "Firefox 55+",
+    "Safari 12.1+",
+    "Edge 17+",
+  ],
+  "RESIZE_OBSERVER": [
+    "Chrome 64+",
+    "Firefox 69+",
+    "Safari 13.1+",
+    "Edge 79+",
+  ],
+}
+`;
+
+exports[`Design System Entry Point DESIGN_SYSTEM_VERSION should match snapshot 1`] = `"1.0.0"`;
+
+exports[`Design System Entry Point FEATURES constant should match snapshot 1`] = `
+{
+  "ACCESSIBILITY_ENHANCEMENTS": true,
+  "DYNAMIC_THEMING": true,
+  "GAMIFICATION": true,
+  "GLASSMORPHISM": true,
+  "INTERACTIVE_CONNECTIONS": true,
+  "MAGNETIC_EFFECTS": true,
+  "NON_TRADITIONAL_LAYOUTS": true,
+  "PARTICLE_ANIMATIONS": true,
+}
+`;

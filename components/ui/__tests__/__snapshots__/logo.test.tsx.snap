@@ -1,0 +1,49 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Logo Components BrandIcon should match snapshot 1`] = `
+<div>
+  <img
+    alt="Icon Logo"
+    class="object-contain h-6 w-6"
+    data-nimg="1"
+    decoding="async"
+    height="40"
+    loading="lazy"
+    src="/icon.svg"
+    style="color: transparent;"
+    width="120"
+  />
+</div>
+`;
+
+exports[`Logo Components BrandLogo should match snapshot 1`] = `
+<div>
+  <img
+    alt="Primary Logo"
+    class="object-contain h-8 w-auto"
+    data-nimg="1"
+    decoding="async"
+    height="40"
+    loading="lazy"
+    src="/logo.svg"
+    style="color: transparent;"
+    width="120"
+  />
+</div>
+`;
+
+exports[`Logo Components BrandMark should match snapshot 1`] = `
+<div>
+  <img
+    alt="Mark Logo"
+    class="object-contain h-8 w-8"
+    data-nimg="1"
+    decoding="async"
+    height="40"
+    loading="lazy"
+    src="/mark.svg"
+    style="color: transparent;"
+    width="120"
+  />
+</div>
+`;

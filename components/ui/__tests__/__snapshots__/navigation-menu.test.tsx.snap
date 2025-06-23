@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavigationMenu Components should render a complete navigation menu structure 1`] = `
+<div>
+  <nav>
+    <ul>
+      <li>
+        <button>
+          Trigger
+           
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-chevron-down relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m6 9 6 6 6-6"
+            />
+          </svg>
+        </button>
+        <div>
+          <a
+            class="data-[active=true]:focus:bg-accent data-[active=true]:hover:bg-accent data-[active=true]:bg-accent/50 data-[active=true]:text-accent-foreground hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus-visible:ring-ring/50 [&_svg:not([class*='text-'])]:text-muted-foreground flex flex-col gap-1 rounded-sm p-2 text-sm transition-all outline-none focus-visible:ring-[3px] focus-visible:outline-1 [&_svg:not([class*='size-'])]:size-4"
+            data-slot="navigation-menu-link"
+            href="/"
+          >
+            Link
+          </a>
+        </div>
+      </li>
+    </ul>
+    <div
+      class="absolute top-full left-0 isolate z-50 flex justify-center"
+    >
+      <div />
+    </div>
+  </nav>
+</div>
+`;

@@ -1,0 +1,629 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Design Tokens ANIMATIONS tokens should match snapshot 1`] = `
+{
+  "delays": {
+    "long": "300ms",
+    "longer": "500ms",
+    "medium": "200ms",
+    "none": "0ms",
+    "short": "100ms",
+  },
+  "durations": {
+    "fast": "150ms",
+    "normal": "250ms",
+    "slow": "350ms",
+    "slower": "500ms",
+  },
+  "easings": {
+    "bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+    "ease": "ease",
+    "ease-in": "ease-in",
+    "ease-in-out": "ease-in-out",
+    "ease-out": "ease-out",
+    "linear": "linear",
+    "smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "spring": "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+  },
+}
+`;
+
+exports[`Design Tokens BREAKPOINTS tokens should match snapshot 1`] = `
+{
+  "2xl": "1536px",
+  "lg": "1024px",
+  "md": "768px",
+  "sm": "640px",
+  "xl": "1280px",
+  "xs": "480px",
+}
+`;
+
+exports[`Design Tokens COLORS tokens should match snapshot 1`] = `
+{
+  "brand": {
+    "accent": "var(--brand-accent)",
+    "error": "var(--brand-error)",
+    "info": "var(--brand-info)",
+    "primary": "var(--brand-primary)",
+    "secondary": "var(--brand-secondary)",
+    "success": "var(--brand-success)",
+    "warning": "var(--brand-warning)",
+  },
+  "glass": {
+    "light": "rgba(255, 255, 255, 0.08)",
+    "medium": "rgba(255, 255, 255, 0.15)",
+    "strong": "rgba(255, 255, 255, 0.25)",
+    "subtle": "rgba(255, 255, 255, 0.03)",
+  },
+  "semantic": {
+    "accent": "var(--accent)",
+    "error": "var(--destructive)",
+    "info": "var(--info)",
+    "primary": "var(--primary)",
+    "secondary": "var(--secondary)",
+    "success": "var(--success)",
+    "warning": "var(--warning)",
+  },
+  "surfaces": {
+    "background": "var(--background)",
+    "border": "var(--border)",
+    "card": "var(--card)",
+    "foreground": "var(--foreground)",
+    "muted": "var(--muted)",
+    "popover": "var(--popover)",
+  },
+}
+`;
+
+exports[`Design Tokens DESIGN_TOKENS collection should match snapshot 1`] = `
+{
+  "animations": {
+    "delays": {
+      "long": "300ms",
+      "longer": "500ms",
+      "medium": "200ms",
+      "none": "0ms",
+      "short": "100ms",
+    },
+    "durations": {
+      "fast": "150ms",
+      "normal": "250ms",
+      "slow": "350ms",
+      "slower": "500ms",
+    },
+    "easings": {
+      "bounce": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+      "ease": "ease",
+      "ease-in": "ease-in",
+      "ease-in-out": "ease-in-out",
+      "ease-out": "ease-out",
+      "linear": "linear",
+      "smooth": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "spring": "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+    },
+  },
+  "breakpoints": {
+    "2xl": "1536px",
+    "lg": "1024px",
+    "md": "768px",
+    "sm": "640px",
+    "xl": "1280px",
+    "xs": "480px",
+  },
+  "colors": {
+    "brand": {
+      "accent": "var(--brand-accent)",
+      "error": "var(--brand-error)",
+      "info": "var(--brand-info)",
+      "primary": "var(--brand-primary)",
+      "secondary": "var(--brand-secondary)",
+      "success": "var(--brand-success)",
+      "warning": "var(--brand-warning)",
+    },
+    "glass": {
+      "light": "rgba(255, 255, 255, 0.08)",
+      "medium": "rgba(255, 255, 255, 0.15)",
+      "strong": "rgba(255, 255, 255, 0.25)",
+      "subtle": "rgba(255, 255, 255, 0.03)",
+    },
+    "semantic": {
+      "accent": "var(--accent)",
+      "error": "var(--destructive)",
+      "info": "var(--info)",
+      "primary": "var(--primary)",
+      "secondary": "var(--secondary)",
+      "success": "var(--success)",
+      "warning": "var(--warning)",
+    },
+    "surfaces": {
+      "background": "var(--background)",
+      "border": "var(--border)",
+      "card": "var(--card)",
+      "foreground": "var(--foreground)",
+      "muted": "var(--muted)",
+      "popover": "var(--popover)",
+    },
+  },
+  "glassEffects": {
+    "blur": {
+      "deep": "16px",
+      "floating": "20px",
+      "light": "10px",
+      "medium": "12px",
+      "subtle": "8px",
+    },
+    "border": {
+      "light": 0.2,
+      "medium": 0.3,
+      "strong": 0.4,
+      "subtle": 0.1,
+    },
+    "opacity": {
+      "light": 0.08,
+      "medium": 0.15,
+      "strong": 0.25,
+      "subtle": 0.03,
+    },
+  },
+  "grid": {
+    "cellTypes": {
+      "1": {
+        "rows": 2,
+        "span": 4,
+      },
+      "2": {
+        "rows": 3,
+        "span": 2,
+      },
+      "3": {
+        "rows": 1,
+        "span": 6,
+      },
+      "4": {
+        "rows": 2,
+        "span": 3,
+      },
+      "5": {
+        "rows": 3,
+        "span": 5,
+      },
+      "6": {
+        "rows": 1,
+        "span": 2,
+      },
+      "7": {
+        "rows": 1,
+        "span": 4,
+      },
+      "8": {
+        "rows": 1,
+        "span": 3,
+      },
+      "9": {
+        "rows": 2,
+        "span": 3,
+      },
+    },
+    "columns": {
+      "full": 12,
+      "mobile": 1,
+      "tablet": 8,
+    },
+    "gaps": {
+      "loose": "2rem",
+      "normal": "1rem",
+      "relaxed": "1.5rem",
+      "tight": "0.5rem",
+    },
+  },
+  "interactive": {
+    "active": {
+      "duration": "100ms",
+      "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "intensity": 0.9,
+    },
+    "focus": {
+      "duration": "150ms",
+      "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "intensity": 1.05,
+    },
+    "hover": {
+      "duration": "200ms",
+      "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+      "intensity": 1.1,
+    },
+  },
+  "magneticEffects": {
+    "maxDistance": {
+      "close": 50,
+      "extreme": 200,
+      "far": 150,
+      "medium": 100,
+    },
+    "smoothing": {
+      "fast": 0.1,
+      "instant": 0,
+      "medium": 0.2,
+      "smooth": 0.3,
+    },
+    "strength": {
+      "light": 0.2,
+      "medium": 0.3,
+      "strong": 0.5,
+      "subtle": 0.1,
+    },
+  },
+  "particleEffects": {
+    "connectionDistance": {
+      "close": 80,
+      "extreme": 200,
+      "far": 160,
+      "medium": 120,
+    },
+    "count": {
+      "extreme": 100,
+      "heavy": 80,
+      "light": 40,
+      "medium": 60,
+      "minimal": 20,
+    },
+    "size": {
+      "huge": 6,
+      "large": 4,
+      "medium": 3,
+      "small": 2,
+      "tiny": 1,
+    },
+    "speed": {
+      "fast": 0.5,
+      "medium": 0.3,
+      "rapid": 0.8,
+      "slow": 0.1,
+    },
+  },
+  "radius": {
+    "2xl": "calc(var(--radius) + 8px)",
+    "3xl": "calc(var(--radius) + 16px)",
+    "full": "9999px",
+    "lg": "var(--radius)",
+    "md": "calc(var(--radius) - 2px)",
+    "none": "0",
+    "sm": "calc(var(--radius) - 4px)",
+    "xl": "calc(var(--radius) + 4px)",
+  },
+  "shadows": {
+    "2xl": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+    "glass": {
+      "floating": "0 25px 50px rgba(0, 0, 0, 0.25)",
+      "light": "0 4px 16px rgba(0, 0, 0, 0.05)",
+      "medium": "0 8px 32px rgba(0, 0, 0, 0.1)",
+      "strong": "0 12px 40px rgba(0, 0, 0, 0.15)",
+    },
+    "glow": {
+      "medium": "0 0 40px var(--primary)",
+      "strong": "0 0 60px var(--primary)",
+      "subtle": "0 0 20px var(--primary)",
+    },
+    "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+    "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+    "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+    "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+  },
+  "spacing": {
+    "2xl": "2rem",
+    "3xl": "3rem",
+    "4xl": "4rem",
+    "5xl": "6rem",
+    "content": "1.5rem",
+    "header": "3.5rem",
+    "lg": "1rem",
+    "md": "0.75rem",
+    "sidebar": "16rem",
+    "sm": "0.5rem",
+    "xl": "1.5rem",
+    "xs": "0.25rem",
+  },
+  "typography": {
+    "fontFamilies": {
+      "mono": "var(--font-geist-mono)",
+      "sans": "var(--font-geist-sans)",
+    },
+    "fontWeights": {
+      "bold": "700",
+      "extrabold": "800",
+      "light": "300",
+      "medium": "500",
+      "normal": "400",
+      "semibold": "600",
+    },
+    "lineHeights": {
+      "loose": "2",
+      "normal": "1.5",
+      "relaxed": "1.625",
+      "snug": "1.375",
+      "tight": "1.25",
+    },
+    "sizes": {
+      "2xl": "1.5rem",
+      "3xl": "1.875rem",
+      "4xl": "2.25rem",
+      "5xl": "3rem",
+      "6xl": "3.75rem",
+      "7xl": "4.5rem",
+      "8xl": "6rem",
+      "9xl": "8rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "sm": "0.875rem",
+      "xl": "1.25rem",
+      "xs": "0.75rem",
+    },
+  },
+  "zIndex": {
+    "dropdown": 1000,
+    "fixed": 1030,
+    "modal": 1050,
+    "modal-backdrop": 1040,
+    "popover": 1060,
+    "sticky": 1020,
+    "toast": 1080,
+    "tooltip": 1070,
+  },
+}
+`;
+
+exports[`Design Tokens GLASS_EFFECTS tokens should match snapshot 1`] = `
+{
+  "blur": {
+    "deep": "16px",
+    "floating": "20px",
+    "light": "10px",
+    "medium": "12px",
+    "subtle": "8px",
+  },
+  "border": {
+    "light": 0.2,
+    "medium": 0.3,
+    "strong": 0.4,
+    "subtle": 0.1,
+  },
+  "opacity": {
+    "light": 0.08,
+    "medium": 0.15,
+    "strong": 0.25,
+    "subtle": 0.03,
+  },
+}
+`;
+
+exports[`Design Tokens GRID tokens should match snapshot 1`] = `
+{
+  "cellTypes": {
+    "1": {
+      "rows": 2,
+      "span": 4,
+    },
+    "2": {
+      "rows": 3,
+      "span": 2,
+    },
+    "3": {
+      "rows": 1,
+      "span": 6,
+    },
+    "4": {
+      "rows": 2,
+      "span": 3,
+    },
+    "5": {
+      "rows": 3,
+      "span": 5,
+    },
+    "6": {
+      "rows": 1,
+      "span": 2,
+    },
+    "7": {
+      "rows": 1,
+      "span": 4,
+    },
+    "8": {
+      "rows": 1,
+      "span": 3,
+    },
+    "9": {
+      "rows": 2,
+      "span": 3,
+    },
+  },
+  "columns": {
+    "full": 12,
+    "mobile": 1,
+    "tablet": 8,
+  },
+  "gaps": {
+    "loose": "2rem",
+    "normal": "1rem",
+    "relaxed": "1.5rem",
+    "tight": "0.5rem",
+  },
+}
+`;
+
+exports[`Design Tokens INTERACTIVE tokens should match snapshot 1`] = `
+{
+  "active": {
+    "duration": "100ms",
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "intensity": 0.9,
+  },
+  "focus": {
+    "duration": "150ms",
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "intensity": 1.05,
+  },
+  "hover": {
+    "duration": "200ms",
+    "easing": "cubic-bezier(0.4, 0, 0.2, 1)",
+    "intensity": 1.1,
+  },
+}
+`;
+
+exports[`Design Tokens MAGNETIC_EFFECTS tokens should match snapshot 1`] = `
+{
+  "maxDistance": {
+    "close": 50,
+    "extreme": 200,
+    "far": 150,
+    "medium": 100,
+  },
+  "smoothing": {
+    "fast": 0.1,
+    "instant": 0,
+    "medium": 0.2,
+    "smooth": 0.3,
+  },
+  "strength": {
+    "light": 0.2,
+    "medium": 0.3,
+    "strong": 0.5,
+    "subtle": 0.1,
+  },
+}
+`;
+
+exports[`Design Tokens PARTICLE_EFFECTS tokens should match snapshot 1`] = `
+{
+  "connectionDistance": {
+    "close": 80,
+    "extreme": 200,
+    "far": 160,
+    "medium": 120,
+  },
+  "count": {
+    "extreme": 100,
+    "heavy": 80,
+    "light": 40,
+    "medium": 60,
+    "minimal": 20,
+  },
+  "size": {
+    "huge": 6,
+    "large": 4,
+    "medium": 3,
+    "small": 2,
+    "tiny": 1,
+  },
+  "speed": {
+    "fast": 0.5,
+    "medium": 0.3,
+    "rapid": 0.8,
+    "slow": 0.1,
+  },
+}
+`;
+
+exports[`Design Tokens RADIUS tokens should match snapshot 1`] = `
+{
+  "2xl": "calc(var(--radius) + 8px)",
+  "3xl": "calc(var(--radius) + 16px)",
+  "full": "9999px",
+  "lg": "var(--radius)",
+  "md": "calc(var(--radius) - 2px)",
+  "none": "0",
+  "sm": "calc(var(--radius) - 4px)",
+  "xl": "calc(var(--radius) + 4px)",
+}
+`;
+
+exports[`Design Tokens SHADOWS tokens should match snapshot 1`] = `
+{
+  "2xl": "0 25px 50px -12px rgb(0 0 0 / 0.25)",
+  "glass": {
+    "floating": "0 25px 50px rgba(0, 0, 0, 0.25)",
+    "light": "0 4px 16px rgba(0, 0, 0, 0.05)",
+    "medium": "0 8px 32px rgba(0, 0, 0, 0.1)",
+    "strong": "0 12px 40px rgba(0, 0, 0, 0.15)",
+  },
+  "glow": {
+    "medium": "0 0 40px var(--primary)",
+    "strong": "0 0 60px var(--primary)",
+    "subtle": "0 0 20px var(--primary)",
+  },
+  "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+  "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+  "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+  "xl": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+}
+`;
+
+exports[`Design Tokens SPACING tokens should match snapshot 1`] = `
+{
+  "2xl": "2rem",
+  "3xl": "3rem",
+  "4xl": "4rem",
+  "5xl": "6rem",
+  "content": "1.5rem",
+  "header": "3.5rem",
+  "lg": "1rem",
+  "md": "0.75rem",
+  "sidebar": "16rem",
+  "sm": "0.5rem",
+  "xl": "1.5rem",
+  "xs": "0.25rem",
+}
+`;
+
+exports[`Design Tokens TYPOGRAPHY tokens should match snapshot 1`] = `
+{
+  "fontFamilies": {
+    "mono": "var(--font-geist-mono)",
+    "sans": "var(--font-geist-sans)",
+  },
+  "fontWeights": {
+    "bold": "700",
+    "extrabold": "800",
+    "light": "300",
+    "medium": "500",
+    "normal": "400",
+    "semibold": "600",
+  },
+  "lineHeights": {
+    "loose": "2",
+    "normal": "1.5",
+    "relaxed": "1.625",
+    "snug": "1.375",
+    "tight": "1.25",
+  },
+  "sizes": {
+    "2xl": "1.5rem",
+    "3xl": "1.875rem",
+    "4xl": "2.25rem",
+    "5xl": "3rem",
+    "6xl": "3.75rem",
+    "7xl": "4.5rem",
+    "8xl": "6rem",
+    "9xl": "8rem",
+    "base": "1rem",
+    "lg": "1.125rem",
+    "sm": "0.875rem",
+    "xl": "1.25rem",
+    "xs": "0.75rem",
+  },
+}
+`;
+
+exports[`Design Tokens Z_INDEX tokens should match snapshot 1`] = `
+{
+  "dropdown": 1000,
+  "fixed": 1030,
+  "modal": 1050,
+  "modal-backdrop": 1040,
+  "popover": 1060,
+  "sticky": 1020,
+  "toast": 1080,
+  "tooltip": 1070,
+}
+`;
