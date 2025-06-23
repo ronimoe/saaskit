@@ -17,45 +17,32 @@ import { syncStripeCustomerData } from '@/lib/stripe-sync'
 import { createAdminClient } from '@/lib/supabase'
 
 // Mock all external dependencies
-jest.mock('@/lib/stripe-server', () => ({
-  stripe: {
-    checkout: {
-      sessions: {
-        retrieve: jest.fn(),
-      },
-    },
-    customers: {
-      retrieve: jest.fn(),
-      update: jest.fn(),
-    },
-    subscriptions: {
-      update: jest.fn(),
-    },
-    paymentIntents: {
-      retrieve: jest.fn(),
-    },
-  },
-}))
+jest.mock('@/lib/stripe-server')
+jest.mock('@/lib/customer-service')
+jest.mock('@/lib/stripe-sync')
+jest.mock('@/lib/supabase')
 
-jest.mock('@/lib/customer-service', () => ({
-  createCustomerAndProfile: jest.fn(),
-  getCustomerByUserId: jest.fn(),
-}))
-
-jest.mock('@/lib/stripe-sync', () => ({
-  syncStripeCustomerData: jest.fn(),
-}))
-
-jest.mock('@/lib/supabase', () => ({
-  createAdminClient: jest.fn(),
-}))
-
-// Create properly typed mocks
-const mockStripe = stripe as jest.Mocked<typeof stripe>
+// Create properly typed mocks with manual structure
+const mockStripeRetrieveSession = jest.fn()
+const mockStripeRetrieveCustomer = jest.fn()
+const mockStripeUpdateCustomer = jest.fn()
 const mockCreateCustomerAndProfile = createCustomerAndProfile as jest.MockedFunction<typeof createCustomerAndProfile>
 const mockGetCustomerByUserId = getCustomerByUserId as jest.MockedFunction<typeof getCustomerByUserId>
 const mockSyncStripeCustomerData = syncStripeCustomerData as jest.MockedFunction<typeof syncStripeCustomerData>
 const mockCreateAdminClient = createAdminClient as jest.MockedFunction<typeof createAdminClient>
+
+// Set up the stripe mock structure
+;(stripe as jest.Mocked<typeof stripe>) = {
+  checkout: {
+    sessions: {
+      retrieve: mockStripeRetrieveSession,
+    },
+  },
+  customers: {
+    retrieve: mockStripeRetrieveCustomer,
+    update: mockStripeUpdateCustomer,
+  },
+} as unknown as jest.Mocked<typeof stripe>
 
 // Mock Supabase client structure
 const createMockSupabaseClient = () => ({
@@ -98,7 +85,7 @@ describe('Account Reconciliation', () => {
         },
       }
 
-      mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockSession as unknown as any)
+      mockStripeRetrieveSession.mockResolvedValue(mockSession)
 
       const result = await extractGuestPaymentInfo('cs_test_123')
 
@@ -113,13 +100,13 @@ describe('Account Reconciliation', () => {
         paymentStatus: 'paid',
       })
 
-      expect(mockStripe.checkout.sessions.retrieve).toHaveBeenCalledWith('cs_test_123', {
+      expect(mockStripeRetrieveSession).toHaveBeenCalledWith('cs_test_123', {
         expand: ['subscription', 'customer']
       })
     })
 
     it('should handle missing session', async () => {
-      mockStripe.checkout.sessions.retrieve.mockRejectedValue(new Error('No such checkout session'))
+      mockStripeRetrieveSession.mockRejectedValue(new Error('No such checkout session'))
 
       const result = await extractGuestPaymentInfo('invalid_session')
 
@@ -135,7 +122,7 @@ describe('Account Reconciliation', () => {
         metadata: {},
       }
 
-      mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockSession as unknown as any)
+      mockStripeRetrieveSession.mockResolvedValue(mockSession)
 
       const result = await extractGuestPaymentInfo('cs_test_123')
 
@@ -154,7 +141,7 @@ describe('Account Reconciliation', () => {
         metadata: {},
       }
 
-      mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockSession as unknown as any)
+      mockStripeRetrieveSession.mockResolvedValue(mockSession)
 
       const result = await extractGuestPaymentInfo('cs_test_123')
 
@@ -184,7 +171,7 @@ describe('Account Reconciliation', () => {
         metadata: { planName: 'Pro Plan' },
       }
 
-      mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockSession as unknown as any)
+      mockStripeRetrieveSession.mockResolvedValue(mockSession)
 
       // Mock no existing customer
       mockGetCustomerByUserId.mockResolvedValue({
@@ -208,78 +195,84 @@ describe('Account Reconciliation', () => {
       mockCreateCustomerAndProfile.mockResolvedValue(mockCustomerResult)
 
       // Mock Stripe customer update
-      mockStripe.customers.retrieve.mockResolvedValue({
+      mockStripeRetrieveCustomer.mockResolvedValue({
         id: 'cus_test_123',
         metadata: {},
-      } as unknown as any)
-      mockStripe.customers.update.mockResolvedValue({} as unknown as any)
+      })
+      mockStripeUpdateCustomer.mockResolvedValue({})
 
       // Mock successful sync
-      mockSyncStripeCustomerData.mockResolvedValue(undefined)
+      mockSyncStripeCustomerData.mockResolvedValue({
+        success: true,
+        subscriptions: [],
+      } as unknown as any)
 
       const result = await reconcileGuestPayment(mockRequest)
 
       expect(result.success).toBe(true)
       expect(result.operation).toBe('linked_existing')
-             expect(mockCreateCustomerAndProfile).toHaveBeenCalledWith(
-         'user_123',
-         'test@example.com',
-         'cus_test_123'
-       )
+      expect(mockCreateCustomerAndProfile).toHaveBeenCalledWith(
+        'user_123',
+        'test@example.com',
+        'cus_test_123'
+      )
     })
 
-         it('should handle existing customer scenario', async () => {
-       // Mock successful payment info extraction
-       const mockSession = {
-         id: 'cs_test_123',
-         customer: {
-           id: 'cus_guest_123',
-           email: 'test@example.com',
-         },
-         payment_status: 'paid',
-         subscription: 'sub_test_123',
-         metadata: {},
-       }
+    it('should handle existing customer scenario', async () => {
+      // Mock successful payment info extraction
+      const mockSession = {
+        id: 'cs_test_123',
+        customer: {
+          id: 'cus_guest_123',
+          email: 'test@example.com',
+        },
+        payment_status: 'paid',
+        subscription: 'sub_test_123',
+        metadata: {},
+      }
 
-       mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockSession as unknown as any)
+      mockStripeRetrieveSession.mockResolvedValue(mockSession)
 
-       // Mock existing customer
-       mockGetCustomerByUserId.mockResolvedValue({
-         success: true,
-         stripeCustomerId: 'cus_existing_123',
-         profile: { id: 'profile_123' } as unknown as any,
-       })
+      // Mock existing customer
+      mockGetCustomerByUserId.mockResolvedValue({
+        success: true,
+        stripeCustomerId: 'cus_existing_123',
+        profile: { id: 'profile_123' } as unknown as any,
+      })
 
-       // Mock successful customer creation for linking the guest customer
-       mockCreateCustomerAndProfile.mockResolvedValue({
-         success: true,
-         profile: { id: 'profile_123' } as unknown as any,
-         stripeCustomerId: 'cus_guest_123',
-         isNewCustomer: false,
-         isNewProfile: false,
-       })
+      // Mock successful customer creation for linking the guest customer
+      mockCreateCustomerAndProfile.mockResolvedValue({
+        success: true,
+        profile: { id: 'profile_123' } as unknown as any,
+        stripeCustomerId: 'cus_guest_123',
+        isNewCustomer: false,
+        isNewProfile: false,
+      })
 
-       // Mock Stripe operations
-       mockStripe.customers.retrieve.mockResolvedValue({
-         id: 'cus_guest_123',
-         metadata: {},
-       } as unknown as any)
-       mockStripe.customers.update.mockResolvedValue({} as unknown as any)
-       mockSyncStripeCustomerData.mockResolvedValue(undefined)
+      // Mock Stripe operations
+      mockStripeRetrieveCustomer.mockResolvedValue({
+        id: 'cus_guest_123',
+        metadata: {},
+      })
+      mockStripeUpdateCustomer.mockResolvedValue({})
+      mockSyncStripeCustomerData.mockResolvedValue({
+        success: true,
+        subscriptions: [],
+      } as unknown as any)
 
-       // Mock database operations  
-       mockSupabase.from.mockReturnValue(mockSupabase)
-       mockSupabase.update.mockReturnValue(mockSupabase)
-       mockSupabase.eq.mockReturnValue(mockSupabase)
-       mockSupabase.rpc.mockResolvedValue({ data: null, error: null })
+      // Mock database operations  
+      mockSupabase.from.mockReturnValue(mockSupabase)
+      mockSupabase.update.mockReturnValue(mockSupabase)
+      mockSupabase.eq.mockReturnValue(mockSupabase)
+      mockSupabase.rpc.mockResolvedValue({ data: null, error: null })
 
-       const result = await reconcileGuestPayment(mockRequest)
+      const result = await reconcileGuestPayment(mockRequest)
 
-       // The function should handle existing customer scenario (may not succeed due to complex flow)
-       expect(result).toBeDefined()
-       expect(result.success).toBeDefined()
-       expect(mockGetCustomerByUserId).toHaveBeenCalledWith('user_123')
-     })
+      // The function should handle existing customer scenario (may not succeed due to complex flow)
+      expect(result).toBeDefined()
+      expect(result.success).toBeDefined()
+      expect(mockGetCustomerByUserId).toHaveBeenCalledWith('user_123')
+    })
 
     it('should handle email mismatch scenario', async () => {
       // Mock session with different email
@@ -293,16 +286,16 @@ describe('Account Reconciliation', () => {
         metadata: {},
       }
 
-      mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockSession as unknown as any)
+      mockStripeRetrieveSession.mockResolvedValue(mockSession)
 
       const result = await reconcileGuestPayment(mockRequest)
 
-             expect(result.success).toBe(false)
-       expect(result.error).toContain('Payment email: different@example.com, Account email: test@example.com')
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Payment email: different@example.com, Account email: test@example.com')
     })
 
     it('should handle payment extraction failure', async () => {
-      mockStripe.checkout.sessions.retrieve.mockRejectedValue(new Error('Session not found'))
+      mockStripeRetrieveSession.mockRejectedValue(new Error('Session not found'))
 
       const result = await reconcileGuestPayment(mockRequest)
 
@@ -386,7 +379,7 @@ describe('Account Reconciliation', () => {
         metadata: { planName: 'Pro Plan' },
       }
 
-      mockStripe.checkout.sessions.retrieve.mockResolvedValue(mockSession as unknown as any)
+      mockStripeRetrieveSession.mockResolvedValue(mockSession)
 
       // Mock no existing customer
       mockGetCustomerByUserId.mockResolvedValue({
@@ -404,11 +397,11 @@ describe('Account Reconciliation', () => {
       })
 
       // Mock Stripe operations
-      mockStripe.customers.retrieve.mockResolvedValue({
+      mockStripeRetrieveCustomer.mockResolvedValue({
         id: 'cus_guest_123',
         metadata: {},
-      } as unknown as any)
-      mockStripe.customers.update.mockResolvedValue({} as unknown as any)
+      })
+      mockStripeUpdateCustomer.mockResolvedValue({})
 
       // Execute reconciliation
       const result = await reconcileGuestPayment(mockRequest)
@@ -417,7 +410,7 @@ describe('Account Reconciliation', () => {
       expect(result.success).toBe(true)
 
       // Verify all expected calls were made
-      expect(mockStripe.checkout.sessions.retrieve).toHaveBeenCalledWith('cs_test_123', {
+      expect(mockStripeRetrieveSession).toHaveBeenCalledWith('cs_test_123', {
         expand: ['subscription', 'customer']
       })
       expect(mockGetCustomerByUserId).toHaveBeenCalledWith('user_123')
