@@ -251,21 +251,25 @@ export default function CheckoutSuccess() {
 
   if (!verificationData || !verificationData.subscription) {
     return (
-      <Card className="border-yellow-200">
+        <Card className="border-red-200">
         <CardHeader>
-          <CardTitle className="text-yellow-600">Subscription Not Found</CardTitle>
-          <CardDescription>
-            We couldn&apos;t find your subscription details. This might be a temporary issue.
-          </CardDescription>
+          <CardTitle className="text-red-600">Subscription Verification Failed</CardTitle>
+          <CardDescription>Failed to verify your subscription. Please contact support if you were charged.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
-            <Button onClick={() => window.location.reload()} variant="outline">
-              Refresh Page
-            </Button>
-            <Button onClick={() => router.push('/profile')}>
-              Go to Profile
-            </Button>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              If you were charged, please contact our support team with your session ID: 
+              <code className="bg-gray-100 px-2 py-1 rounded text-xs ml-1">{sessionId}</code>
+            </p>
+            <div className="flex gap-2">
+              <Button onClick={() => router.push('/profile')} variant="outline">
+                Go to Profile
+              </Button>
+              <Button onClick={() => router.push('/pricing')}>
+                Try Again
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
