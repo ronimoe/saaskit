@@ -163,8 +163,8 @@ async function updateDatabaseSubscription(
 
     const { data: existingSubscriptionArr, error: subscriptionError } = await supabase
       .from('subscriptions')
-      .eq('stripe_customer_id', stripeCustomerId)
-      .select('user_id, profile_id');
+      .select('user_id, profile_id')
+      .eq('stripe_customer_id', stripeCustomerId);
     
     if (subscriptionError) {
       console.error(`[STRIPE SYNC] Error fetching existing subscription:`, subscriptionError);
@@ -180,8 +180,8 @@ async function updateDatabaseSubscription(
       // If no subscription exists, try to find user by stripe_customer_id in profiles
       const { data: profileDataArr } = await supabase
         .from('profiles')
-        .eq('stripe_customer_id', stripeCustomerId)
-        .select('user_id, id');
+        .select('user_id, id')
+        .eq('stripe_customer_id', stripeCustomerId);
       const profileData = profileDataArr?.[0];
 
       if (profileData) {
@@ -191,8 +191,8 @@ async function updateDatabaseSubscription(
         // As a last resort, check stripe_customers table
         const { data: customerDataArr } = await supabase
           .from('stripe_customers')
-          .eq('stripe_customer_id', stripeCustomerId)
-          .select('user_id');
+          .select('user_id')
+          .eq('stripe_customer_id', stripeCustomerId);
         const customerData = customerDataArr?.[0];
         
         if (customerData) {
@@ -201,8 +201,8 @@ async function updateDatabaseSubscription(
           // Fetch the profile ID for this user
           const { data: userProfileArr } = userId ? await supabase
             .from('profiles')
-            .eq('user_id', userId)
-            .select('id') : { data: null };
+            .select('id')
+            .eq('user_id', userId) : { data: null };
           const userProfile = userProfileArr?.[0];
             
           if (userProfile) {
@@ -213,7 +213,8 @@ async function updateDatabaseSubscription(
               await supabase
                 .from('profiles')
                 .update({ stripe_customer_id: stripeCustomerId })
-                .eq('user_id', userId);
+                .eq('user_id', userId)
+                .select();
             }
           }
         }

@@ -67,25 +67,31 @@ const nextConfig: NextConfig = {
       },
     ];
 
-    // Exclude test files from webpack processing completely
+    // Enhanced exclusion of test files from webpack processing
+    // Exclude any file with .test, .spec, or .mock extensions
     config.module.rules.push({
-      test: /\.(test|spec)\.(ts|tsx|js|jsx)$/,
-      type: 'javascript/auto',
-      use: 'null-loader',
+      test: /\.(test|spec|mock)\.(ts|tsx|js|jsx)$/,
+      loader: 'null-loader',
     });
 
-    // Exclude test directories
+    // Exclude test directories more comprehensively
     config.module.rules.push({
-      test: /[\\/](__tests__|__mocks__)[\\/].*\.(ts|tsx|js|jsx)$/,
-      type: 'javascript/auto', 
-      use: 'null-loader',
+      test: /[\\/](tests|__tests__|test|__mocks__|__snapshots__)[\\/].*\.(ts|tsx|js|jsx)$/,
+      loader: 'null-loader',
     });
 
     // Exclude Jest config files
     config.module.rules.push({
-      test: /jest\.(config|setup)\.(ts|js|mjs)$/,
-      type: 'javascript/auto',
-      use: 'null-loader',
+      test: /(jest|testing)\.?(config|setup|utils)\.(ts|js|mjs)$/,
+      loader: 'null-loader',
+    });
+
+    // Exclude any file in a directory named __tests__ or similar
+    config.module.rules.push({
+      test: (filePath: string) => {
+        return /[\\/](tests|__tests__|test|__mocks__|__snapshots__)[\\/]/.test(filePath);
+      },
+      loader: 'null-loader',
     });
 
     // Optimize bundle size by analyzing what's included
@@ -190,8 +196,10 @@ const nextConfig: NextConfig = {
   // Generate ETags for static assets
   generateEtags: true,
 
-  // Page extensions - exclude test files by not including test extensions
-  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'],
+  // Page extensions - explicitly exclude test files
+  pageExtensions: ['ts', 'tsx', 'js', 'jsx', 'md', 'mdx'].filter(ext => 
+    !ext.includes('test') && !ext.includes('spec')
+  ),
 
   // Strict mode for React
   reactStrictMode: true,

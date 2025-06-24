@@ -5,26 +5,15 @@ import { verifyLinkingToken } from '@/lib/account-linking';
 import { AccountLinkingForm } from '@/components/auth/account-linking-form';
 import { GlassCard } from '@/components/ui/glass-card';
 
-interface PageProps {
-  searchParams: {
-    token?: string;
-    provider?: string;
-    email?: string;
-    message?: string;
-  };
-}
-
-interface ContentProps {
-  searchParams: {
-    token?: string;
-    provider?: string;
-    email?: string;
-    message?: string;
-  };
-}
-
-export async function AccountLinkingContent({ searchParams }: ContentProps) {
-  const { token, provider, email, message } = searchParams;
+// Update the type for searchParams to be a Promise
+async function AccountLinkingContent({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  // Await the searchParams Promise
+  const resolvedParams = await searchParams;
+  
+  const token = typeof resolvedParams.token === 'string' ? resolvedParams.token : Array.isArray(resolvedParams.token) ? resolvedParams.token[0] : undefined;
+  const provider = typeof resolvedParams.provider === 'string' ? resolvedParams.provider : Array.isArray(resolvedParams.provider) ? resolvedParams.provider[0] : undefined;
+  const email = typeof resolvedParams.email === 'string' ? resolvedParams.email : Array.isArray(resolvedParams.email) ? resolvedParams.email[0] : undefined;
+  const message = typeof resolvedParams.message === 'string' ? resolvedParams.message : Array.isArray(resolvedParams.message) ? resolvedParams.message[0] : undefined;
 
   // Validate required parameters
   if (!token || !provider || !email) {
@@ -88,7 +77,8 @@ export async function AccountLinkingContent({ searchParams }: ContentProps) {
   );
 }
 
-export default function AccountLinkingPage({ searchParams }: PageProps) {
+// Update the type for searchParams to be a Promise
+export default function AccountLinkingPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
