@@ -6,17 +6,25 @@ import { AccountLinkingForm } from '@/components/auth/account-linking-form';
 import { GlassCard } from '@/components/ui/glass-card';
 
 interface PageProps {
-  searchParams: Promise<{
+  searchParams: {
     token?: string;
     provider?: string;
     email?: string;
     message?: string;
-  }>;
+  };
 }
 
-async function AccountLinkingContent({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const { token, provider, email, message } = params;
+interface ContentProps {
+  searchParams: {
+    token?: string;
+    provider?: string;
+    email?: string;
+    message?: string;
+  };
+}
+
+export async function AccountLinkingContent({ searchParams }: ContentProps) {
+  const { token, provider, email, message } = searchParams;
 
   // Validate required parameters
   if (!token || !provider || !email) {
