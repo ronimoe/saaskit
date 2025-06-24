@@ -215,7 +215,7 @@ export default function CheckoutSuccess() {
   if (isLoading) {
     return (
       <div className="text-center">
-        <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-purple-600" />
+        <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-purple-600" data-testid="loading-spinner" />
         <h1 className="text-2xl font-bold mb-2">Processing your subscription...</h1>
         <p className="text-gray-600">Please wait while we confirm your subscription.</p>
       </div>
