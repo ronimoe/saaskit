@@ -161,10 +161,16 @@ async function updateDatabaseSubscription(
     let userId: string | null = null;
     let profileId: string | null = null;
 
-    const { data: existingSubscriptionArr } = await supabase
+    const { data: existingSubscriptionArr, error: subscriptionError } = await supabase
       .from('subscriptions')
       .eq('stripe_customer_id', stripeCustomerId)
       .select('user_id, profile_id');
+    
+    if (subscriptionError) {
+      console.error(`[STRIPE SYNC] Error fetching existing subscription:`, subscriptionError);
+      throw subscriptionError;
+    }
+    
     const existingSubscription = existingSubscriptionArr?.[0];
 
     if (existingSubscription) {

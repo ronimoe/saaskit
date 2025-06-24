@@ -145,7 +145,7 @@ export function BreadcrumbSeparator({
 }) {
   return (
     <span className={cn("text-muted-foreground", className)} aria-hidden="true">
-      {children || <ChevronRight className="h-4 w-4" />}
+      {children || <ChevronRight className="h-4 w-4" role="img" aria-hidden="true" />}
     </span>
   );
 }
