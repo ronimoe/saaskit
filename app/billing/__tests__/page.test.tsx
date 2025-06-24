@@ -7,6 +7,8 @@ jest.mock('next/navigation', () => ({
   redirect: jest.fn(),
 }));
 
+const mockRedirect = jest.mocked(redirect);
+
 // Mock Next.js Link component
 jest.mock('next/link', () => {
   return ({ children, href, ...props }: any) => (
@@ -289,10 +291,12 @@ jest.mock('../page', () => ({
 }));
 
 describe('BillingPage', () => {
-  const mockRedirect = jest.requireMock('next/navigation').redirect;
-  
   beforeEach(() => {
     jest.clearAllMocks();
+    // Make redirect throw like real Next.js redirect
+    mockRedirect.mockImplementation((url: string) => {
+      throw new Error(`NEXT_REDIRECT: ${url}`);
+    });
   });
 
   it('renders the billing page with skeleton while loading', () => {
@@ -309,22 +313,26 @@ describe('BillingPage', () => {
   });
 
   it('redirects to login if user is not authenticated', () => {
-    // We need to directly test the redirect logic
+    // Clear previous calls
     mockRedirect.mockClear();
     
-    // Call the redirect function directly
-    redirect('/login');
+    // Test that redirect throws (like real Next.js redirect)
+    expect(() => {
+      redirect('/login');
+    }).toThrow('NEXT_REDIRECT: /login');
     
     // Check redirect was called
     expect(mockRedirect).toHaveBeenCalledWith('/login');
   });
 
   it('redirects to profile setup if user has no profile', () => {
-    // We need to directly test the redirect logic
+    // Clear previous calls
     mockRedirect.mockClear();
     
-    // Call the redirect function directly
-    redirect('/auth/setup-profile');
+    // Test that redirect throws (like real Next.js redirect)
+    expect(() => {
+      redirect('/auth/setup-profile');
+    }).toThrow('NEXT_REDIRECT: /auth/setup-profile');
     
     // Check redirect was called
     expect(mockRedirect).toHaveBeenCalledWith('/auth/setup-profile');

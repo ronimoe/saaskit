@@ -1,139 +1,144 @@
 /**
  * Test suite for lib/stripe.ts
- * Testing re-export functionality and module structure
+ * Testing re-export functionality with proper coverage
  */
 
+// First, unmock the stripe module so we can test the real re-exports
+jest.unmock('@/lib/stripe');
+
+// Mock the dependencies before importing
+jest.mock('@/lib/stripe-client', () => ({
+  getStripe: jest.fn().mockResolvedValue({ id: 'mock-stripe-client' })
+}));
+
+jest.mock('@/lib/stripe-server', () => ({
+  stripe: { id: 'mock-stripe-server' }
+}));
+
+jest.mock('@/lib/stripe-plans', () => ({
+  SUBSCRIPTION_PLANS: { pro: { name: 'Pro Plan' } },
+  formatPrice: jest.fn((amount) => `$${amount / 100}`),
+  getPlanByPriceId: jest.fn((priceId) => 'pro')
+}));
+
 describe('Stripe Module Re-exports', () => {
-  describe('Module Loading', () => {
-    it('should load without errors', () => {
-      expect(() => {
-        require('@/lib/stripe')
-      }).not.toThrow()
-    })
-
-    it('should export stripe instance (available in test environment)', () => {
-      const stripeModule = require('@/lib/stripe')
+  describe('Re-export functionality', () => {
+    it('should re-export getStripe from stripe-client', async () => {
+      const { getStripe } = await import('@/lib/stripe');
       
-      // Check that the main stripe export is available (this is consistently mocked)
-      expect(stripeModule).toHaveProperty('stripe')
-      expect(stripeModule.stripe).toBeDefined()
-    })
-
-    it('should be a proper module object', () => {
-      const stripeModule = require('@/lib/stripe')
-      expect(typeof stripeModule).toBe('object')
-      expect(stripeModule).toBeDefined()
-    })
-  })
-
-  describe('Available Exports Validation', () => {
-    it('should have stripe server instance available', async () => {
-      const { stripe } = await import('@/lib/stripe')
-      expect(stripe).toBeDefined()
-      expect(typeof stripe).toBe('object')
-    })
-
-    it('should handle missing exports gracefully in test environment', async () => {
-      const stripeModule = await import('@/lib/stripe')
+      expect(getStripe).toBeDefined();
+      expect(typeof getStripe).toBe('function');
       
-      // Test that we can access exports without throwing, even if they're undefined
-      const { getStripe, SUBSCRIPTION_PLANS, formatPrice, getPlanByPriceId } = stripeModule
-      
-      // These might be undefined in test env, but accessing them shouldn't throw
-      expect(typeof getStripe).toMatch(/function|undefined/)
-      expect(SUBSCRIPTION_PLANS === undefined || typeof SUBSCRIPTION_PLANS === 'object').toBe(true)
-      expect(typeof formatPrice).toMatch(/function|undefined/)
-      expect(typeof getPlanByPriceId).toMatch(/function|undefined/)
-    })
-  })
+      const result = await getStripe();
+      expect(result).toEqual({ id: 'mock-stripe-client' });
+    });
 
-  describe('Export Structure', () => {
-    it('should maintain expected module structure', () => {
-      const stripeModule = require('@/lib/stripe')
+    it('should re-export stripe from stripe-server', async () => {
+      const { stripe } = await import('@/lib/stripe');
       
-      // Module should be an object with exports
-      expect(typeof stripeModule).toBe('object')
-      expect(stripeModule).not.toBe(null)
+      expect(stripe).toBeDefined();
+      expect(stripe).toEqual({ id: 'mock-stripe-server' });
+    });
+
+    it('should re-export SUBSCRIPTION_PLANS from stripe-plans', async () => {
+      const { SUBSCRIPTION_PLANS } = await import('@/lib/stripe');
       
-      // Should have at least the stripe instance (consistently available)
-      expect('stripe' in stripeModule).toBe(true)
-    })
-  })
+      expect(SUBSCRIPTION_PLANS).toBeDefined();
+      expect(SUBSCRIPTION_PLANS).toEqual({ pro: { name: 'Pro Plan' } });
+    });
 
-  describe('Type Exports', () => {
-    it('should allow importing type definitions without runtime errors', () => {
-      // TypeScript types don't exist at runtime, but the module should load
-      expect(() => {
-        const stripeModule = require('@/lib/stripe')
-        // Types like StripeCustomer, StripeSubscription, SubscriptionPlan are compile-time only
-        expect(stripeModule).toBeDefined()
-      }).not.toThrow()
-    })
-  })
+    it('should re-export formatPrice from stripe-plans', async () => {
+      const { formatPrice } = await import('@/lib/stripe');
+      
+      expect(formatPrice).toBeDefined();
+      expect(typeof formatPrice).toBe('function');
+      
+      const result = formatPrice(2000);
+      expect(result).toBe('$20');
+    });
 
-  describe('Import Patterns', () => {
-    it('should support named imports', async () => {
-      // Test that named imports work correctly
-      try {
-        const { stripe, getStripe, SUBSCRIPTION_PLANS, formatPrice, getPlanByPriceId } = await import('@/lib/stripe')
-        
-        expect(stripe).toBeDefined()
-        expect(typeof getStripe).toBe('function')
-        expect(SUBSCRIPTION_PLANS).toBeDefined()
-        expect(typeof formatPrice).toBe('function')
-        expect(typeof getPlanByPriceId).toBe('function')
-      } catch (error) {
-        // This might fail in test environment due to dependencies, but the module structure should be valid
-        expect(error).toBeDefined()
-      }
-    })
+    it('should re-export getPlanByPriceId from stripe-plans', async () => {
+      const { getPlanByPriceId } = await import('@/lib/stripe');
+      
+      expect(getPlanByPriceId).toBeDefined();
+      expect(typeof getPlanByPriceId).toBe('function');
+      
+      const result = getPlanByPriceId('price_123');
+      expect(result).toBe('pro');
+    });
+  });
+
+  describe('Named imports', () => {
+    it('should support destructured imports', async () => {
+      const { 
+        stripe, 
+        getStripe, 
+        SUBSCRIPTION_PLANS, 
+        formatPrice, 
+        getPlanByPriceId 
+      } = await import('@/lib/stripe');
+      
+      expect(stripe).toBeDefined();
+      expect(getStripe).toBeDefined();
+      expect(SUBSCRIPTION_PLANS).toBeDefined();
+      expect(formatPrice).toBeDefined();
+      expect(getPlanByPriceId).toBeDefined();
+    });
 
     it('should support namespace import', async () => {
-      try {
-        const StripeModule = await import('@/lib/stripe')
-        
-        // Verify the module has the expected structure
-        expect(typeof StripeModule).toBe('object')
-        expect(StripeModule).toHaveProperty('stripe')
-        expect(StripeModule).toHaveProperty('getStripe')
-        expect(StripeModule).toHaveProperty('SUBSCRIPTION_PLANS')
-        expect(StripeModule).toHaveProperty('formatPrice')
-        expect(StripeModule).toHaveProperty('getPlanByPriceId')
-      } catch (error) {
-        // Expected in test environment
-        expect(error).toBeDefined()
-      }
-    })
-  })
+      const StripeModule = await import('@/lib/stripe');
+      
+      expect(StripeModule).toHaveProperty('stripe');
+      expect(StripeModule).toHaveProperty('getStripe');
+      expect(StripeModule).toHaveProperty('SUBSCRIPTION_PLANS');
+      expect(StripeModule).toHaveProperty('formatPrice');
+      expect(StripeModule).toHaveProperty('getPlanByPriceId');
+    });
+  });
 
-  describe('Module Integration', () => {
-    it('should maintain proper export relationships', () => {
-      // Test that the re-exports maintain proper relationships
-      const stripeModule = require('@/lib/stripe')
+  describe('Module structure', () => {
+    it('should maintain proper export structure', async () => {
+      const stripeModule = await import('@/lib/stripe');
       
-      // Verify that exports are not undefined (even if they fail due to env)
-      expect(stripeModule.getStripe !== undefined || stripeModule.getStripe === undefined).toBe(true)
-      expect(stripeModule.stripe !== undefined || stripeModule.stripe === undefined).toBe(true)
-      expect(stripeModule.SUBSCRIPTION_PLANS !== undefined || stripeModule.SUBSCRIPTION_PLANS === undefined).toBe(true)
-      expect(stripeModule.formatPrice !== undefined || stripeModule.formatPrice === undefined).toBe(true)
-      expect(stripeModule.getPlanByPriceId !== undefined || stripeModule.getPlanByPriceId === undefined).toBe(true)
-    })
+      // Verify all expected exports are present
+      const expectedExports = [
+        'stripe',
+        'getStripe', 
+        'SUBSCRIPTION_PLANS',
+        'formatPrice',
+        'getPlanByPriceId'
+      ];
+      
+      expectedExports.forEach(exportName => {
+        expect(stripeModule).toHaveProperty(exportName);
+      });
+    });
 
-    it('should handle module loading gracefully in test environment', () => {
-      // This test ensures the module can be required without throwing
-      // even if some dependencies might not be fully available in test env
-      let moduleLoaded = false
+    it('should be a proper ES module', () => {
+      // This test ensures the module can be required in CommonJS style too
+      expect(() => {
+        const stripeModule = require('@/lib/stripe');
+        expect(typeof stripeModule).toBe('object');
+        expect(stripeModule).not.toBeNull();
+      }).not.toThrow();
+    });
+  });
+
+  describe('Function execution', () => {
+    it('should execute re-exported functions correctly', async () => {
+      const { formatPrice, getPlanByPriceId } = await import('@/lib/stripe');
       
-      try {
-        require('@/lib/stripe')
-        moduleLoaded = true
-      } catch (error) {
-        // If it fails, it should be due to environment issues, not syntax
-        expect(error).toBeDefined()
-      }
+      // Test that the functions actually work through the re-export
+      expect(formatPrice(1000)).toBe('$10');
+      expect(getPlanByPriceId('test_price')).toBe('pro');
+    });
+
+    it('should handle async re-exported functions', async () => {
+      const { getStripe } = await import('@/lib/stripe');
       
-      // Either it loads successfully or fails gracefully
-      expect(typeof moduleLoaded).toBe('boolean')
-    })
-  })
-}) 
+      // Test async function through re-export
+      const result = await getStripe();
+      expect(result).toEqual({ id: 'mock-stripe-client' });
+    });
+  });
+}); 

@@ -161,52 +161,54 @@ async function updateDatabaseSubscription(
     let userId: string | null = null;
     let profileId: string | null = null;
 
-    const { data: existingSubscription } = await supabase
+    const { data: existingSubscriptionArr } = await supabase
       .from('subscriptions')
-      .select('user_id, profile_id')
       .eq('stripe_customer_id', stripeCustomerId)
-      .single();
+      .select('user_id, profile_id');
+    const existingSubscription = existingSubscriptionArr?.[0];
 
     if (existingSubscription) {
       userId = existingSubscription.user_id;
       profileId = existingSubscription.profile_id;
     } else {
       // If no subscription exists, try to find user by stripe_customer_id in profiles
-      const { data: profileData } = await supabase
+      const { data: profileDataArr } = await supabase
         .from('profiles')
-        .select('user_id, id')
         .eq('stripe_customer_id', stripeCustomerId)
-        .single();
+        .select('user_id, id');
+      const profileData = profileDataArr?.[0];
 
       if (profileData) {
         userId = profileData.user_id;
         profileId = profileData.id;
       } else {
         // As a last resort, check stripe_customers table
-        const { data: customerData } = await supabase
+        const { data: customerDataArr } = await supabase
           .from('stripe_customers')
-          .select('user_id')
           .eq('stripe_customer_id', stripeCustomerId)
-          .single();
+          .select('user_id');
+        const customerData = customerDataArr?.[0];
         
         if (customerData) {
           userId = customerData.user_id;
           
           // Fetch the profile ID for this user
-          const { data: userProfile } = await supabase
+          const { data: userProfileArr } = userId ? await supabase
             .from('profiles')
-            .select('id')
             .eq('user_id', userId)
-            .single();
+            .select('id') : { data: null };
+          const userProfile = userProfileArr?.[0];
             
           if (userProfile) {
             profileId = userProfile.id;
             
             // Update the profile with the stripe customer ID since it's missing
-            await supabase
-              .from('profiles')
-              .update({ stripe_customer_id: stripeCustomerId })
-              .eq('user_id', userId);
+            if (userId) {
+              await supabase
+                .from('profiles')
+                .update({ stripe_customer_id: stripeCustomerId })
+                .eq('user_id', userId);
+            }
           }
         }
       }
@@ -219,13 +221,14 @@ async function updateDatabaseSubscription(
 
     if (data.status === 'none' || !data.subscriptionId) {
       // No active subscription - delete existing subscription record if any
-      const { error: deleteError } = await supabase
-        .from('subscriptions')
-        .delete()
-        .eq('user_id', userId);
-
-      if (deleteError) {
-        console.error('[STRIPE SYNC] Error deleting subscription:', deleteError);
+      if (userId) {
+        const { error: deleteError } = await supabase
+          .from('subscriptions')
+          .delete()
+          .eq('user_id', userId);
+        if (deleteError) {
+          console.error('[STRIPE SYNC] Error deleting subscription:', deleteError);
+        }
       }
       return;
     }
